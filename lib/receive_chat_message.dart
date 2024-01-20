@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-class ChatMessage extends StatelessWidget {
+class ReceiveChatMessage extends StatelessWidget {
   final String txt;
-  const ChatMessage(this.txt, {Key? key}) : super(key: key);
+  const ReceiveChatMessage(this.txt, {Key? key}) : super(key: key);
 
 
   @override
@@ -22,7 +22,7 @@ class ChatMessage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("ID", style: TextStyle(fontWeight: FontWeight.bold)),
+                Text("Dr.GPT", style: TextStyle(fontWeight: FontWeight.bold)),
                 Stack(
                   children: [
                     Positioned(
