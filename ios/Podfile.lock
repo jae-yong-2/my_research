@@ -1,21 +1,33 @@
 PODS:
+  - activity_recognition_flutter (0.0.1):
+    - Flutter
   - Flutter (1.0.0)
   - pedometer (0.0.1):
     - Flutter
+  - permission_handler_apple (9.1.1):
+    - Flutter
 
 DEPENDENCIES:
+  - activity_recognition_flutter (from `.symlinks/plugins/activity_recognition_flutter/ios`)
   - Flutter (from `Flutter`)
   - pedometer (from `.symlinks/plugins/pedometer/ios`)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
 
 EXTERNAL SOURCES:
+  activity_recognition_flutter:
+    :path: ".symlinks/plugins/activity_recognition_flutter/ios"
   Flutter:
     :path: Flutter
   pedometer:
     :path: ".symlinks/plugins/pedometer/ios"
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
 
 SPEC CHECKSUMS:
+  activity_recognition_flutter: fd735b9927d94b9a7c1165cc9b2e430034d8e230
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   pedometer: 381969883680ade42559782cc41a3bbd453d8234
+  permission_handler_apple: e76247795d700c14ea09e3a2d8855d41ee80a2e6
 
 PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
 

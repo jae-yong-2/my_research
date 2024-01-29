@@ -2,6 +2,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:my_research/chat_page.dart';
+import 'package:my_research/foreground_service.dart';
 import 'package:my_research/profile.dart';
 
 class PageNavigation extends StatefulWidget {
@@ -16,6 +17,7 @@ class _PageNavigationState extends State<PageNavigation> {
   final List<Widget> _pages = [
     Profile(),
     ChatPage(),
+    ForegroundServiceAPI(),
   ];
 
   void _onItemTapped(int index) {
@@ -42,6 +44,10 @@ class _PageNavigationState extends State<PageNavigation> {
           BottomNavigationBarItem(
             icon: Icon(Icons.chat),
             label: '채팅',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: '세팅',
           ),
         ],
         currentIndex: _selectedIndex,

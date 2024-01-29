@@ -12,7 +12,7 @@ class Profile extends StatelessWidget {
         body: Column(
           children: [IconButton(
               icon: Icon(Icons.send, color: Colors.blue),
-              onPressed: () => MyBackground(),
+              onPressed: () => ForegroundServiceAPI(),
             ),Text("profile")
           ],
         )
