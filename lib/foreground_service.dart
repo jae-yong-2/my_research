@@ -2,29 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_foreground_service/flutter_foreground_service.dart';
 import 'package:pedometer/pedometer.dart';
 
-void main() {
-  runApp(MyApp());
-}
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
 
+class MyBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: MyHomePage(),
+      home: MyTask(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
-
+class MyTask extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _MyTaskState createState() => _MyTaskState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyTaskState extends State<MyTask> {
   String _stepCountValue = 'Unknown';
 
   @override
@@ -38,7 +32,7 @@ class _MyHomePageState extends State<MyHomePage> {
     ForegroundService().start();
   }
   void stopForegroundService() async {
-    ForegroundService().stop();
+    ForegroundService().start();
   }
 
   void initPedometer() {
@@ -55,9 +49,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      'Steps: $_stepCountValue',
-      style: Theme.of(context).textTheme.headline4
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Pedometer in Foreground Service'),
+      ),
+      body: Center(
+        child: Text(
+          'Steps: $_stepCountValue',
+          style: Theme.of(context).textTheme.headline4,
+        ),
+      ),
     );
   }
 }

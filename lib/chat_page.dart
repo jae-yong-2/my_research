@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:my_research/receive_chat_message.dart';
+import 'package:my_research/chat_message.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -11,7 +11,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController textEditingController = TextEditingController();
-  final List<ReceiveChatMessage> chat = [];
+  final List chat = [];
   final ScrollController scrollController = ScrollController();
 
   @override
@@ -23,8 +23,9 @@ class _ChatPageState extends State<ChatPage> {
 
   void handleSubmitted(String text) {
     Logger().d(text);
+
     if (text.trim().isNotEmpty) {
-      ReceiveChatMessage newChat = ReceiveChatMessage(text);
+      ChatMessage newChat = ChatMessage(text,true,true);
       setState(() {
         chat.add(newChat);
         scrollToBottom();

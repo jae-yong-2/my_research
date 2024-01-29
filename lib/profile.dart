@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:my_research/foreground_service.dart';
 
 class Profile extends StatelessWidget {
   const Profile({super.key});
@@ -8,7 +9,13 @@ class Profile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       child: Scaffold(
-        body: Text("profile"),
+        body: Column(
+          children: [IconButton(
+              icon: Icon(Icons.send, color: Colors.blue),
+              onPressed: () => MyBackground(),
+            ),Text("profile")
+          ],
+        )
       ),
     );
   }
