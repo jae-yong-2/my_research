@@ -1,6 +1,14 @@
+import 'dart:convert';
+// import 'dart:html';
+
+import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:my_research/Const.dart';
 import 'package:my_research/chat_message.dart';
+import 'package:http/http.dart' as http;
+
+
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -13,6 +21,15 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController textEditingController = TextEditingController();
   final List chat = [];
   final ScrollController scrollController = ScrollController();
+  final _openAI = OpenAI.instance.build(
+      token: API_KEY,
+      baseOption:  HttpSetup(
+        receiveTimeout:  const Duration(
+          seconds: 5,
+        ),
+      ),
+    enableLog: true,
+  );
 
   @override
   void dispose() {
@@ -21,7 +38,11 @@ class _ChatPageState extends State<ChatPage> {
     super.dispose();
   }
 
-  void handleSubmitted(String text) {
+  Future<String> getChatResponse(String m) async{
+    return m;
+  }
+
+  Future<void> handleSubmitted(String text) async {
     Logger().d(text);
 
     if (text.trim().isNotEmpty) {
@@ -32,6 +53,18 @@ class _ChatPageState extends State<ChatPage> {
       });
     }
     textEditingController.clear();
+
+    // GPT API 호출
+    try {
+      String gpt3Response = await getChatResponse(text);
+      ChatMessage gptMessage = ChatMessage(gpt3Response, false, false);
+      setState(() {
+        chat.add(gptMessage);
+        scrollToBottom();
+      });
+    } catch (e) {
+      Logger().e("Error fetching GPT-3 response: $e");
+    }
   }
 
   void scrollToBottom() {

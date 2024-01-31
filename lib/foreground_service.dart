@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_service/flutter_foreground_service.dart';
-import 'package:pedometer/pedometer.dart';
 import 'dart:async';
 import 'dart:io';
-
 import 'package:activity_recognition_flutter/activity_recognition_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-
 
 
 class ForegroundServiceAPI extends StatelessWidget {
@@ -30,7 +26,7 @@ class _MyTaskState extends State<MyTask> {
   String _statusMesssge = '작동안함';
 
   StreamSubscription<ActivityEvent>? activityStreamSubscription;
-  List<ActivityEvent> _events = [];
+  final List<ActivityEvent> _events = [];
   ActivityRecognition activityRecognition = ActivityRecognition();
 
   @override
@@ -115,30 +111,33 @@ class _MyTaskState extends State<MyTask> {
         title: Text(_statusMesssge),
       ),
       body:
-      Center(
-        child: Row(
-          children: [
-            Center(child:Text("인식 중")),
-            ListView.builder(
-                itemCount: _events.length,
-                reverse: true,
-                itemBuilder: (_, int idx) {
-                  var activity = _events[idx];
-                  return ListTile(
-                    leading: _activityIcon(activity.type),
-                    title: Text(
-                        '${activity.type.toString().split('.').last} (${activity.confidence}%)'),
-                    trailing: Text(activity.timeStamp
-                        .toString()
-                        .split(' ')
-                        .last
-                        .split('.')
-                        .first),
-                  );
-                }),
-          ],
+        Center(
+          child: Row(
+            children: [
+              Expanded( // 또는 Flexible
+                child: ListView.builder(
+                    itemCount: _events.length,
+                    reverse: true,
+                    itemBuilder: (_, int idx) {
+                      var activity = _events[idx];
+                      return ListTile(
+                        leading: _activityIcon(activity.type),
+                        title: Text(
+                            '${activity.type.toString().split('.').last} (${activity.confidence}%)'),
+                        trailing: Text(activity.timeStamp
+                            .toString()
+                            .split(' ')
+                            .last
+                            .split('.')
+                            .first),
+                      );
+                    }
+                  // ListView.builder 코드
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
     );
   }
 }

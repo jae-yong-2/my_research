@@ -41,7 +41,7 @@ class ChatMessage extends StatelessWidget {
                         angle: isMyTurn ? 0.1 : -0.1,
                         child: CustomPaint(
                           painter: TrianglePainter(isMyTurn,isCurrentUser),
-                          child: Container(
+                          child: SizedBox(
                             height: 20,
                             width: 20,
                           ),
