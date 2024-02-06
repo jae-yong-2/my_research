@@ -38,5 +38,12 @@
             android:permission="android.permission.BIND_JOB_SERVICE"
             android:exported="true"/>
         <service android:name="dk.cachet.activity_recognition_flutter.ForegroundService" />
+        <service
+            android:name="id.flutter.flutter_background_service.BackgroundService"
+            android:foregroundServiceType="health"
+            />
+        <service
+            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+            android:stopWithTask="true" />
     </application>
 </manifest>
