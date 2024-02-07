@@ -4,6 +4,8 @@ import 'dart:isolate';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:my_research/local_notification.dart';
 
 class ForegroundServiceAPI extends StatefulWidget {
   const ForegroundServiceAPI({super.key});
@@ -63,16 +65,28 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
   WithForegroundTask build(BuildContext context) => WithForegroundTask(
       child: Scaffold(
         appBar: AppBar(title: Text("Foreground Task 2023"),),
-        body: Center(
-          child: TextButton(
+        body: Column(
+          children: [
+            TextButton(
             child: Text("update"),
             onPressed: () async{
               FlutterForegroundTask.updateService(
                 notificationTitle: "update",
                 notificationText: "update_txt",
-              );
-            },
-          ),
+                );
+              },
+            ),
+            ElevatedButton.icon(
+              icon: Icon(Icons.notifications),
+              onPressed: (){
+                LocalNotification.showOngoingNotification(
+                    title: "onging",
+                    body: "onging",
+                    payload: "onging");
+              },
+              label: Text("ongoing Notification"),
+            ),
+          ]
         ),
         floatingActionButton: FloatingActionButton(
           child: !isRun
