@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -16,6 +15,7 @@ class ForegroundServiceAPI extends StatefulWidget {
 
 class _ForegroundServiceState extends State<ForegroundServiceAPI> {
 
+  static int i=0;
   void _initForegroundTask() {
     FlutterForegroundTask.init(
       androidNotificationOptions: AndroidNotificationOptions(
@@ -81,8 +81,12 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
               onPressed: (){
                 LocalNotification.showOngoingNotification(
                     title: "onging",
-                    body: "onging",
+                    body: "$i onging",
                     payload: "onging");
+
+                Timer.periodic(Duration(seconds: 1), (timer) {
+                  print('안녕');
+                });
               },
               label: Text("ongoing Notification"),
             ),
@@ -118,9 +122,6 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
 void startCallback() {
   // The setTaskHandler function must be called to handle the task in the background.
   print('실행');
-  Timer.periodic(Duration(seconds: 1), (timer) {
-    print('안녕');
-  });
   FlutterForegroundTask.setTaskHandler(FirstTaskHandler());
 }
 

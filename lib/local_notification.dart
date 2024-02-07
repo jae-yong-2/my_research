@@ -36,9 +36,30 @@ class LocalNotification{
         priority: Priority.high,
         ongoing: true,
         autoCancel: false);
+
     const NotificationDetails notificationDetails =
     NotificationDetails(android: androidNotificationDetails);
     await _flutterLocalNotificationsPlugin.show(
         0, title, body, notificationDetails, payload: payload);
   }
+//update 기능
+  // static Future showOngoingUpdateNotification({
+  //   required String title,
+  //   required String body,
+  //   required String payload,
+  // }) async {
+  //
+  //   const AndroidNotificationDetails androidNotificationDetails =
+  //   AndroidNotificationDetails(
+  //       'ongoing', 'ongoing',
+  //       channelDescription: 'ongoing',
+  //       importance: Importance.max,
+  //       priority: Priority.high,
+  //       ongoing: true,
+  //       autoCancel: false,
+  //       channelAction: AndroidNotificationChannelAction.update);
+  //   const NotificationDetails notificationDetails = NotificationDetails(android: androidNotificationDetails);
+  //   await _flutterLocalNotificationsPlugin.show( 0, title, body, notificationDetails, payload: payload);
+  // }
+
 }
