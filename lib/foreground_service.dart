@@ -84,9 +84,6 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
                     body: "$i onging",
                     payload: "onging");
 
-                Timer.periodic(Duration(seconds: 1), (timer) {
-                  print('안녕');
-                });
               },
               label: Text("ongoing Notification"),
             ),
@@ -144,6 +141,7 @@ class FirstTaskHandler extends TaskHandler {
   void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
     // Send data to the main isolate.
     sendPort?.send(timestamp);
+    // print("안녕");
   }
 
   // Called when the notification button on the Android platform is pressed.
