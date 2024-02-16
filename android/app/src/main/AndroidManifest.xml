@@ -45,5 +45,8 @@
         <service
             android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
             android:stopWithTask="true" />
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
     </application>
 </manifest>
