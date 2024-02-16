@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:my_research/local_notification.dart';
+import 'package:workmanager/workmanager.dart';
 
 class ForegroundServiceAPI extends StatefulWidget {
   const ForegroundServiceAPI({super.key});
@@ -22,8 +23,8 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
         channelId: 'foreground_service',
         channelName: 'Foreground Service Notification',
         channelDescription: 'This notification appears when the foreground service is running.',
-        channelImportance: NotificationChannelImportance.LOW,
-        priority: NotificationPriority.LOW,
+        channelImportance: NotificationChannelImportance.HIGH,
+        priority: NotificationPriority.HIGH,
         iconData: const NotificationIconData(
           resType: ResourceType.mipmap,
           resPrefix: ResourcePrefix.ic,
@@ -57,6 +58,11 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
       if(this.mounted) return;
       setState(() {});
     });
+    // Workmanager().registerPeriodicTask(
+    //   "test2",
+    //   "backup",
+    //   frequency: Duration(minutes: 15),
+    // );
   }
 
   bool isRun =false;
@@ -68,12 +74,20 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
         body: Column(
           children: [
             TextButton(
-            child: Text("update"),
+            child: Text("주기적 실행"),
             onPressed: () async{
-              FlutterForegroundTask.updateService(
-                notificationTitle: "update",
-                notificationText: "update_txt",
+                Workmanager().registerPeriodicTask(
+                  "test1",
+                  "backup",
+                  initialDelay: Duration(seconds: 1),
+                  frequency: Duration(minutes: 15),
                 );
+              },
+            ),
+            TextButton(
+              child: Text("주기적 실행 종료"),
+              onPressed: () async{
+                Workmanager().cancelAll();
               },
             ),
             ElevatedButton.icon(
@@ -82,8 +96,8 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
                 LocalNotification.showOngoingNotification(
                     title: "onging",
                     body: "$i onging",
-                    payload: "onging");
-
+                    payload: "onging"
+                );
               },
               label: Text("ongoing Notification"),
             ),
