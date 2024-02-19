@@ -55,7 +55,7 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
     _initForegroundTask();
     Future.microtask(() async{
       isRun = await FlutterForegroundTask.isRunningService;
-      if(this.mounted) return;
+      if(mounted) return;
       setState(() {});
     });
     // Workmanager().registerPeriodicTask(
@@ -72,21 +72,19 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
       child: Scaffold(
         appBar: AppBar(title: Text("Foreground Task 2023"),),
         body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
           children: [
             TextButton(
-            child: Text("주기적 실행"),
+            child: Text("주기적 실행",textAlign: TextAlign.center,),
             onPressed: () async{
-                Workmanager().registerPeriodicTask(
-                  "test1",
-                  "backup",
-                  initialDelay: Duration(seconds: 1),
-                  frequency: Duration(minutes: 15),
-                );
+                _scheduleWork();
               },
             ),
             TextButton(
-              child: Text("주기적 실행 종료"),
+              child: Text("주기적 실행 종료",textAlign: TextAlign.center,),
               onPressed: () async{
+                print("실행 종료");
                 Workmanager().cancelAll();
               },
             ),
@@ -95,7 +93,7 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
               onPressed: (){
                 LocalNotification.showOngoingNotification(
                     title: "onging",
-                    body: "$i onging",
+                    body: "onging",
                     payload: "onging"
                 );
               },
@@ -126,6 +124,22 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
         ),
       )
   );
+
+  //스케줄 코드
+  void _scheduleWork() {
+
+    Workmanager().registerOneOffTask(
+      "simpleTask",
+      "simpleTask",
+      initialDelay: Duration(seconds: 10),
+    );
+    Workmanager().registerPeriodicTask(
+      "simpleTask",
+      "simpleTask",
+      initialDelay: Duration(seconds: 1),
+      frequency: Duration(minutes: 15),
+    );
+  }
 }
 
 // The callback function should always be a top-level function.
@@ -177,4 +191,5 @@ class FirstTaskHandler extends TaskHandler {
     //FlutterForegroundTask.launchApp("/resume-route");
     _sendPort?.send('onNotificationPressed');
   }
+
 }

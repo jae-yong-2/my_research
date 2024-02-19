@@ -6,16 +6,22 @@ import 'package:my_research/page_navigation.dart';
 import 'package:workmanager/workmanager.dart';
 
 void callbackDispatcher() {
+
   Workmanager().executeTask((task, inputData) {
     // 여기서 백그라운드 작업을 실행
     print("작업이름 : $task");
+    LocalNotification.showOngoingNotification(
+        title: "background",
+        body: "background",
+        payload: "background"
+    );
     return Future.value(true);
   });
 }
 void main() async{
   WidgetsFlutterBinding.ensureInitialized(); // 바인딩 초기화
   await Workmanager().initialize(
-    callbackDispatcher, // 백그라운드 작업을 처리할 함수
+    callbackDispatcher// 백그라운드 작업을 처리할 함수
   );
   await LocalNotification.init();
   runApp(MyApp());
