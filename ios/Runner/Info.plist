@@ -8,7 +8,8 @@
 	</array>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
     <array>
-    <string>simpleTask</string>
+    <string>simpleTaskOne</string>
+    <string>simpleTaskMany</string>
     </array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
