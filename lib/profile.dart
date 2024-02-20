@@ -1,4 +1,6 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:my_research/saveData.dart';
 
 class Profile extends StatelessWidget {
   const Profile({super.key});
@@ -31,8 +33,20 @@ class Profile extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 // 데이터 처리 로직
+                SaveData().saveData();
               },
               child: Text('저장하기'),
+              style: ElevatedButton.styleFrom(
+                // primary: Colors.blue, // 버튼 색상
+                // onPrimary: Colors.white, // 텍스트 색상
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // 데이터 처리 로직
+                SaveData().deleteData();
+              },
+              child: Text('삭제하기'),
               style: ElevatedButton.styleFrom(
                 // primary: Colors.blue, // 버튼 색상
                 // onPrimary: Colors.white, // 텍스트 색상

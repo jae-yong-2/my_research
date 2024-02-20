@@ -54,6 +54,7 @@ class DefaultFirebaseOptions {
     appId: '1:381487851738:android:ba4b1d91b3d1b21d395de3',
     messagingSenderId: '381487851738',
     projectId: 'my-research-cdfdc',
+    databaseURL: 'https://my-research-cdfdc-default-rtdb.firebaseio.com',
     storageBucket: 'my-research-cdfdc.appspot.com',
   );
 
@@ -62,6 +63,7 @@ class DefaultFirebaseOptions {
     appId: '1:381487851738:ios:1a8e88c58a868179395de3',
     messagingSenderId: '381487851738',
     projectId: 'my-research-cdfdc',
+    databaseURL: 'https://my-research-cdfdc-default-rtdb.firebaseio.com',
     storageBucket: 'my-research-cdfdc.appspot.com',
     iosBundleId: 'com.example.myResearch',
   );

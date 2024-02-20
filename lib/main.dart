@@ -60,8 +60,11 @@ void main() async{
       // );
     }
   });
-  await LocalNotification.init();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  //firebase
+  await Firebase.initializeApp();
+
+  await LocalNotification.init();
   runApp(MyApp());
 }
 

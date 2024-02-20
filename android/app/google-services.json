@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "381487851738",
+    "firebase_url": "https://my-research-cdfdc-default-rtdb.firebaseio.com",
     "project_id": "my-research-cdfdc",
     "storage_bucket": "my-research-cdfdc.appspot.com"
   },
