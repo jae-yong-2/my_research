@@ -5,12 +5,10 @@
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>dev.flutter.background.refresh</string>
+        <string>simpleTask</string>
+        <string>simpleTaskOne</string>
+        <string>simpleTaskMany</string>
 	</array>
-	<key>BGTaskSchedulerPermittedIdentifiers</key>
-    <array>
-    <string>simpleTaskOne</string>
-    <string>simpleTaskMany</string>
-    </array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

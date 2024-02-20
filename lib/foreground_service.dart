@@ -128,15 +128,14 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
   //스케줄 코드
   void _scheduleWork() {
 
-    Workmanager().registerOneOffTask(
-      "simpleTask",
-      "simpleTask",
-      initialDelay: Duration(seconds: 10),
-    );
+    // Workmanager().registerOneOffTask(
+    //   "simpleTaskOne",
+    //   "simpleTaskOne",
+    //   initialDelay: Duration(seconds: 10),
+    // );
     Workmanager().registerPeriodicTask(
       "simpleTask",
       "simpleTask",
-      initialDelay: Duration(seconds: 1),
       frequency: Duration(minutes: 15),
     );
   }

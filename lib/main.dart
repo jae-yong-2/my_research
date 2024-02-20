@@ -21,7 +21,7 @@ void callbackDispatcher() {
 void main() async{
   WidgetsFlutterBinding.ensureInitialized(); // 바인딩 초기화
   await Workmanager().initialize(
-    callbackDispatcher// 백그라운드 작업을 처리할 함수
+    callbackDispatcher, isInDebugMode: true// 백그라운드 작업을 처리할 함수
   );
   await LocalNotification.init();
   runApp(MyApp());

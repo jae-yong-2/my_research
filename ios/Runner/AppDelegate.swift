@@ -12,8 +12,9 @@ import workmanager
     SwiftFlutterForegroundTaskPlugin.setPluginRegistrantCallback(registerPlugins)
     WorkmanagerPlugin.register(with: self.registrar(forPlugin: "be.tramckrijte.workmanager.WorkmanagerPlugin")!)
     // In AppDelegate.application method
-    WorkmanagerPlugin.registerTask(withIdentifier: "simpleTaskOne")
-    WorkmanagerPlugin.registerTask(withIdentifier: "simpleTaskMany")
+    WorkmanagerPlugin.registerTask(withIdentifier: "simpleTask")
+//     WorkmanagerPlugin.registerTask(withIdentifier: "simpleTaskOne")
+//     WorkmanagerPlugin.registerTask(withIdentifier: "simpleTaskMany")
     UIApplication.shared.setMinimumBackgroundFetchInterval(TimeInterval(60*15))
     if #available(iOS 10.0, *) {
       UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
