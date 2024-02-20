@@ -34,8 +34,8 @@ class Profile extends StatelessWidget {
               },
               child: Text('저장하기'),
               style: ElevatedButton.styleFrom(
-                primary: Colors.blue, // 버튼 색상
-                onPrimary: Colors.white, // 텍스트 색상
+                // primary: Colors.blue, // 버튼 색상
+                // onPrimary: Colors.white, // 텍스트 색상
               ),
             ),
             SizedBox(height: 10),
