@@ -1,58 +1,136 @@
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:my_research/saveData.dart';
+import 'package:firebase_database/firebase_database.dart';
 
-class Profile extends StatelessWidget {
-  const Profile({super.key});
+class Profile extends StatefulWidget {
+  const Profile({Key? key}) : super(key: key);
+
+  @override
+  _ProfileState createState() => _ProfileState();
+}
+
+class _ProfileState extends State<Profile> {
+  final TextEditingController _habitController = TextEditingController();
+  final TextEditingController _bodyIssueController = TextEditingController();
+  final SaveData _saveDataInstance = SaveData();
+
+  @override
+  void dispose() {
+    _habitController.dispose();
+    _bodyIssueController.dispose();
+    super.dispose();
+  }
+
+  void _saveData() {
+    // 사용자 입력을 Map 형태로 SaveData 클래스에 전달
+    final userData = {
+      "습관 및 자세": _habitController.text,
+      "신체 특이 사항": _bodyIssueController.text,
+    };
+
+    SaveData().saveData(userData).then((_) {
+      Fluttertoast.showToast(msg: "저장되었습니다.", gravity: ToastGravity.CENTER);
+    }).catchError((error) {
+      Fluttertoast.showToast(msg: "저장 실패: $error", gravity: ToastGravity.CENTER);
+    });
+  }
+
+  void _deleteData() {
+    // 데이터 삭제 로직을 여기에 구현합니다.
+    SaveData().deleteData().then((_) {
+      Fluttertoast.showToast(msg: "삭제되었습니다.", gravity: ToastGravity.CENTER);
+    }).catchError((error) {
+      Fluttertoast.showToast(msg: "삭제 실패: $error", gravity: ToastGravity.CENTER);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(20), // 전체적인 패딩 추가
+      padding: EdgeInsets.all(20),
       child: Scaffold(
         body: Column(
           children: [
-            SizedBox(height: 10), // 여백 추가
+            SizedBox(height: 10),
             TextFormField(
+              controller: _habitController,
               decoration: InputDecoration(
                 labelText: '평소 습관 및 자세',
                 helperText: '업무나 일상 중 운동 습관 및 자세를 입력하세요.',
                 border: OutlineInputBorder(),
               ),
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.text,
             ),
             SizedBox(height: 10),
             TextFormField(
+              controller: _bodyIssueController,
               decoration: InputDecoration(
                 labelText: '신체 특이 사항',
                 helperText: '평소 통증이 있거나 불편한 부위에 대해서 입력하세요.',
                 border: OutlineInputBorder(),
               ),
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.text,
             ),
+            SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                // 데이터 처리 로직
-                SaveData().saveData();
-              },
+              onPressed: _saveData,
               child: Text('저장하기'),
-              style: ElevatedButton.styleFrom(
-                // primary: Colors.blue, // 버튼 색상
-                // onPrimary: Colors.white, // 텍스트 색상
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // 데이터 처리 로직
-                SaveData().deleteData();
-              },
-              child: Text('삭제하기'),
-              style: ElevatedButton.styleFrom(
-                // primary: Colors.blue, // 버튼 색상
-                // onPrimary: Colors.white, // 텍스트 색상
-              ),
             ),
             SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: _deleteData,
+              child: Text('삭제하기'),
+              style: ElevatedButton.styleFrom(
+                // primary: Colors.red, // 삭제 버튼 색상
+              ),
+            ),SizedBox(height: 8), Expanded(
+              child: Container(
+                // Define the box decoration
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                // Define some padding inside the box
+                padding: EdgeInsets.all(8),
+                // Define a max height for the container
+                constraints: BoxConstraints(maxHeight: 300),
+                // Use a ListView.builder for a scrollable list
+                child: StreamBuilder<DatabaseEvent>(
+                  stream: _saveDataInstance.getUserRecordsStream(),
+                  builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    } else if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
+                      Map<dynamic, dynamic> data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+                      return ListView.builder(
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          String key = data.keys.elementAt(index);
+                          Map entry = data[key];
+                          return Card(
+                            margin: EdgeInsets.symmetric(vertical: 4), // Add margin for each card
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('습관: ${entry['습관 및 자세']}'),
+                                  SizedBox(height: 8), // Space between habit and body issue
+                                  Text('특이사항: ${entry['신체 특이 사항']}'),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    } else {
+                      return Center(child: Text('No user records found.'));
+                    }
+                  },
+                ),
+              ),
+            ),
           ],
         ),
       ),
