@@ -11,7 +11,6 @@ import 'firebase_options.dart';
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // If you're going to use other Firebase services in the background, such as Firestore,
   // make sure you call `initializeApp` before using other Firebase services.
-  await Firebase.initializeApp();
 
   print("Handling a background message: ${message.messageId}");
   // LocalNotification.showOngoingNotification(
@@ -40,11 +39,14 @@ void main() async{
     callbackDispatcher// 백그라운드 작업을 처리할 함수
   );
 
-  //FCM
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  //FCM & Firebase
+  await Firebase.initializeApp();
   // subscribe to topic on each app start-up
+  FirebaseMessaging.instance.requestPermission(
+    badge: true,
+    alert: true,
+    sound: true,
+  );
   await FirebaseMessaging.instance.subscribeToTopic('weather');
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     print('Got a message whilst in the foreground!');
@@ -61,8 +63,6 @@ void main() async{
     }
   });
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  //firebase
-  await Firebase.initializeApp();
 
   await LocalNotification.init();
   runApp(MyApp());
