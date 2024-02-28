@@ -14,7 +14,7 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   final TextEditingController _habitController = TextEditingController();
   final TextEditingController _bodyIssueController = TextEditingController();
-  final SaveData _saveDataInstance = SaveData();
+  final DataContorller _saveDataInstance = DataContorller();
   final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
 
   @override
@@ -31,7 +31,7 @@ class _ProfileState extends State<Profile> {
       "신체 특이 사항": _bodyIssueController.text,
     };
 
-    SaveData().saveData("test","1/2",userData).then((_) {
+    DataContorller().saveData("test","프로필 신체 특이 사항",userData).then((_) {
       Fluttertoast.showToast(msg: "저장되었습니다.", gravity: ToastGravity.CENTER);
     }).catchError((error) {
       Fluttertoast.showToast(msg: "저장 실패: $error", gravity: ToastGravity.CENTER);
@@ -40,7 +40,7 @@ class _ProfileState extends State<Profile> {
 
   void _deleteData() {
     // 데이터 삭제 로직을 여기에 구현합니다.
-    SaveData().deleteData("test","1/2").then((_) {
+    DataContorller().deleteData("test","프로필 신체 특이 사항").then((_) {
       Fluttertoast.showToast(msg: "삭제되었습니다.", gravity: ToastGravity.CENTER);
     }).catchError((error) {
       Fluttertoast.showToast(msg: "삭제 실패: $error", gravity: ToastGravity.CENTER);
@@ -103,7 +103,7 @@ class _ProfileState extends State<Profile> {
                 constraints: BoxConstraints(maxHeight: 300),
                 // Use a ListView.builder for a scrollable list
                 child: StreamBuilder<DatabaseEvent>(
-                  stream: _saveDataInstance.getUserRecordsStream("test","1/2"),
+                  stream: _saveDataInstance.getUserRecordsStream("test","프로필 신체 특이 사항"),
                   builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
                     if (snapshot.hasError) {
                       return Center(child: Text('Error: ${snapshot.error}'));
