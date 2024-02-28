@@ -52,6 +52,10 @@ dependencies:
   cupertino_icons: ^1.0.2
   logger: ^2.0.2
   firebase_database: ^10.4.6
+  http: ^0.13.3
+
+  fluttertoast: ^8.2.4
+  device_info_plus: ^9.1.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

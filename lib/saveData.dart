@@ -1,18 +1,30 @@
 import 'package:firebase_database/firebase_database.dart';
 
-class SaveData{
-  // Firebase Realtime Database의 참조를 생성합니다.
+class SaveData {
   final databaseRef = FirebaseDatabase.instance.ref();
 
-  // 데이터베이스에 값을 저장하는 함수입니다.
-  Future<void> saveData() async {
-    await databaseRef.set({"key": 1});
+  Stream<DatabaseEvent> getUserRecordsStream(String id, String category) {
+    return databaseRef.child("$id/$category").onValue;
   }
 
-  // 데이터베이스에서 값을 삭제하는 함수입니다.
-  Future<void> deleteData() async {
-    await databaseRef.child("key").remove();
-    // 또는 setValue(null)을 사용하여 삭제할 수도 있습니다.
-    // await databaseRef.child("key").setValue(null);
+  Future<void> saveData( String id, String category, Map<String, dynamic> userData) async {
+    await databaseRef.child("$id/$category").push().set(userData);
+  }
+
+  Future<void> deleteData(String id, String category) async {
+    await databaseRef.child("$id/$category").remove();
+  }
+
+  // 사용자 기록을 가져오는 함수
+  Future<Map<String, dynamic>?> getData(String id, String category) async {
+    try {
+      // "userRecords" 아래에 있는 모든 기록을 읽습니다.
+      DatabaseEvent event = await databaseRef.child("$id/$category").once();
+      Map<String, dynamic>? data = event.snapshot.value as Map<String, dynamic>?;
+      return data;
+    } catch (e) {
+      print("Error fetching data: $e");
+      return null;
+    }
   }
 }
