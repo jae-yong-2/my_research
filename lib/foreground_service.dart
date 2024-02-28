@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:my_research/local_notification.dart';
+import 'package:my_research/message_connector.dart';
+import 'package:pedometer/pedometer.dart';
 import 'package:workmanager/workmanager.dart';
 
 class ForegroundServiceAPI extends StatefulWidget {
@@ -49,10 +51,28 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
     );
   }
 
+  StreamSubscription<StepCount>? _stepCountStream;
+  String _steps = 'Unknown';
+
+  void initPlatformState() {
+    _stepCountStream = Pedometer.stepCountStream.listen(
+          (StepCount stepCount) { // 변경된 부분
+        setState(() => _steps = '${stepCount.steps}');
+      },
+      onError: (error) => setState(() => _steps = '걸음수를 가져오는 데 실패했습니다: $error'),
+      cancelOnError: true,
+    );
+  }
+  @override
+  void dispose() {
+    _stepCountStream?.cancel();
+    super.dispose();
+  }
   @override
   void initState() {
     super.initState();
     _initForegroundTask();
+    initPlatformState();
     Future.microtask(() async{
       isRun = await FlutterForegroundTask.isRunningService;
       if(mounted) return;
@@ -88,6 +108,13 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
                 Workmanager().cancelAll();
               },
             ),
+            TextButton(
+              child: Text("서버에 메세지 보내기",textAlign: TextAlign.center,),
+              onPressed: () async{
+                Message_Connector().sendMessage("test");
+              },
+            ),
+            Text('걸음수: $_steps'),
             ElevatedButton.icon(
               icon: Icon(Icons.notifications),
               onPressed: (){
