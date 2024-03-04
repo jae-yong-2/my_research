@@ -4,6 +4,7 @@ class DataContorller {
   final databaseRef = FirebaseDatabase.instance.ref();
 
   Stream<DatabaseEvent> getUserRecordsStream(String id, String category) {
+    print(databaseRef.child("$id/$category").onValue);
     return databaseRef.child("$id/$category").onValue;
   }
 
@@ -32,14 +33,15 @@ class DataContorller {
 
   // 사용자 기록을 가져오는 함수
   Future<Map<String, dynamic>?> getData(String id, String category) async {
-    try {
-      // "userRecords" 아래에 있는 모든 기록을 읽습니다.
-      DatabaseEvent event = await databaseRef.child("$id/$category").once();
-      Map<String, dynamic>? data = event.snapshot.value as Map<String, dynamic>?;
-      return data;
-    } catch (e) {
-      print("Error fetching data: $e");
-      return null;
-    }
+    databaseRef.child('$id/$category').get().then((snapshot) {
+      if (snapshot.exists) {
+        print('데이터가 존재합니다: ${snapshot.value}');
+        return snapshot.value;
+      } else {
+        print('해당 경로에 데이터가 없습니다.');
+      }
+    }).catchError((error) {
+      print('데이터를 가져오는데 실패했습니다: $error');
+    });
   }
 }

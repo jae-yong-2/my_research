@@ -17,7 +17,7 @@ class Message_Connector{
   }
 
   Future<void> sendMessage(String message) async{
-    var url = Uri.parse("https://firstcontainer-qnpwy.run.goorm.site/message/");
+    var url = Uri.parse("http://ljy7802.cafe24.com/message/");
     var response = await http.post(
       url,
       headers: {

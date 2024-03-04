@@ -1,7 +1,7 @@
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:my_research/saveData.dart';
+import 'package:my_research/dataController.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 class Profile extends StatefulWidget {
@@ -14,7 +14,7 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   final TextEditingController _habitController = TextEditingController();
   final TextEditingController _bodyIssueController = TextEditingController();
-  final DataContorller _saveDataInstance = DataContorller();
+  final DataContorller _dataControllerInstance = DataContorller();
   final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
 
   @override
@@ -26,7 +26,7 @@ class _ProfileState extends State<Profile> {
 
   void _saveData() {
     // 사용자 입력을 Map 형태로 SaveData 클래스에 전달
-    final userData = {
+    Map<String, dynamic> userData = {
       "습관 및 자세": _habitController.text,
       "신체 특이 사항": _bodyIssueController.text,
     };
@@ -75,18 +75,21 @@ class _ProfileState extends State<Profile> {
               keyboardType: TextInputType.text,
             ),
             SizedBox(height: 20),
-            ElevatedButton(
+            Row(children: [ElevatedButton(
               onPressed: _saveData,
               child: Text('저장하기'),
             ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _deleteData,
-              style: ElevatedButton.styleFrom(
-                // primary: Colors.red, // 삭제 버튼 색상
+              SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: _deleteData,
+                style: ElevatedButton.styleFrom(
+                  // primary: Colors.red, // 삭제 버튼 색상
+                ),
+                child: Text('삭제하기'),
               ),
-              child: Text('삭제하기'),
+            ],
             ),
+
 
 
             //특이사항을 가져오는 코드
@@ -103,7 +106,7 @@ class _ProfileState extends State<Profile> {
                 constraints: BoxConstraints(maxHeight: 300),
                 // Use a ListView.builder for a scrollable list
                 child: StreamBuilder<DatabaseEvent>(
-                  stream: _saveDataInstance.getUserRecordsStream("test","프로필 신체 특이 사항"),
+                  stream: _dataControllerInstance.getUserRecordsStream("test","프로필 신체 특이 사항"),
                   builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
                     if (snapshot.hasError) {
                       return Center(child: Text('Error: ${snapshot.error}'));

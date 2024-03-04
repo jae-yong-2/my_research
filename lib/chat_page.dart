@@ -1,10 +1,12 @@
 
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:dash_chat_2/dash_chat_2.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:my_research/Const.dart';
+import 'package:my_research/dataController.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -15,30 +17,62 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
 
+  @override
+  void initState() {
+    super.initState();
+    loadChatRecords();
+  }
+
+  List<ChatMessage> _messages = <ChatMessage>[];
+
   final ChatUser _currentUser = ChatUser(id: '1', firstName: 'Me',lastName: '',profileImage: "https://placekitten.com/200/200",);
   final ChatUser _gptChatUser = ChatUser(id: '2', firstName: 'Chat',lastName: 'GPT',profileImage: "https://placekitten.com/200/200",);
-
   final _openAI = OpenAI.instance.build(
       token: API_KEY,
       baseOption: HttpSetup(
           receiveTimeout: const Duration(
-            seconds: 5,
+            seconds: 30,
+          ),
+          sendTimeout: const Duration(
+            seconds: 30,
+          ),
+          connectTimeout: const Duration(
+            seconds: 30,
           ),
       ),
     enableLog: true,
   );
 
-  final List<ChatMessage> _messages = <ChatMessage>[];
+
+
+  Future<void> loadChatRecords() async {
+    final dataController = DataContorller();
+    final stream = dataController.getUserRecordsStream("test", "session_1");
+
+    stream.listen((DatabaseEvent event) {
+      if (event.snapshot.exists) {
+        Map<dynamic, dynamic> data = event.snapshot.value as Map<dynamic, dynamic>;
+        List<ChatMessage> messages = [];
+        data.forEach((key, value) {
+          final message = ChatMessage(
+            text: value["text"],
+            user: value["senderId"] == _currentUser.id ? _currentUser : _gptChatUser,
+            createdAt: DateTime.fromMillisecondsSinceEpoch(value["timestamp"]),
+          );
+          messages.add(message);
+        });
+        messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        setState(() {
+          _messages = messages.reversed.toList();
+        });
+      }
+    });
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color.fromARGB(0, 166, 126, 1),
-        title: const Text("GPT Chat",
-          style: TextStyle(color: Colors.white,
-          ),
-        ),
-      ),
       body: DashChat(
         currentUser: _currentUser,
         onSend: (ChatMessage m){
@@ -77,21 +111,38 @@ class _ChatPageState extends State<ChatPage> {
     setState((){
       _messages.insert(0, m);
     });
-    List<Messages> _messagesHistory = _messages.reversed.map((m){
-      if(m.user == _currentUser){
-        return Messages(role: Role.user, content: m.text);
-      } else {
-        return Messages(role: Role.assistant, content: m.text);
-      }
+
+    final dataController = DataContorller();
+    await dataController.saveData("test", "session_1", {
+      "senderId": m.user.id,
+      "text": m.text,
+      "timestamp": DateTime.now().millisecondsSinceEpoch,
+    });
+    // 최근 5개 메시지만 추출
+    var recentMessages = _messages.take(5).toList().reversed.toList();
+
+    // Messages 객체 리스트 생성
+    List<Messages> messagesHistory = recentMessages.map((m) {
+      return Messages(
+        role: m.user.id == _currentUser.id ? Role.user : Role.assistant,
+        content: m.text,
+      );
     }).toList();
+
     final request = ChatCompleteText(
       model: Gpt4ChatModel(),
-      messages: _messagesHistory,
+      messages: messagesHistory,
       maxToken: 200,
     );
     final response = await _openAI.onChatCompletion(request: request);
     for(var element in response!.choices){
       if (element.message != null){
+
+        await dataController.saveData("test", "session_1", {
+          "senderId": "2",
+          "text": element.message!.content,
+          "timestamp": DateTime.now().millisecondsSinceEpoch,
+        });
         setState(() {
           _messages.insert(
               0,
