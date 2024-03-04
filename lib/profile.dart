@@ -17,6 +17,7 @@ class _ProfileState extends State<Profile> {
   final DataContorller _dataControllerInstance = DataContorller();
   final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
 
+
   @override
   void dispose() {
     _habitController.dispose();
@@ -37,6 +38,24 @@ class _ProfileState extends State<Profile> {
       Fluttertoast.showToast(msg: "저장 실패: $error", gravity: ToastGravity.CENTER);
     });
   }
+
+  void _update() {
+    // 사용자 입력을 Map 형태로 SaveData 클래스에 전달
+    Map<String, dynamic> userData = {
+      "습관 및 자세": _habitController.text,
+      "신체 특이 사항": _bodyIssueController.text,
+    };
+    DataContorller().deleteData("test","프로필 신체 특이 사항").then((_) {
+    }).catchError((error) {
+      Fluttertoast.showToast(msg: "삭제 실패: $error", gravity: ToastGravity.CENTER);
+    });
+    DataContorller().saveData("test","프로필 신체 특이 사항",userData).then((_) {
+    }).catchError((error) {
+      Fluttertoast.showToast(msg: "저장 실패: $error", gravity: ToastGravity.CENTER);
+    });
+    Fluttertoast.showToast(msg: "변경되었습니다.", gravity: ToastGravity.CENTER);
+  }
+
 
   void _deleteData() {
     // 데이터 삭제 로직을 여기에 구현합니다.
@@ -75,19 +94,28 @@ class _ProfileState extends State<Profile> {
               keyboardType: TextInputType.text,
             ),
             SizedBox(height: 20),
-            Row(children: [ElevatedButton(
-              onPressed: _saveData,
-              child: Text('저장하기'),
-            ),
-              SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: _deleteData,
-                style: ElevatedButton.styleFrom(
-                  // primary: Colors.red, // 삭제 버튼 색상
+            Row(
+              children: [
+                ElevatedButton(
+                  onPressed: _saveData,
+                  child: Text('저장하기'),
                 ),
-                child: Text('삭제하기'),
-              ),
-            ],
+                SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: _deleteData,
+                  style: ElevatedButton.styleFrom(
+                    // primary: Colors.red, // 삭제 버튼 색상
+                  ),
+                  child: Text('삭제하기'),
+                ),
+                ElevatedButton(
+                  onPressed:_update,
+                  style: ElevatedButton.styleFrom(
+                    // primary: Colors.red, // 삭제 버튼 색상
+                  ),
+                  child: Text('변경하기'),
+                ),
+              ],
             ),
 
 

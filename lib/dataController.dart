@@ -30,18 +30,9 @@ class DataContorller {
       print("삭제할 데이터가 없습니다.");
     }
   }
-
-  // 사용자 기록을 가져오는 함수
-  Future<Map<String, dynamic>?> getData(String id, String category) async {
-    databaseRef.child('$id/$category').get().then((snapshot) {
-      if (snapshot.exists) {
-        print('데이터가 존재합니다: ${snapshot.value}');
-        return snapshot.value;
-      } else {
-        print('해당 경로에 데이터가 없습니다.');
-      }
-    }).catchError((error) {
-      print('데이터를 가져오는데 실패했습니다: $error');
-    });
+  Future<void> update( String id, String category, Map<String, dynamic> userData) async {
+    deleteData(id, category);
+    saveData(id, category, userData);
   }
+
 }
