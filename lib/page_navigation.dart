@@ -30,6 +30,7 @@ class _PageNavigationState extends State<PageNavigation> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: -4,
       ),
       body: IndexedStack(
         index: _selectedIndex,
