@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -12,16 +14,28 @@ import 'firebase_options.dart';
 void callbackDispatcher() {
 
   Workmanager().executeTask((task, inputData) {
-    // 여기서 백그라운드 작업을 실행
-    print("작업이름 : $task");
+    // 여기서 FCM을 받았을때, 백그라운드 작업(서버에 메세지 보내기)을 실행
+    var title = inputData?["title"];
+    var content = inputData?["content"];
+    print("작업이름 : $task $title $content");
+
     LocalNotification.showOngoingNotification(
-        title: "background",
-        body: "background",
+        title: '$title',
+        body: '$content',
         payload: "background"
     );
+    switch (task) {
+      case Workmanager.iOSBackgroundTask:
+        print("백그라운드 실행 : $task");
+        stderr.writeln("The iOS background fetch was triggered");
+        break;
+    }
+    bool success = true;
+    return Future.value(success);
     return Future.value(true);
   });
 }
+
 void main() async{
   WidgetsFlutterBinding.ensureInitialized(); // 바인딩 초기화
   await Workmanager().initialize(
@@ -30,27 +44,25 @@ void main() async{
 
   //FCM & Firebase
   await Firebase.initializeApp();
+  await FirebaseMessaging.instance.subscribeToTopic('weather');
   // subscribe to topic on each app start-up
   FirebaseMessaging.instance.requestPermission(
     badge: true,
     alert: true,
     sound: true,
   );
-  await FirebaseMessaging.instance.subscribeToTopic('weather');
+  //foreground에서 FCM설정
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     print('Got a message whilst in the foreground!');
     print('Message data: ${message.data}');
 
-    if (message.notification != null) {
-      print('Message also contained a notification: ${message.notification?.title}');
-      print('Message also contained a notification: ${message.notification?.body}');
-      // LocalNotification.showOngoingNotification(
-      //     title: '${message.notification?.title}',
-      //     body: '${message.notification?.body}',
-      //     payload: "background"
-      // );
-    }
-  });
+    LocalNotification.showOngoingNotification(
+        title: '${message.data["title"]} foreground',
+        body: '${message.data["content"]} foreground',
+        payload: "background"
+    );
+    });
+  //background에서 FCM설정
   FirebaseMessaging.onBackgroundMessage(Message_Connector().FCMbackgroundMessage);
 
   await LocalNotification.init();

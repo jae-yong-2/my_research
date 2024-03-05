@@ -18,6 +18,7 @@ class ForegroundServiceAPI extends StatefulWidget {
 
 class _ForegroundServiceState extends State<ForegroundServiceAPI> {
 
+  // foreground service 관련 코드
   static int i=0;
   void _initForegroundTask() {
     FlutterForegroundTask.init(
@@ -41,6 +42,7 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
         showNotification: true,
         playSound: false,
       ),
+      //포어 그라운드 설정 옵션
       foregroundTaskOptions: const ForegroundTaskOptions(
         interval: 5000,
         isOnceEvent: false,
@@ -49,6 +51,28 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
         allowWifiLock: true,
       ),
     );
+  }
+
+// The callback function should always be a top-level function.
+//포어 그라운드 서비스
+  @pragma('vm:entry-point')
+  void startCallback() {
+    // The setTaskHandler function must be called to handle the task in the background.
+    print('실행');
+    FlutterForegroundTask.setTaskHandler(FirstTaskHandler());
+  }
+
+
+  //스케줄 코드
+  void _scheduleWork(String title, String content) {
+
+    Workmanager().registerOneOffTask(
+      "simpleTask",
+      "simpleTask",
+      initialDelay: Duration(seconds: 30),
+      inputData: {"title":title, "contecnt":content},
+    );
+    print("스케줄 등록");
   }
 
   StreamSubscription<StepCount>? _stepCountStream;
@@ -78,11 +102,6 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
       if(mounted) return;
       setState(() {});
     });
-    // Workmanager().registerPeriodicTask(
-    //   "test2",
-    //   "backup",
-    //   frequency: Duration(minutes: 15),
-    // );
   }
 
   bool isRun =false;
@@ -98,7 +117,7 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
             TextButton(
             child: Text("주기적 실행",textAlign: TextAlign.center,),
             onPressed: () async{
-                _scheduleWork();
+                _scheduleWork("title","content");
               },
             ),
             TextButton(
@@ -152,31 +171,9 @@ class _ForegroundServiceState extends State<ForegroundServiceAPI> {
       )
   );
 
-  //스케줄 코드
-  void _scheduleWork() {
-
-    Workmanager().registerOneOffTask(
-      "simpleTask",
-      "simpleTask",
-      initialDelay: Duration(seconds: 10),
-    );
-    Workmanager().registerPeriodicTask(
-      "simpleTask",
-      "simpleTask",
-      initialDelay: Duration(seconds: 1),
-      frequency: Duration(minutes: 15),
-    );
-  }
 }
 
-// The callback function should always be a top-level function.
-@pragma('vm:entry-point')
-void startCallback() {
-  // The setTaskHandler function must be called to handle the task in the background.
-  print('실행');
-  FlutterForegroundTask.setTaskHandler(FirstTaskHandler());
-}
-
+//포어 그라운드 서비스 세팅 ( 시작, 주기, 실행 기능 설정 가능 )
 class FirstTaskHandler extends TaskHandler {
   SendPort? _sendPort;
 
@@ -196,7 +193,7 @@ class FirstTaskHandler extends TaskHandler {
   void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
     // Send data to the main isolate.
     sendPort?.send(timestamp);
-    // print("안녕");
+    print("안녕");
   }
 
   // Called when the notification button on the Android platform is pressed.
