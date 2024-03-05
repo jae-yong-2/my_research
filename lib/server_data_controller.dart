@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 
 import 'local_notification.dart';
 
-class Message_Connector{
+class ServerDataController{
 
   //백그라운드에서 작업할 내용을 작성
   Future<void> FCMbackgroundMessage(RemoteMessage message) async {
@@ -18,6 +18,8 @@ class Message_Connector{
         body: '${message.notification?.body} background',
         payload: "background"
     );
+    sendMessage("background message");
+
   }
 
   Future<void> sendMessage(String message) async{

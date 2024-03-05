@@ -5,8 +5,8 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:my_research/Const.dart';
-import 'package:my_research/dataController.dart';
+import 'package:my_research/const_key.dart';
+import 'package:my_research/firebase_data_controller.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});

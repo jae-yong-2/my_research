@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:my_research/local_notification.dart';
-import 'package:my_research/message_connector.dart';
+import 'package:my_research/server_data_controller.dart';
 import 'package:my_research/page_navigation.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -61,9 +61,10 @@ void main() async{
         body: '${message.data["content"]} foreground',
         payload: "background"
     );
-    });
+    ServerDataController().sendMessage("fore");
+  });
   //background에서 FCM설정
-  FirebaseMessaging.onBackgroundMessage(Message_Connector().FCMbackgroundMessage);
+  FirebaseMessaging.onBackgroundMessage(ServerDataController().FCMbackgroundMessage);
 
   await LocalNotification.init();
   runApp(MyApp());
