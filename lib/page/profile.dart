@@ -14,7 +14,7 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   final TextEditingController _habitController = TextEditingController();
   final TextEditingController _bodyIssueController = TextEditingController();
-  final DataContorller _dataControllerInstance = DataContorller();
+  final DataStore _dataControllerInstance = DataStore();
   final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
 
 
@@ -32,7 +32,7 @@ class _ProfileState extends State<Profile> {
       "신체 특이 사항": _bodyIssueController.text,
     };
 
-    DataContorller().saveData("test","프로필 신체 특이 사항",userData).then((_) {
+    DataStore().saveData("test","프로필 신체 특이 사항",userData).then((_) {
       Fluttertoast.showToast(msg: "저장되었습니다.", gravity: ToastGravity.CENTER);
     }).catchError((error) {
       Fluttertoast.showToast(msg: "저장 실패: $error", gravity: ToastGravity.CENTER);
@@ -45,11 +45,11 @@ class _ProfileState extends State<Profile> {
       "습관 및 자세": _habitController.text,
       "신체 특이 사항": _bodyIssueController.text,
     };
-    DataContorller().deleteData("test","프로필 신체 특이 사항").then((_) {
+    DataStore().deleteData("test","프로필 신체 특이 사항").then((_) {
     }).catchError((error) {
       Fluttertoast.showToast(msg: "삭제 실패: $error", gravity: ToastGravity.CENTER);
     });
-    DataContorller().saveData("test","프로필 신체 특이 사항",userData).then((_) {
+    DataStore().saveData("test","프로필 신체 특이 사항",userData).then((_) {
     }).catchError((error) {
       Fluttertoast.showToast(msg: "저장 실패: $error", gravity: ToastGravity.CENTER);
     });
@@ -59,7 +59,7 @@ class _ProfileState extends State<Profile> {
 
   void _deleteData() {
     // 데이터 삭제 로직을 여기에 구현합니다.
-    DataContorller().deleteData("test","프로필 신체 특이 사항").then((_) {
+    DataStore().deleteData("test","프로필 신체 특이 사항").then((_) {
       Fluttertoast.showToast(msg: "삭제되었습니다.", gravity: ToastGravity.CENTER);
     }).catchError((error) {
       Fluttertoast.showToast(msg: "삭제 실패: $error", gravity: ToastGravity.CENTER);

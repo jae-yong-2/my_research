@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:health/health.dart';
+import 'package:my_research/data/data_store.dart';
 import 'package:my_research/data/server_data_listener.dart';
 import 'package:pedometer/pedometer.dart';
 
@@ -35,7 +36,7 @@ class _BackgroundServiceState extends State<BackgroundServiceTest> {
           _steps = int.parse('${stepCount.steps}');
           if(_oldSteps != _steps) {
             ServerDataListener().sendMessage('$_steps');
-
+            DataStore().saveSharedPreferencesInt("key", _steps);
           }
           _oldSteps=_steps;
         });

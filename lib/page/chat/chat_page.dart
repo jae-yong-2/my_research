@@ -46,7 +46,7 @@ class _ChatPageState extends State<ChatPage> {
 
 
   Future<void> loadChatRecords() async {
-    final dataController = DataContorller();
+    final dataController = DataStore();
     final stream = dataController.getUserRecordsStream("test", "session_1");
 
     stream.listen((DatabaseEvent event) {
@@ -112,7 +112,7 @@ class _ChatPageState extends State<ChatPage> {
       _messages.insert(0, m);
     });
 
-    final dataController = DataContorller();
+    final dataController = DataStore();
     await dataController.saveData("test", "session_1", {
       "senderId": m.user.id,
       "text": m.text,

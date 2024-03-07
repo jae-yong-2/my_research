@@ -1,7 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class DataContorller {
+class DataStore {
   final databaseRef = FirebaseDatabase.instance.ref();
 
   Stream<DatabaseEvent> getUserRecordsStream(String id, String category) {
@@ -35,9 +35,13 @@ class DataContorller {
     deleteData(id, category);
     saveData(id, category, userData);
   }
-  Future<void> saveSharedPreferences(String key, String deviceId) async {
+  Future<void> saveSharedPreferencesString(String key, String value) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString(key, deviceId);
+    await prefs.setString(key, value);
   }
 
+  Future<void> saveSharedPreferencesInt(String key, int value) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(key, value);
+  }
 }
