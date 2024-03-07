@@ -2,11 +2,12 @@
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:my_research/const_key.dart';
-import 'package:my_research/firebase_data_controller.dart';
+
+import '../../data/data_store.dart';
+import '../../package/const_key.dart';
+
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -14,7 +15,6 @@ class ChatPage extends StatefulWidget {
   @override
   State<ChatPage> createState() => _ChatPageState();
 }
-
 class _ChatPageState extends State<ChatPage> {
 
   @override

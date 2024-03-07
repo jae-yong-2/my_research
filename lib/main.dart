@@ -3,44 +3,13 @@ import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:my_research/local_notification.dart';
-import 'package:my_research/server_data_controller.dart';
-import 'package:my_research/page_navigation.dart';
-import 'package:workmanager/workmanager.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'package:my_research/module/local_notification.dart';
+import 'package:my_research/page/page_navigation.dart';
+import 'package:my_research/data/server_data_listener.dart';
 
-//workmanager
-void callbackDispatcher() {
-
-  Workmanager().executeTask((task, inputData) {
-    // 여기서 FCM을 받았을때, 백그라운드 작업(서버에 메세지 보내기)을 실행
-    var title = inputData?["title"];
-    var content = inputData?["content"];
-    print("작업이름 : $task $title $content");
-
-    LocalNotification.showOngoingNotification(
-        title: '$title',
-        body: '$content',
-        payload: "background"
-    );
-    switch (task) {
-      case Workmanager.iOSBackgroundTask:
-        print("백그라운드 실행 : $task");
-        stderr.writeln("The iOS background fetch was triggered");
-        break;
-    }
-    bool success = true;
-    return Future.value(success);
-    return Future.value(true);
-  });
-}
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized(); // 바인딩 초기화
-  await Workmanager().initialize(
-    callbackDispatcher// 백그라운드 작업을 처리할 함수
-  );
 
   //FCM & Firebase
   await Firebase.initializeApp();
@@ -52,7 +21,7 @@ void main() async{
     sound: true,
   );
   //foreground에서 FCM설정
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
     print('Got a message whilst in the foreground!');
     print('Message data: ${message.data}');
 
@@ -61,10 +30,22 @@ void main() async{
         body: '${message.data["content"]} foreground',
         payload: "background"
     );
-    ServerDataController().sendMessage("fore");
+    //
+    // var healthManager = StepCounterService.instance;
+    //
+    // // 오늘 날짜를 기준으로 걸음수 데이터를 가져옵니다.
+    // DateTime now = DateTime.now();
+    // DateTime startDate = DateTime(now.year, now.month, now.day);
+    // DateTime endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    //
+    // int steps = await healthManager.fetchSteps(startDate, endDate);
+    //
+    // // 가져온 걸음수 출력
+    // print('오늘 걸음수: $steps');
+    ServerDataListener().sendMessage("foreground message");
   });
   //background에서 FCM설정
-  FirebaseMessaging.onBackgroundMessage(ServerDataController().FCMbackgroundMessage);
+  FirebaseMessaging.onBackgroundMessage(ServerDataListener().FCMbackgroundMessage);
 
   await LocalNotification.init();
   runApp(MyApp());

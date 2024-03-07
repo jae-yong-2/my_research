@@ -39,6 +39,7 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
+		<string>nearby-interaction</string>
 		<string>processing</string>
 		<string>push-to-talk</string>
 		<string>remote-notification</string>
@@ -60,5 +61,7 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	 <key>NSHealthShareUsageDescription</key>
+     <string>이 앱은 걸음 수와 운동 데이터를 추적하여 당신의 활동 목표를 달성하는데 도움을 주기 위해 건강 데이터에 접근합니다.</string>
 </dict>
 </plist>

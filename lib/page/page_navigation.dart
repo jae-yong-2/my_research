@@ -1,9 +1,10 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:my_research/chat_page.dart';
-import 'package:my_research/foreground_service.dart';
-import 'package:my_research/profile.dart';
+import 'package:my_research/page/Chat/chat_page.dart';
+import 'package:my_research/page/profile.dart';
+
+import 'background_service_test.dart';
 
 class PageNavigation extends StatefulWidget {
   const PageNavigation({super.key});
@@ -17,7 +18,7 @@ class _PageNavigationState extends State<PageNavigation> {
   final List<Widget> _pages = [
     Profile(),
     ChatPage(),
-    ForegroundServiceAPI(),
+    BackgroundServiceTest(),
   ];
 
   void _onItemTapped(int index) {

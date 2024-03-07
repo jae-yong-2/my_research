@@ -1,4 +1,5 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DataContorller {
   final databaseRef = FirebaseDatabase.instance.ref();
@@ -34,15 +35,9 @@ class DataContorller {
     deleteData(id, category);
     saveData(id, category, userData);
   }
-  // SharedPreferences에 디바이스 ID를 저장하는 함수
-  /* saveDeviceId 함수는 SharedPreferences 인스턴스를 비동기적으로 가져온 다음,
-     setString 메서드를 사용하여 'key'라는 키로 deviceId 값을 저장합니다.
-     이 함수를 호출하여 디바이스 ID를 SharedPreferences에 저장할 수 있습니다.
-   */
-  Future<void> saveDeviceId(String deviceId) async {
+  Future<void> saveSharedPreferences(String key, String deviceId) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('key', deviceId);
+    await prefs.setString(key, deviceId);
   }
-}
 
 }

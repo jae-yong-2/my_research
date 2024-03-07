@@ -1,25 +1,27 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
 
-import 'local_notification.dart';
+import '../module/local_notification.dart';
 
-class ServerDataController{
+class ServerDataListener{
 
   //백그라운드에서 작업할 내용을 작성
   Future<void> FCMbackgroundMessage(RemoteMessage message) async {
     // If you're going to use other Firebase services in the background, such as Firestore,
     // make sure you call `initializeApp` before using other Firebase services.
 
+    //key값은 서버에서 보내줌
     print("Handling a background message: ${message.messageId}");
     LocalNotification.showOngoingNotification(
-        title: '${message.notification?.title} background',
-        body: '${message.notification?.body} background',
+        title: '${message.data["title"]} background',
+        body: '${message.data["content"]} background',
         payload: "background"
     );
-    sendMessage("background message");
 
+    sendMessage("background message");
   }
 
   Future<void> sendMessage(String message) async{

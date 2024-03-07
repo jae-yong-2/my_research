@@ -1,7 +1,7 @@
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:my_research/firebase_data_controller.dart';
+import 'package:my_research/data/data_store.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 class Profile extends StatefulWidget {
