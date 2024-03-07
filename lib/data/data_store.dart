@@ -45,12 +45,16 @@ class DataStore {
     await prefs.setInt(key, value);
   }
 
-  Future<String?> getSharedPreferencesString(String key, String value) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString(key);
+  Future<String?> getSharedPreferencesString(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    // 'myKey'에 저장된 값을 가져옵니다. 값이 없으면 null을 반환합니다.
+    final myValue = prefs.getString(key);
+    return myValue;
   }
-  Future<int?> getSharedPreferencesInt(String key, int value) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(key);
+  Future<int?> getSharedPreferencesInt(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    // 'myKey'에 저장된 값을 가져옵니다. 값이 없으면 null을 반환합니다.
+    final myValue = prefs.getInt(key);
+    return myValue;
   }
 }

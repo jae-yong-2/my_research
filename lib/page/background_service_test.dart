@@ -36,7 +36,7 @@ class _BackgroundServiceState extends State<BackgroundServiceTest> {
           _steps = int.parse('${stepCount.steps}');
           if(_oldSteps != _steps) {
             ServerDataListener().sendMessage('$_steps');
-            DataStore().saveSharedPreferencesInt("key", _steps);
+            DataStore().saveSharedPreferencesInt("step", _steps);
           }
           _oldSteps=_steps;
         });

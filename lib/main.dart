@@ -7,6 +7,8 @@ import 'package:my_research/module/local_notification.dart';
 import 'package:my_research/page/page_navigation.dart';
 import 'package:my_research/data/server_data_listener.dart';
 
+import 'data/data_store.dart';
+
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized(); // 바인딩 초기화
@@ -30,19 +32,10 @@ void main() async{
         body: '${message.data["content"]} foreground',
         payload: "background"
     );
-    //
-    // var healthManager = StepCounterService.instance;
-    //
-    // // 오늘 날짜를 기준으로 걸음수 데이터를 가져옵니다.
-    // DateTime now = DateTime.now();
-    // DateTime startDate = DateTime(now.year, now.month, now.day);
-    // DateTime endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
-    //
-    // int steps = await healthManager.fetchSteps(startDate, endDate);
-    //
-    // // 가져온 걸음수 출력
-    // print('오늘 걸음수: $steps');
-    ServerDataListener().sendMessage("foreground message");
+
+    var step = await DataStore().getSharedPreferencesInt("step");
+    print(step);
+    ServerDataListener().sendMessage('$step');
   });
   //background에서 FCM설정
   FirebaseMessaging.onBackgroundMessage(ServerDataListener().FCMbackgroundMessage);

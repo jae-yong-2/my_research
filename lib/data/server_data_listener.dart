@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
+import 'package:my_research/data/data_store.dart';
 
 import '../module/local_notification.dart';
 
@@ -14,14 +16,15 @@ class ServerDataListener{
     // make sure you call `initializeApp` before using other Firebase services.
 
     //key값은 서버에서 보내줌
-    print("Handling a background message: ${message.messageId}");
+    print("Handling a background message: ${message.sentTime}");
     LocalNotification.showOngoingNotification(
         title: '${message.data["title"]} background',
         body: '${message.data["content"]} background',
         payload: "background"
     );
-
-    sendMessage("background message");
+    var step = await DataStore().getSharedPreferencesInt("step");
+    print(step);
+    sendMessage('$step');
   }
 
   Future<void> sendMessage(String message) async{
