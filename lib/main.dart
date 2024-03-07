@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:my_research/module/local_notification.dart';
+import 'package:my_research/module/pedometerAPI.dart';
 import 'package:my_research/page/page_navigation.dart';
 import 'package:my_research/data/server_data_listener.dart';
 
@@ -33,14 +34,17 @@ void main() async{
         payload: "background"
     );
 
-    var step = await DataStore().getSharedPreferencesInt("step");
-    print(step);
-    ServerDataListener().sendMessage('$step');
+
+    final _stepCounterService = PedometerAPI();
+    _stepCounterService.refreshSteps();
+    var step0 = await DataStore().getSharedPreferencesInt("_step");
+    ServerDataListener().sendMessage('$step0');
   });
   //background에서 FCM설정
   FirebaseMessaging.onBackgroundMessage(ServerDataListener().FCMbackgroundMessage);
 
   await LocalNotification.init();
+  PedometerAPI().refreshSteps();
   runApp(MyApp());
 }
 

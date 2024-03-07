@@ -20,7 +20,7 @@ class _BackgroundServiceState extends State<BackgroundServiceTest> {
   @override
   void initState() {
     super.initState();
-    initPedoState();
+    // initPedoState();
     // fetchData();
   }
 // The callback function should always be a top-level function.
@@ -35,7 +35,7 @@ class _BackgroundServiceState extends State<BackgroundServiceTest> {
 
           _steps = int.parse('${stepCount.steps}');
           if(_oldSteps != _steps) {
-            ServerDataListener().sendMessage('$_steps');
+            // ServerDataListener().sendMessage('$_steps');
             DataStore().saveSharedPreferencesInt("step", _steps);
           }
           _oldSteps=_steps;
