@@ -5,6 +5,7 @@ import 'dart:ffi';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
 import 'package:my_research/data/data_store.dart';
+import 'package:my_research/module/pedometerAPI.dart';
 
 import '../module/local_notification.dart';
 
@@ -23,8 +24,11 @@ class ServerDataListener{
         payload: "background"
     );
     var step = await DataStore().getSharedPreferencesInt("step");
-    print(step);
+    final _stepCounterService = PedometerAPI();
+    _stepCounterService.refreshSteps();
+    var step0 = await DataStore().getSharedPreferencesInt("_step");
     sendMessage('$step');
+    sendMessage('$step0 background');
   }
 
   Future<void> sendMessage(String message) async{
