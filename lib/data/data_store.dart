@@ -44,4 +44,13 @@ class DataStore {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt(key, value);
   }
+
+  Future<String?> getSharedPreferencesString(String key, String value) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(key);
+  }
+  Future<int?> getSharedPreferencesInt(String key, int value) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(key);
+  }
 }
