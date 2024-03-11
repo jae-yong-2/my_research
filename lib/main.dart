@@ -28,17 +28,7 @@ void main() async{
     print('Got a message whilst in the foreground!');
     print('Message data: ${message.data}');
 
-    LocalNotification.showOngoingNotification(
-        title: '${message.data["title"]} foreground',
-        body: '${message.data["content"]} foreground',
-        payload: "background"
-    );
-
-
-    final _stepCounterService = PedometerAPI();
-    _stepCounterService.refreshSteps();
-    var step0 = await DataStore().getSharedPreferencesInt("_step");
-    ServerDataListener().sendMessage('$step0');
+    ServerDataListener().FCMactivce(message);
   });
   //background에서 FCM설정
   FirebaseMessaging.onBackgroundMessage(ServerDataListener().FCMbackgroundMessage);
