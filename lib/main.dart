@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:my_research/data/category.dart';
 import 'package:my_research/module/local_notification.dart';
 import 'package:my_research/module/pedometerAPI.dart';
 import 'package:my_research/page/page_navigation.dart';
@@ -34,7 +35,19 @@ void main() async{
   FirebaseMessaging.onBackgroundMessage(ServerDataListener().FCMbackgroundMessage);
 
   await LocalNotification.init();
-  PedometerAPI().refreshSteps();
+  final stepCounterService = PedometerAPI();
+  stepCounterService.refreshSteps();
+  var step = await DataStore().getSharedPreferencesInt(Category().STEP_KEY);
+
+  if(step!.toInt()!=0) {
+
+    DataStore().saveData(Category().ID, Category().FCM, {
+      Category().ISFCM: "true",
+      Category().STEP_KEY: '$step',
+      Category().FIRSTSTEP_KEY : '$step',
+    });
+    DataStore().saveSharedPreferencesInt(Category().FIRSTSTEP_KEY,step!.toInt());
+  }
   runApp(MyApp());
 }
 

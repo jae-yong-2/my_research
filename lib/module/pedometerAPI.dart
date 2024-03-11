@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pedometer/pedometer.dart';
 import 'dart:async';
 
+import '../data/category.dart';
 import '../data/data_store.dart';
 
 class PedometerAPI with WidgetsBindingObserver {
@@ -21,7 +22,7 @@ class PedometerAPI with WidgetsBindingObserver {
     _stepCountSubscription = Pedometer.stepCountStream.listen(
           (event) {
             _steps = event.steps;
-            DataStore().saveSharedPreferencesInt("_step", _steps);
+            DataStore().saveSharedPreferencesInt(Category().STEP_KEY, _steps);
           },
       onError: (error) => print('Pedometer Stream Error: $error'),
       cancelOnError: true,

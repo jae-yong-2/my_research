@@ -10,6 +10,9 @@ class DataStore {
   }
 
   Future<void> saveData( String id, String category, Map<String, dynamic> userData) async {
+    await databaseRef.child("$id/$category").set(userData);
+  }
+  Future<void> saveDataProfile( String id, String category, Map<String, dynamic> userData) async {
     await databaseRef.child("$id/$category").push().set(userData);
   }
 

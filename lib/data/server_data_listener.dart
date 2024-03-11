@@ -4,6 +4,7 @@ import 'dart:ffi';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
+import 'package:my_research/data/category.dart';
 import 'package:my_research/data/data_store.dart';
 import 'package:my_research/module/pedometerAPI.dart';
 
@@ -38,16 +39,25 @@ class ServerDataListener{
   Future<void> FCMactivce(RemoteMessage message) async {
 
     print("Handling a background message: ${message.sentTime}");
-    LocalNotification.showOngoingNotification(
-        title: '${message.data["title"]} background',
-        body: '${message.data["content"]} background',
-        payload: "background"
-    );
-    var step = await DataStore().getSharedPreferencesInt("step");
-    final _stepCounterService = PedometerAPI();
-    _stepCounterService.refreshSteps();
-    var step0 = await DataStore().getSharedPreferencesInt("_step");
-    sendMessage('$step');
-    sendMessage('$step0 background');
+    if(message.data["title"] =="휴대폰 깨우기"){
+      print("${message.data["title"]}  ${message.data["content"]}");
+    }else {
+      LocalNotification.showOngoingNotification(
+          title: '${message.data["title"]} background',
+          body: '${message.data["content"]} background',
+          payload: "background"
+      );
+    }
+    final stepCounterService = PedometerAPI();
+    stepCounterService.refreshSteps();
+    var step = await DataStore().getSharedPreferencesInt(Category().STEP_KEY);
+    Map<String, dynamic> data = {
+      Category().ISFCM :"true",
+      Category().STEP_KEY : '$step',
+      Category().FIRSTSTEP_KEY : "${await DataStore().getSharedPreferencesInt(Category().FIRSTSTEP_KEY)}",
+    };
+    DataStore().saveData(Category().ID, Category().FCM, data);
+    // sendMessage('$step');
+    // sendMessage('$step0 background');
   }
 }

@@ -1,6 +1,7 @@
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:my_research/data/category.dart';
 import 'package:my_research/data/data_store.dart';
 import 'package:firebase_database/firebase_database.dart';
 
@@ -32,7 +33,7 @@ class _ProfileState extends State<Profile> {
       "신체 특이 사항": _bodyIssueController.text,
     };
 
-    DataStore().saveData("test","프로필 신체 특이 사항",userData).then((_) {
+    DataStore().saveDataProfile(Category().ID,Category().BODYPROFILE,userData).then((_) {
       Fluttertoast.showToast(msg: "저장되었습니다.", gravity: ToastGravity.CENTER);
     }).catchError((error) {
       Fluttertoast.showToast(msg: "저장 실패: $error", gravity: ToastGravity.CENTER);
@@ -41,15 +42,15 @@ class _ProfileState extends State<Profile> {
 
   void _update() {
     // 사용자 입력을 Map 형태로 SaveData 클래스에 전달
-    Map<String, dynamic> userData = {
+    var userData = {
       "습관 및 자세": _habitController.text,
       "신체 특이 사항": _bodyIssueController.text,
     };
-    DataStore().deleteData("test","프로필 신체 특이 사항").then((_) {
+    DataStore().deleteData(Category().ID,Category().BODYPROFILE).then((_) {
     }).catchError((error) {
       Fluttertoast.showToast(msg: "삭제 실패: $error", gravity: ToastGravity.CENTER);
     });
-    DataStore().saveData("test","프로필 신체 특이 사항",userData).then((_) {
+    DataStore().saveData(Category().ID,Category().BODYPROFILE,userData).then((_) {
     }).catchError((error) {
       Fluttertoast.showToast(msg: "저장 실패: $error", gravity: ToastGravity.CENTER);
     });
@@ -59,7 +60,7 @@ class _ProfileState extends State<Profile> {
 
   void _deleteData() {
     // 데이터 삭제 로직을 여기에 구현합니다.
-    DataStore().deleteData("test","프로필 신체 특이 사항").then((_) {
+    DataStore().deleteData(Category().ID,Category().BODYPROFILE).then((_) {
       Fluttertoast.showToast(msg: "삭제되었습니다.", gravity: ToastGravity.CENTER);
     }).catchError((error) {
       Fluttertoast.showToast(msg: "삭제 실패: $error", gravity: ToastGravity.CENTER);
@@ -134,7 +135,7 @@ class _ProfileState extends State<Profile> {
                 constraints: BoxConstraints(maxHeight: 300),
                 // Use a ListView.builder for a scrollable list
                 child: StreamBuilder<DatabaseEvent>(
-                  stream: _dataControllerInstance.getUserRecordsStream("test","프로필 신체 특이 사항"),
+                  stream: _dataControllerInstance.getUserRecordsStream(Category().ID,Category().BODYPROFILE),
                   builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
                     if (snapshot.hasError) {
                       return Center(child: Text('Error: ${snapshot.error}'));

@@ -4,6 +4,7 @@ import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:my_research/data/category.dart';
 
 import '../../data/data_store.dart';
 import '../../package/const_key.dart';
@@ -47,7 +48,7 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> loadChatRecords() async {
     final dataController = DataStore();
-    final stream = dataController.getUserRecordsStream("test", "session_1");
+    final stream = dataController.getUserRecordsStream(Category().ID, Category().Chat);
 
     stream.listen((DatabaseEvent event) {
       if (event.snapshot.exists) {
@@ -113,13 +114,14 @@ class _ChatPageState extends State<ChatPage> {
     });
 
     final dataController = DataStore();
-    await dataController.saveData("test", "session_1", {
+    var time = DateTime.now().millisecondsSinceEpoch;
+    await dataController.saveData(Category().ID, '${Category().Chat}/$time', {
       "senderId": m.user.id,
       "text": m.text,
-      "timestamp": DateTime.now().millisecondsSinceEpoch,
+      "timestamp": time,
     });
     // 최근 5개 메시지만 추출
-    var recentMessages = _messages.take(5).toList().reversed.toList();
+    var recentMessages = _messages.take(10).toList().reversed.toList();
 
     // Messages 객체 리스트 생성
     List<Messages> messagesHistory = recentMessages.map((m) {
@@ -137,21 +139,13 @@ class _ChatPageState extends State<ChatPage> {
     final response = await _openAI.onChatCompletion(request: request);
     for(var element in response!.choices){
       if (element.message != null){
-
-        await dataController.saveData("test", "session_1", {
+        time = DateTime.now().millisecondsSinceEpoch;
+        await dataController.saveData(Category().ID, '${Category().Chat}/$time', {
           "senderId": "2",
           "text": element.message!.content,
-          "timestamp": DateTime.now().millisecondsSinceEpoch,
+          "timestamp": time,
         });
         setState(() {
-          _messages.insert(
-              0,
-            ChatMessage(
-                user: _gptChatUser,
-                createdAt: DateTime.now(),
-                text: element.message!.content,
-            ),
-          );
         });
       }
     }

@@ -8,6 +8,8 @@ import 'package:my_research/data/data_store.dart';
 import 'package:my_research/data/server_data_listener.dart';
 import 'package:pedometer/pedometer.dart';
 
+import '../data/category.dart';
+
 class BackgroundServiceTest extends StatefulWidget {
   const BackgroundServiceTest({super.key});
 
@@ -36,7 +38,7 @@ class _BackgroundServiceState extends State<BackgroundServiceTest> {
           _steps = int.parse('${stepCount.steps}');
           if(_oldSteps != _steps) {
             // ServerDataListener().sendMessage('$_steps');
-            DataStore().saveSharedPreferencesInt("step", _steps);
+            DataStore().saveSharedPreferencesInt(Category().STEP_KEY, _steps);
           }
           _oldSteps=_steps;
         });
