@@ -46,7 +46,7 @@ void main() async{
       Category().TOTALSTEP_KEY: '$step',
       Category().FIRSTSTEP_KEY : '$step',
     });
-    DataStore().saveSharedPreferencesInt(Category().FIRSTSTEP_KEY,step!.toInt());
+    DataStore().saveSharedPreferencesInt(Category().FIRSTSTEP_KEY,step.toInt());
   }
   runApp(MyApp());
 }

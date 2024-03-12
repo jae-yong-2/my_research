@@ -28,6 +28,12 @@ class _ProfileState extends State<Profile> {
 
   void _saveData() {
     // 사용자 입력을 Map 형태로 SaveData 클래스에 전달
+    if((_habitController.text!="")||( _bodyIssueController.text!="")||
+        (_habitController.text.isEmpty)||( _bodyIssueController.text.isEmpty)){
+
+      Fluttertoast.showToast(msg: "모든 내용을 채워주세요.", gravity: ToastGravity.CENTER);
+      return;
+    }
     Map<String, dynamic> userData = {
       "습관 및 자세": _habitController.text,
       "신체 특이 사항": _bodyIssueController.text,
