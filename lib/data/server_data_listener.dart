@@ -4,7 +4,7 @@ import 'dart:ffi';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
-import 'package:my_research/data/category.dart';
+import 'package:my_research/data/keystring.dart';
 import 'package:my_research/data/data_store.dart';
 import 'package:my_research/module/pedometerAPI.dart';
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pedometer/pedometer.dart';
 import 'dart:async';
 
-import '../data/category.dart';
+import '../data/keystring.dart';
 import '../data/data_store.dart';
 
 class PedometerAPI with WidgetsBindingObserver {

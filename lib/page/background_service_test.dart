@@ -8,7 +8,7 @@ import 'package:my_research/data/data_store.dart';
 import 'package:my_research/data/server_data_listener.dart';
 import 'package:pedometer/pedometer.dart';
 
-import '../data/category.dart';
+import '../data/keystring.dart';
 
 class BackgroundServiceTest extends StatefulWidget {
   const BackgroundServiceTest({super.key});
