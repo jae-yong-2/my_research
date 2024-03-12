@@ -5,6 +5,7 @@ class Category{
   String ISFCM = "isfcm";
   String Chat = "chat";
   String FIRSTSTEP_KEY = "firststep";
-  String STEP_KEY = "step";
+  String TOTALSTEP_KEY = "totalstep";
+  String STEPHISTORY = "stephistory";
 
 }

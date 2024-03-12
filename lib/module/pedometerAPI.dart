@@ -22,7 +22,7 @@ class PedometerAPI with WidgetsBindingObserver {
     _stepCountSubscription = Pedometer.stepCountStream.listen(
           (event) {
             _steps = event.steps;
-            DataStore().saveSharedPreferencesInt(Category().STEP_KEY, _steps);
+            DataStore().saveSharedPreferencesInt(Category().TOTALSTEP_KEY, _steps);
           },
       onError: (error) => print('Pedometer Stream Error: $error'),
       cancelOnError: true,

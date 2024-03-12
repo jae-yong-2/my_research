@@ -37,13 +37,13 @@ void main() async{
   await LocalNotification.init();
   final stepCounterService = PedometerAPI();
   stepCounterService.refreshSteps();
-  var step = await DataStore().getSharedPreferencesInt(Category().STEP_KEY);
+  var step = await DataStore().getSharedPreferencesInt(Category().TOTALSTEP_KEY);
 
   if(step!.toInt()!=0) {
 
     DataStore().saveData(Category().ID, Category().FCM, {
       Category().ISFCM: "true",
-      Category().STEP_KEY: '$step',
+      Category().TOTALSTEP_KEY: '$step',
       Category().FIRSTSTEP_KEY : '$step',
     });
     DataStore().saveSharedPreferencesInt(Category().FIRSTSTEP_KEY,step!.toInt());

@@ -50,12 +50,13 @@ class ServerDataListener{
     }
     final stepCounterService = PedometerAPI();
     stepCounterService.refreshSteps();
-    var step = await DataStore().getSharedPreferencesInt(Category().STEP_KEY);
+    var step = await DataStore().getSharedPreferencesInt(Category().TOTALSTEP_KEY);
     Map<String, dynamic> data = {
       Category().ISFCM :"true",
-      Category().STEP_KEY : '$step',
+      Category().TOTALSTEP_KEY : '$step',
       Category().FIRSTSTEP_KEY : "${await DataStore().getSharedPreferencesInt(Category().FIRSTSTEP_KEY)}",
     };
+    DataStore().saveData(Category().ID, Category().FCM, data);
     DataStore().saveData(Category().ID, Category().FCM, data);
     // sendMessage('$step');
     // sendMessage('$step0 background');
