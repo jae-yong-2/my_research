@@ -13,6 +13,6 @@ class Category{
   String AGENT = "1";
   String WHO='who';
   String CONTENT="content";
-  String TIMESTEMP="timestamp";
+  String TIMESTAMP="timestamp";
 
 }

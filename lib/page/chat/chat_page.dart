@@ -118,7 +118,7 @@ class _ChatPageState extends State<ChatPage> {
     await dataController.saveData(Category().ID, '${Category().Chat}/$time', {
       Category().CHAT_ID: m.user.id,
       Category().CONTENT: m.text,
-      Category().TIMESTEMP: time,
+      Category().TIMESTAMP: time,
     });
     // 최근 5개 메시지만 추출
     var recentMessages = _messages.take(10).toList().reversed.toList();
@@ -143,7 +143,7 @@ class _ChatPageState extends State<ChatPage> {
         await dataController.saveData(Category().ID, '${Category().Chat}/$time', {
           Category().CHAT_ID: Category().GPT,
           Category().CONTENT: element.message!.content,
-          Category().TIMESTEMP: time,
+          Category().TIMESTAMP: time,
         });
         setState(() {
         });
