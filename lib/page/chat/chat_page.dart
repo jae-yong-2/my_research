@@ -26,8 +26,8 @@ class _ChatPageState extends State<ChatPage> {
 
   List<ChatMessage> _messages = <ChatMessage>[];
 
-  final ChatUser _currentUser = ChatUser(id: '1', firstName: 'Me',lastName: '',profileImage: "https://placekitten.com/200/200",);
-  final ChatUser _gptChatUser = ChatUser(id: '2', firstName: 'Chat',lastName: 'GPT',profileImage: "https://placekitten.com/200/200",);
+  final ChatUser _currentUser = ChatUser(id: Category().AGENT, firstName: 'Me',lastName: '',profileImage: "https://placekitten.com/200/200",);
+  final ChatUser _gptChatUser = ChatUser(id: Category().GPT, firstName: 'Chat',lastName: 'GPT',profileImage: "https://placekitten.com/200/200",);
   final _openAI = OpenAI.instance.build(
       token: API_KEY,
       baseOption: HttpSetup(
@@ -56,8 +56,8 @@ class _ChatPageState extends State<ChatPage> {
         List<ChatMessage> messages = [];
         data.forEach((key, value) {
           final message = ChatMessage(
-            text: value["text"],
-            user: value["senderId"] == _currentUser.id ? _currentUser : _gptChatUser,
+            text: value[Category().CONTENT],
+            user: value[Category().CHAT_ID] == _currentUser.id ? _currentUser : _gptChatUser,
             createdAt: DateTime.fromMillisecondsSinceEpoch(value["timestamp"]),
           );
           messages.add(message);
@@ -116,9 +116,9 @@ class _ChatPageState extends State<ChatPage> {
     final dataController = DataStore();
     var time = DateTime.now().millisecondsSinceEpoch;
     await dataController.saveData(Category().ID, '${Category().Chat}/$time', {
-      "senderId": m.user.id,
-      "text": m.text,
-      "timestamp": time,
+      Category().CHAT_ID: m.user.id,
+      Category().CONTENT: m.text,
+      Category().TIMESTEMP: time,
     });
     // 최근 5개 메시지만 추출
     var recentMessages = _messages.take(10).toList().reversed.toList();
@@ -141,9 +141,9 @@ class _ChatPageState extends State<ChatPage> {
       if (element.message != null){
         time = DateTime.now().millisecondsSinceEpoch;
         await dataController.saveData(Category().ID, '${Category().Chat}/$time', {
-          "senderId": "2",
-          "text": element.message!.content,
-          "timestamp": time,
+          Category().CHAT_ID: Category().GPT,
+          Category().CONTENT: element.message!.content,
+          Category().TIMESTEMP: time,
         });
         setState(() {
         });
