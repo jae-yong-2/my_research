@@ -66,7 +66,7 @@ class _BackgroundServiceState extends State<BackgroundServiceTest> {
             TextButton(
               child: Text("서버에 메세지 보내기",textAlign: TextAlign.center,),
               onPressed: () async{
-                ServerDataListener().sendMessage("test");
+                // ServerDataListener().sendMessage("test");
               },
             ),
             // Text(_pedometerService.steps.toString()),
