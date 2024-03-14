@@ -44,13 +44,13 @@ class ServerDataListener {
   Future<String?> sendGPT(text, category) async {
     // Messages 객체 리스트 생성
     if(category =="wakeup") {
-      text = "1시간동안 움직임이 없었다고 저에게 알려주는 글을 20자 이하로 생성해줘요.";
+      text = "1시간동안 움직임이 없었다고 움직임이 필요하다는 것을 저에게 알려주는 글을 20자 이하로 문장 딱 1개만! 생성해줘요.";
     }
     if(category =="GPTask") {
-      text = "제가 상대방에게 '운동/휴식/귀찮음' 중 하나의 이유로 운동을 하지 않았다고 변명하는 메시지를 20자 이하로 생성해주세요.";
+      text = "제가 상대방에게 '운동/휴식/귀찮음' 중 하나의 이유를 랜덤으로 운동을 하지 않았다고 변명하는 메시지를 20자 이하로 문장 딱 1개만! 생성해주세요.";
     }
     if(category =="agent") {
-      text = "다음 문장을 보고 저에게 움직임을 할 수 있도록 응원의 글을 20자 이하로 응답해줘. $text";
+      text = "다음 문장을 보고 저에게 다음 번에는 움직이도록 유도하는 글을 20자 이하로 문장 딱 1개만! 생성해주세요. $text";
     }
     List<Messages> messagesHistory = [
       Messages(
@@ -115,7 +115,8 @@ class ServerDataListener {
       };
       //FCM이 들어왔을때, 파이어베이스에 값(FCM을 잘 받았는지, 현재까지 걸은것, 어플을 켰을때 초기 걸음수) 저장함.
       await DataStore().saveData(Category().ID, Category().FCM, data);
-      await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: message.data[Category().ISFCM],});
+      //FCM을 받았는지 확인하는 코드
+      await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: message.data[Category().ISFCM]});
       await DataStore().saveData(
           Category().ID, '${Category().STEPHISTORY}/$time',
           {
@@ -223,7 +224,8 @@ class ServerDataListener {
           body: '${message.data["content"]}',
           payload: "background"
       );
-      await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: message.data[Category().ISFCM],});
+      //FCM이 마무리된걸 표시하는 코드
+      await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: message.data[Category().ISFCM]});
       // Map<String, dynamic> data = {
       //   Category().ISFCM :message.data[Category().ISFCM],
       // };
