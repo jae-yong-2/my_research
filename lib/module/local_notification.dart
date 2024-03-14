@@ -34,13 +34,14 @@ class LocalNotification{
         channelDescription: 'ongoing',
         importance: Importance.max,
         priority: Priority.high,
-        ongoing: true,
+        ongoing: false,
         autoCancel: false);
-
+    final int notificationId = DateTime.now().hashCode;
+    print(notificationId);
     const NotificationDetails notificationDetails =
     NotificationDetails(android: androidNotificationDetails);
     await _flutterLocalNotificationsPlugin.show(
-        0, title, body, notificationDetails, payload: payload);
+        notificationId, title, body, notificationDetails, payload: payload);
   }
 //update 기능
   // static Future showOngoingUpdateNotification({
