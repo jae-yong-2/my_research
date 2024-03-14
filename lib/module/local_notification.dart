@@ -35,7 +35,12 @@ class LocalNotification{
         importance: Importance.max,
         priority: Priority.high,
         ongoing: false,
-        autoCancel: false);
+        autoCancel: false,
+        actions: <AndroidNotificationAction>[
+          AndroidNotificationAction('yes', '예'),
+          AndroidNotificationAction('no', '아니오'),
+        ],
+      );
     final int notificationId = DateTime.now().hashCode;
     print(notificationId);
     const NotificationDetails notificationDetails =
