@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:my_research/data/keystring.dart';
 import 'package:my_research/module/local_notification.dart';
 import 'package:my_research/module/pedometerAPI.dart';
+import 'package:my_research/package/firebase_options.dart';
 import 'package:my_research/page/page_navigation.dart';
 import 'package:my_research/data/server_data_listener.dart';
 
@@ -16,7 +17,14 @@ void main() async{
   WidgetsFlutterBinding.ensureInitialized(); // 바인딩 초기화
 
   //FCM & Firebase
-  await Firebase.initializeApp();
+  if (Platform.isIOS) {
+    await Firebase.initializeApp();
+  }
+  if (Platform.isAndroid) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform
+    );
+  }
   await FirebaseMessaging.instance.subscribeToTopic('weather');
   // subscribe to topic on each app start-up
   FirebaseMessaging.instance.requestPermission(
