@@ -43,11 +43,14 @@ class ServerDataListener {
 //GPT에게 원하는 내용 생성
   Future<String?> sendGPT(text, category) async {
     // Messages 객체 리스트 생성
-    if(category =="GPTask") {
-      text = "1시간동안 움직임이 없었다는 표현의 글을 20글자 이하로 응답해줘요. $text";
+    if(category =="wakeup") {
+      text = "1시간동안 움직임이 없었다고 저에게 알려주는 글을 20자 이하로 생성해줘요.";
     }
-    if(category =="GPTanswer") {
-      text = "다음 문장을 보고 저에게 움직임을 할 수 있도록 응원의 글을 20글자 이하로 응답해줘. $text";
+    if(category =="GPTask") {
+      text = "제가 상대방에게 '운동/휴식/귀찮음' 중 하나의 이유로 운동을 하지 않았다고 변명하는 메시지를 20자 이하로 생성해주세요.";
+    }
+    if(category =="agent") {
+      text = "다음 문장을 보고 저에게 움직임을 할 수 있도록 응원의 글을 20자 이하로 응답해줘. $text";
     }
     List<Messages> messagesHistory = [
       Messages(
@@ -95,8 +98,8 @@ class ServerDataListener {
     stepCounterService.refreshSteps();
     var step = await DataStore().getSharedPreferencesInt(
         Category().TOTALSTEP_KEY);
-    String? gptContent = "화이팅 or 왜못함?";
-    String? agentContent = "운동하느라 못했습니다.";
+    String? gptContent = "key가 없거나 오류가 났습니다.";
+    String? agentContent = "key가 없거나 오류가 났습니다.";
     var time = DateTime
         .now()
         .millisecondsSinceEpoch;
@@ -120,10 +123,15 @@ class ServerDataListener {
             Category().TIMESTAMP: time,
           }
       );
+
+
+
       //TODO
       //GPT가 물어볼말 서버에 전달하기
       //gptContent = 지피티에게 왜 운동하지 않았냐? 라는 문구를 생성하도록 요구.
-      // gptContent = await sendGPT(message.data["title"],message.data["isRecord"]);
+      //                                "wakeup"
+      gptContent = await sendGPT(message.data["content"],message.data["isRecord"]);
+
       await DataStore().saveData(
           Category().ID, Category().CONVERSATION,
           {
@@ -144,12 +152,15 @@ class ServerDataListener {
     if (message.data["isRecord"] == "GPTask") {
       //서버에서 지피티의 내용 전달 해주기
       // gptContent 내용 받아오기 (왜 안하셨어요? 라고 묻기) or 응원의 메세지로 묻기
-      gptContent=message.data["title"];
       LocalNotification.showOngoingNotification(
-          title: '$gptContent',
+          title: '${message.data["title"]}',
           body: '${message.data["content"]}',
           payload: "background"
       );
+
+      //TODO
+      //agentContent = {사실 전달} 때문에 못했습니다. 라고 말하기.         "GPTask"
+      agentContent = await sendGPT(message.data["content"],message.data["isRecord"]);
       //agent가 대신할말 서버에 전달하기
       await DataStore().saveData(
           Category().ID, Category().CONVERSATION,
@@ -158,8 +169,7 @@ class ServerDataListener {
             Category().CONTENT: agentContent,
           }
       );
-      //TODO
-      //agentContent = {사실 전달} 때문에 못했습니다. 라고 말하기.
+
       await DataStore().saveData(Category().ID, '${Category().Chat}/$time', {
         Category().CHAT_ID: Category().AGENT,
         Category().CONTENT: agentContent,
@@ -179,15 +189,15 @@ class ServerDataListener {
       //TODO
       //서버에서 agent내용 FCM받기
       //agent
-      agentContent=message.data["title"];
       LocalNotification.showOngoingNotification(
-          title: '$agentContent',
+          title: '${message.data["title"]}',
           body: '${message.data["content"]}',
           payload: "background"
       );
 
       //GPT가 생성한 내용을 서버에 전달
-      gptContent = await sendGPT(message.data["title"],message.data["isRecord"]);
+      //                                                        "agent"
+      gptContent = await sendGPT(message.data["content"],message.data["isRecord"]);
 
       await DataStore().saveData(
           Category().ID, Category().CONVERSATION,
@@ -208,9 +218,8 @@ class ServerDataListener {
     if (message.data["isRecord"] == "GPTanswer") {
       //TODO
       //서버에서 받은 GPT내용 받기
-      gptContent=message.data["title"];
       LocalNotification.showOngoingNotification(
-          title: '$gptContent',
+          title: '${message.data["title"]}',
           body: '${message.data["content"]}',
           payload: "background"
       );
