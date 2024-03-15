@@ -135,6 +135,7 @@ class _ChatPageState extends State<ChatPage> {
       model: Gpt4ChatModel(),
       messages: messagesHistory,
       maxToken: 200,
+      temperature: 1,
     );
     final response = await _openAI.onChatCompletion(request: request);
     for(var element in response!.choices){

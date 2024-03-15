@@ -47,10 +47,10 @@ class ServerDataListener {
       text = "1시간동안 움직임이 없었다고 움직임이 필요하다는 것을 저에게 알려주는 글을 20자 이하로 문장 딱 1개만! 생성해줘요.";
     }
     if(category =="GPTask") {
-      text = "제가 상대방에게 '운동/휴식/귀찮음' 중 하나의 이유를 랜덤으로 운동을 하지 않았다고 변명하는 메시지를 20자 이하로 문장 딱 1개만! 생성해주세요.";
+      text = "제가 상대방에게 '( 업무, 휴식, 귀찮음 )' 중 하나의 이유를 랜덤으로 운동을 하지 않았다고 변명하는 메시지를 20자 이하로 문장 딱 1개만! 생성해주세요.";
     }
     if(category =="agent") {
-      text = "다음 문장을 보고 저에게 다음 번에는 움직이도록 유도하는 글을 20자 이하로 문장 딱 1개만! 생성해주세요. $text";
+      text = "다음 문장을 보고 저에게 잠시 후 움직이도록 유도하는 글을 20자 이하로 문장 딱 1개만! 생성해주세요. $text";
     }
     List<Messages> messagesHistory = [
       Messages(
@@ -62,6 +62,7 @@ class ServerDataListener {
       model: Gpt4ChatModel(),
       messages: messagesHistory,
       maxToken: 200,
+      temperature: 1,
     );
     var time = DateTime
         .now()
