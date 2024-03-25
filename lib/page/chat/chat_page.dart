@@ -26,8 +26,8 @@ class _ChatPageState extends State<ChatPage> {
 
   List<ChatMessage> _messages = <ChatMessage>[];
 
-  final ChatUser _currentUser = ChatUser(id: Category().AGENT, firstName: 'Me',lastName: '',profileImage: "https://placekitten.com/200/200",);
-  final ChatUser _gptChatUser = ChatUser(id: Category().GPT, firstName: 'Chat',lastName: 'GPT',profileImage: "https://placekitten.com/200/200",);
+  final ChatUser _currentUser = ChatUser(id: Category().AGENT, firstName: 'Me',lastName: '',profileImage: "https://cdn-icons-png.flaticon.com/128/149/149071.png",);
+  final ChatUser _gptChatUser = ChatUser(id: Category().GPT, firstName: 'Chat',lastName: 'GPT',profileImage: "https://cdn-icons-png.flaticon.com/128/6667/6667585.png",);
   final _openAI = OpenAI.instance.build(
       token: API_KEY,
       baseOption: HttpSetup(
