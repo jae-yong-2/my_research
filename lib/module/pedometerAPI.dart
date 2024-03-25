@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/utils.dart';
 import 'package:pedometer/pedometer.dart';
 import 'dart:async';
 
@@ -21,7 +22,11 @@ class PedometerAPI with WidgetsBindingObserver {
     _stepCountSubscription?.cancel(); // 기존 구독 취소
     _stepCountSubscription = Pedometer.stepCountStream.listen(
           (event) {
-            _steps = event.steps;
+            if(event.isNull) {
+              _steps = 0;
+            }else {
+              _steps = event.steps;
+            }
             DataStore().saveSharedPreferencesInt(Category().TOTALSTEP_KEY, _steps);
           },
       onError: (error) => print('Pedometer Stream Error: $error'),

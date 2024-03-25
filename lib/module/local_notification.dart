@@ -42,7 +42,6 @@ class LocalNotification {
       ongoing: true,
       autoCancel: false,
       actions: <AndroidNotificationAction>[
-        AndroidNotificationAction('feedback', '피드백하기'),
       ],
     );
 

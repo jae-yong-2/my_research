@@ -54,6 +54,7 @@ class _BackgroundServiceState extends State<FeedbackPage> {
   }
 //
 //   //health kit
+  var content;
   @override
   WithForegroundTask build(BuildContext context) => WithForegroundTask(
       child: Scaffold(
@@ -70,6 +71,7 @@ class _BackgroundServiceState extends State<FeedbackPage> {
                 } else if (snapshot.hasError) {
                   return Text('Error: ${snapshot.error}');
                 } else {
+                  content= snapshot.data;
                   return Text('ChatGPT에게 답장했습니다.\n${snapshot.data}\n\n'); // 'snapshot.data'는 'String?'입니다.
                 }
               },
@@ -90,6 +92,8 @@ class _BackgroundServiceState extends State<FeedbackPage> {
                   ),
                   onPressed: () async {
                     // ServerDataListener().sendMessage("test");
+                    print(content);
+                    //저장하는 코드
                     Navigator.pop(context);
                   },
                   child: Text(
