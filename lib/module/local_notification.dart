@@ -1,71 +1,54 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:my_research/page/feedback.dart';
 
-class LocalNotification{
-  static final FlutterLocalNotificationsPlugin
-    _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+import '../main.dart';
 
-  //알람시작/
-  static Future init()async{
+
+class LocalNotification {
+  static final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
+
+  static Future<void> init() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('@mipmap/ic_launcher');
     final DarwinInitializationSettings initializationSettingsDarwin =
-    DarwinInitializationSettings(
-        onDidReceiveLocalNotification: (id, title, body, payload)=>null);
-    final LinuxInitializationSettings initializationSettingsLinux =
-    LinuxInitializationSettings(
-        defaultActionName: 'Open notification');
+    DarwinInitializationSettings(onDidReceiveLocalNotification: (id, title, body, payload) => null);
     final InitializationSettings initializationSettings = InitializationSettings(
-        android: initializationSettingsAndroid,
-        iOS: initializationSettingsDarwin,
-        linux: initializationSettingsLinux);
-    _flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onDidReceiveNotificationResponse: (details)=> null
-    );
+        android: initializationSettingsAndroid, iOS: initializationSettingsDarwin);
+
+    await _flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onDidReceiveNotificationResponse: (NotificationResponse details) async {
+          // 액션 클릭 처리
+          print("notification 클릭했습니다.");
+            // 컨텍스트 없이 네비게이션하기 위해 navigatorKey 사용
+          navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) => FeedbackPage()));
+
+        });
+    print("notification 을 초기화했습니다.");
   }
-// initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
-  static Future showOngoingNotification({
+
+  static Future<void> showOngoingNotification({
     required String title,
     required String body,
     required String payload,
   }) async {
-    const AndroidNotificationDetails androidNotificationDetails =
-      AndroidNotificationDetails(
-        'ongoing', 'ongoing',
-        channelDescription: 'ongoing',
-        importance: Importance.max,
-        priority: Priority.high,
-        ongoing: false,
-        autoCancel: false,
-        actions: <AndroidNotificationAction>[
-          AndroidNotificationAction('yes', '예'),
-          AndroidNotificationAction('no', '아니오'),
-        ],
-      );
-    final int notificationId = DateTime.now().hashCode;
-    print(notificationId);
-    const NotificationDetails notificationDetails =
-    NotificationDetails(android: androidNotificationDetails);
-    await _flutterLocalNotificationsPlugin.show(
-        notificationId, title, body, notificationDetails, payload: payload);
-  }
-//update 기능
-  // static Future showOngoingUpdateNotification({
-  //   required String title,
-  //   required String body,
-  //   required String payload,
-  // }) async {
-  //
-  //   const AndroidNotificationDetails androidNotificationDetails =
-  //   AndroidNotificationDetails(
-  //       'ongoing', 'ongoing',
-  //       channelDescription: 'ongoing',
-  //       importance: Importance.max,
-  //       priority: Priority.high,
-  //       ongoing: true,
-  //       autoCancel: false,
-  //       channelAction: AndroidNotificationChannelAction.update);
-  //   const NotificationDetails notificationDetails = NotificationDetails(android: androidNotificationDetails);
-  //   await _flutterLocalNotificationsPlugin.show( 0, title, body, notificationDetails, payload: payload);
-  // }
+    const AndroidNotificationDetails androidNotificationDetails = AndroidNotificationDetails(
+      'ongoing',
+      'ongoing',
+      channelDescription: 'ongoing',
+      importance: Importance.min,
+      priority: Priority.max,
+      ongoing: true,
+      autoCancel: false,
+      actions: <AndroidNotificationAction>[
+        AndroidNotificationAction('feedback', '피드백하기'),
+      ],
+    );
 
+    const NotificationDetails notificationDetails = NotificationDetails(android: androidNotificationDetails);
+
+    final int notificationId = DateTime.now().hashCode;
+    await _flutterLocalNotificationsPlugin.show(notificationId, title, body, notificationDetails, payload: payload);
+  }
 }

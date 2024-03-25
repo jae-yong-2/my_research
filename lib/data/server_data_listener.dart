@@ -111,6 +111,7 @@ class ServerDataListener {
     stepCounterService.refreshSteps();
     var step = await DataStore().getSharedPreferencesInt(
         Category().TOTALSTEP_KEY);
+    step=100;
     String? gptContent = "key가 없거나 오류가 났습니다.";
     String? agentContent = "key가 없거나 오류가 났습니다.";
     var time = DateTime
@@ -169,7 +170,7 @@ class ServerDataListener {
       LocalNotification.showOngoingNotification(
           title: '${message.data["title"]}',
           body: '${message.data["content"]}',
-          payload: "background"
+          payload: "feedback"
       );
 
       //TODO
@@ -190,12 +191,6 @@ class ServerDataListener {
         Category().TIMESTAMP: time,
       });
       print("agent");
-      // var data = {
-      //   Category().ISFCM :message.data[Category().ISFCM],
-      // };
-      // //FCM이 들어왔을때, 파이어베이스에 값을 저장함.
-      // DataStore().saveData(Category().ID, Category().FCM, data);
-      // print("GPT");
     }
 
 //--------------------------------------------------------------------------
@@ -206,7 +201,7 @@ class ServerDataListener {
       LocalNotification.showOngoingNotification(
           title: '${message.data["title"]}',
           body: '${message.data["content"]}',
-          payload: "background"
+          payload: "feedback"
       );
 
       //GPT가 생성한 내용을 서버에 전달
@@ -235,18 +230,10 @@ class ServerDataListener {
       LocalNotification.showOngoingNotification(
           title: '${message.data["title"]}',
           body: '${message.data["content"]}',
-          payload: "background"
+          payload: "feedback"
       );
       //FCM이 마무리된걸 표시하는 코드
       await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: message.data[Category().ISFCM]});
-      // Map<String, dynamic> data = {
-      //   Category().ISFCM :message.data[Category().ISFCM],
-      // };
-      // //FCM이 들어왔을때, 파이어베이스에 값을 저장함.
-      // DataStore().saveData(Category().ID, Category().FCM, data);
-
     }
-      // sendMessage('$step');
-      // sendMessage('$step0 background');
   }
 }
