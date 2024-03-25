@@ -93,6 +93,15 @@ class _BackgroundServiceState extends State<FeedbackPage> {
                   onPressed: () async {
                     // ServerDataListener().sendMessage("test");
                     print(content);
+                    await DataStore().saveData(
+                        Category().ID,
+                        Category().ISPREDICTIONCORRECT,
+                          {
+                            Category().CONVERSATION:content,
+                            Category().ISPREDICTIONCORRECT:"true",
+                            Category().TIMESTAMP: await DataStore().getSharedPreferencesString(Category().TIMESTAMP)
+                          }
+                        );
                     //저장하는 코드
                     Navigator.pop(context);
                   },
@@ -121,6 +130,17 @@ class _BackgroundServiceState extends State<FeedbackPage> {
                   ),
                   onPressed: () async {
                     // ServerDataListener().sendMessage("test");
+                    print(content);
+                    await DataStore().saveData(
+                        Category().ID,
+                        Category().ISPREDICTIONCORRECT,
+                        {
+                          Category().CONVERSATION:content,
+                          Category().ISPREDICTIONCORRECT:"false",
+                          Category().TIMESTAMP: await DataStore().getSharedPreferencesString(Category().TIMESTAMP)
+                        }
+                    );
+                    //저장하는 코드
                     Navigator.pop(context);
                   },
                   child: Text(

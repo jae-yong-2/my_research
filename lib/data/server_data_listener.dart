@@ -191,6 +191,7 @@ class ServerDataListener {
         Category().TIMESTAMP: time,
       });
       await DataStore().saveSharedPreferencesString(Category().CONVERSATION, agentContent!);
+      await DataStore().saveSharedPreferencesString(Category().TIMESTAMP, '$time');
       print("agent");
     }
 

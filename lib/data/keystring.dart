@@ -14,5 +14,6 @@ class Category{
   String WHO='who';
   String CONTENT="content";
   String TIMESTAMP="timestamp";
+  String ISPREDICTIONCORRECT="isPredictionCorrect";
 
 }
