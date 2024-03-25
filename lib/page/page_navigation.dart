@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:my_research/page/Chat/chat_page.dart';
 import 'package:my_research/page/profile.dart';
 
-import 'background_service_test.dart';
+import 'feedback.dart';
 
 class PageNavigation extends StatefulWidget {
   const PageNavigation({super.key});
@@ -18,7 +18,6 @@ class _PageNavigationState extends State<PageNavigation> {
   final List<Widget> _pages = [
     Profile(),
     ChatPage(),
-    BackgroundServiceTest(),
   ];
 
   void _onItemTapped(int index) {
@@ -46,10 +45,6 @@ class _PageNavigationState extends State<PageNavigation> {
           BottomNavigationBarItem(
             icon: Icon(Icons.chat),
             label: '채팅',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: '세팅',
           ),
         ],
         currentIndex: _selectedIndex,

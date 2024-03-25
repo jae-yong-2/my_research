@@ -54,7 +54,6 @@ class _BackgroundServiceState extends State<FeedbackPage> {
   }
 //
 //   //health kit
-
   @override
   WithForegroundTask build(BuildContext context) => WithForegroundTask(
       child: Scaffold(
@@ -63,6 +62,18 @@ class _BackgroundServiceState extends State<FeedbackPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.max,
           children: [
+            FutureBuilder<String?>(
+              future: DataStore().getSharedPreferencesString(Category().CONVERSATION),
+              builder: (BuildContext context, AsyncSnapshot<String?> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator(); // 로딩 중인 경우
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else {
+                  return Text('ChatGPT에게 답장했습니다.\n${snapshot.data}\n\n'); // 'snapshot.data'는 'String?'입니다.
+                }
+              },
+            ),
             SizedBox(
               height: 200,
               width: 300,
@@ -79,6 +90,7 @@ class _BackgroundServiceState extends State<FeedbackPage> {
                   ),
                   onPressed: () async {
                     // ServerDataListener().sendMessage("test");
+                    Navigator.pop(context);
                   },
                   child: Text(
                     "맞습니다.",
@@ -105,6 +117,7 @@ class _BackgroundServiceState extends State<FeedbackPage> {
                   ),
                   onPressed: () async {
                     // ServerDataListener().sendMessage("test");
+                    Navigator.pop(context);
                   },
                   child: Text(
                     "틀렸습니다.",
