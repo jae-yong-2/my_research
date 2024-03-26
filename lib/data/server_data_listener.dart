@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:chat_gpt_sdk/src/model/chat_complete/response/message.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:my_research/data/keystring.dart';
 import 'package:my_research/data/data_store.dart';
@@ -111,7 +112,6 @@ class ServerDataListener {
     stepCounterService.refreshSteps();
     var step = await DataStore().getSharedPreferencesInt(
         Category().TOTALSTEP_KEY);
-    step=100;
     String? gptContent = "key가 없거나 오류가 났습니다.";
     String? agentContent = "key가 없거나 오류가 났습니다.";
     var time = DateTime
@@ -138,7 +138,6 @@ class ServerDataListener {
             Category().TIMESTAMP: time,
           }
       );
-
 
 
       //TODO
@@ -170,12 +169,12 @@ class ServerDataListener {
       LocalNotification.showOngoingNotification(
           title: '${message.data["title"]}',
           body: '${message.data["content"]}',
-          payload: "feedback"
+          payload: "1"
       );
 
       //TODO
       //agentContent = {사실 전달} 때문에 못했습니다. 라고 말하기.         "GPTask"
-      agentContent = await sendGPT(message.data["content"],message.data["isRecord"]);
+      var agentContent = await sendGPT(message.data["content"],message.data["isRecord"]);
       //agent가 대신할말 서버에 전달하기
       await DataStore().saveData(
           Category().ID, Category().CONVERSATION,
@@ -184,7 +183,6 @@ class ServerDataListener {
             Category().CONTENT: agentContent,
           }
       );
-
       await DataStore().saveData(Category().ID, '${Category().Chat}/$time', {
         Category().CHAT_ID: Category().AGENT,
         Category().CONTENT: agentContent,
@@ -194,6 +192,7 @@ class ServerDataListener {
       await DataStore().saveSharedPreferencesString(Category().TIMESTAMP, '$time');
       print("agent");
     }
+    // Fluttertoast.showToast(msg: '$agentContent', gravity: ToastGravity.CENTER);
 
 //--------------------------------------------------------------------------
     if (message.data["isRecord"] == "agent") {
@@ -203,7 +202,7 @@ class ServerDataListener {
       LocalNotification.showOngoingNotification(
           title: '${message.data["title"]}',
           body: '${message.data["content"]}',
-          payload: "feedback"
+          payload: "2",
       );
 
       //GPT가 생성한 내용을 서버에 전달
@@ -224,6 +223,7 @@ class ServerDataListener {
         Category().TIMESTAMP: time,
       });
     }
+    // Fluttertoast.showToast(msg: '$gptContent', gravity: ToastGravity.CENTER);
 
 //--------------------------------------------------------------------------
     if (message.data["isRecord"] == "GPTanswer") {
@@ -232,9 +232,10 @@ class ServerDataListener {
       LocalNotification.showOngoingNotification(
           title: '${message.data["title"]}',
           body: '${message.data["content"]}',
-          payload: "feedback"
+          payload: "3"
       );
       //FCM이 마무리된걸 표시하는 코드
+      // Fluttertoast.showToast(msg: message.data["content"], gravity: ToastGravity.CENTER);
       await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: message.data[Category().ISFCM]});
     }
   }

@@ -84,14 +84,14 @@ class _ChatPageState extends State<ChatPage> {
           showCurrentUserAvatar: true,
           showOtherUsersName: true,
           showTime: true,
+          maxWidth: MediaQuery.of(context).size.width * 0.68,
           timeFormat: DateFormat('HH:mm'), // 이 부분이 올바르게 설정되었는지 확인하세요.
         ),
 
         messageListOptions: MessageListOptions(
           dateSeparatorBuilder: (DateTime date) {
-            // 날짜 구분자 커스터마이즈
             return Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0), // 좌우 여백을 추가해주었습니다.
               child: Center(
                 child: Text(
                   DateFormat('yyyy년 MM월 dd일').format(date), // 날짜 포맷 지정
@@ -99,6 +99,7 @@ class _ChatPageState extends State<ChatPage> {
                     fontWeight: FontWeight.bold,
                     color: Colors.grey[600],
                   ),
+                  overflow: TextOverflow.ellipsis, // 오버플로우 발생 시 생략 부호로 처리
                 ),
               ),
             );

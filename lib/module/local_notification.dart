@@ -37,9 +37,9 @@ class LocalNotification {
       'ongoing',
       'ongoing',
       channelDescription: 'ongoing',
-      importance: Importance.min,
+      importance: Importance.max,
       priority: Priority.max,
-      ongoing: true,
+      ongoing: false,
       autoCancel: false,
       actions: <AndroidNotificationAction>[
       ],

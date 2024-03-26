@@ -77,7 +77,7 @@ class _BackgroundServiceState extends State<FeedbackPage> {
               },
             ),
             SizedBox(
-              height: 200,
+              height: 150,
               width: 300,
               child: Container(
                 decoration: BoxDecoration(
@@ -113,9 +113,9 @@ class _BackgroundServiceState extends State<FeedbackPage> {
               ),
             ),
 
-            SizedBox(height: 250),
+            SizedBox(height: 50),
             SizedBox(
-              height: 200,
+              height: 150,
               width: 300,
               child: Container(
                 decoration: BoxDecoration(

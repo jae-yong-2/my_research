@@ -22,11 +22,12 @@ class PedometerAPI with WidgetsBindingObserver {
     _stepCountSubscription?.cancel(); // 기존 구독 취소
     _stepCountSubscription = Pedometer.stepCountStream.listen(
           (event) {
-            if(event.isNull) {
+            if(event.isNull||event.isBlank!) {
               _steps = 0;
             }else {
               _steps = event.steps;
             }
+            print('걸음수 : $_steps');
             DataStore().saveSharedPreferencesInt(Category().TOTALSTEP_KEY, _steps);
           },
       onError: (error) => print('Pedometer Stream Error: $error'),
