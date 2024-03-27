@@ -10,7 +10,7 @@ class DataStore {
   }
 
   Future<void> saveData( String id, String category, Map<String, dynamic> userData) async {
-    await databaseRef.child("$id/$category").set(userData);
+    await databaseRef.child("$id/$category").set(userData ?? "0");
   }
   Future<void> saveDataProfile( String id, String category, Map<String, dynamic> userData) async {
     await databaseRef.child("$id/$category").push().set(userData);
@@ -40,12 +40,12 @@ class DataStore {
   }
   Future<void> saveSharedPreferencesString(String key, String value) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString(key, value);
+    await prefs.setString(key, value ?? "0");
   }
 
   Future<void> saveSharedPreferencesInt(String key, int value) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(key, value);
+    await prefs.setInt(key, value ?? 0);
   }
 
   Future<String?> getSharedPreferencesString(String key) async {

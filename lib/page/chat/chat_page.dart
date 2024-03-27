@@ -3,6 +3,7 @@ import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:my_research/data/keystring.dart';
 
@@ -77,7 +78,8 @@ class _ChatPageState extends State<ChatPage> {
       body: DashChat(
         currentUser: _currentUser,
         onSend: (ChatMessage m){
-          getChatResponse(m);
+          // getChatResponse(m);
+          Fluttertoast.showToast(msg: "현재 기능을 사용할 수 없습니다.");
         },
         messages: _messages,
         messageOptions: MessageOptions(
@@ -87,7 +89,6 @@ class _ChatPageState extends State<ChatPage> {
           maxWidth: MediaQuery.of(context).size.width * 0.68,
           timeFormat: DateFormat('HH:mm'), // 이 부분이 올바르게 설정되었는지 확인하세요.
         ),
-
         messageListOptions: MessageListOptions(
           dateSeparatorBuilder: (DateTime date) {
             return Padding(
