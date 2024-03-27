@@ -153,12 +153,6 @@ class ServerDataListener {
             Category().CONTENT: gptContent,
           }
       );
-      //히스토리 저장
-      await DataStore().saveData(Category().ID, '${Category().Chat}/$time', {
-        Category().CHAT_ID: Category().GPT,
-        Category().CONTENT: gptContent,
-        Category().TIMESTAMP: time,
-      });
 
       //이 문구를 서버에 보내고 기다림
     }
@@ -172,6 +166,13 @@ class ServerDataListener {
           payload: "1"
       );
 
+      //히스토리 저장
+      await DataStore().saveData(Category().ID, '${Category().Chat}/$time', {
+        Category().CHAT_ID: Category().GPT,
+        Category().CONTENT: '${message.data["content"]}',
+        Category().TIMESTAMP: time,
+      });
+
       //TODO
       //agentContent = {사실 전달} 때문에 못했습니다. 라고 말하기.         "GPTask"
       var agentContent = await sendGPT(message.data["content"],message.data["isRecord"]);
@@ -183,11 +184,8 @@ class ServerDataListener {
             Category().CONTENT: agentContent,
           }
       );
-      await DataStore().saveData(Category().ID, '${Category().Chat}/$time', {
-        Category().CHAT_ID: Category().AGENT,
-        Category().CONTENT: agentContent,
-        Category().TIMESTAMP: time,
-      });
+
+      //피드백 페이지를 위한 저장 장소
       await DataStore().saveSharedPreferencesString(Category().CONVERSATION, agentContent!);
       await DataStore().saveSharedPreferencesString(Category().TIMESTAMP, '$time');
       print("agent");
@@ -205,6 +203,12 @@ class ServerDataListener {
           payload: "2",
       );
 
+      //히스토리에 저장
+      await DataStore().saveData(Category().ID, '${Category().Chat}/$time', {
+        Category().CHAT_ID: Category().AGENT,
+        Category().CONTENT: message.data["content"],
+        Category().TIMESTAMP: time,
+      });
       //GPT가 생성한 내용을 서버에 전달
       //                                                        "agent"
       gptContent = await sendGPT(message.data["content"],message.data["isRecord"]);
@@ -217,11 +221,6 @@ class ServerDataListener {
           }
       );
       //agentContent = {사실 전달 } 때문에 못했습니다. 라고 말하기.
-      await DataStore().saveData(Category().ID, '${Category().Chat}/$time', {
-        Category().CHAT_ID: Category().GPT,
-        Category().CONTENT: gptContent,
-        Category().TIMESTAMP: time,
-      });
     }
     // Fluttertoast.showToast(msg: '$gptContent', gravity: ToastGravity.CENTER);
 
@@ -234,9 +233,17 @@ class ServerDataListener {
           body: '${message.data["content"]}',
           payload: "3"
       );
+
+      //히스토리에 저장
+      await DataStore().saveData(Category().ID, '${Category().Chat}/$time', {
+        Category().CHAT_ID: Category().GPT,
+        Category().CONTENT: message.data["content"],
+        Category().TIMESTAMP: time,
+      });
+
       //FCM이 마무리된걸 표시하는 코드
       // Fluttertoast.showToast(msg: message.data["content"], gravity: ToastGravity.CENTER);
-      await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: message.data[Category().ISFCM]});
+      // await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: message.data[Category().ISFCM]});
     }
   }
 }

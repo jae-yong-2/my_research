@@ -10,6 +10,7 @@ import 'package:my_research/module/pedometerAPI.dart';
 import 'package:my_research/package/firebase_options.dart';
 import 'package:my_research/page/page_navigation.dart';
 import 'package:my_research/data/server_data_listener.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'data/data_store.dart';
 import 'package/const_key.dart';
@@ -23,10 +24,15 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   ServerDataListener().FCMactivce(message);
 }
 
+Future<void> _requestPermission() async {
+  var status = await Permission.activityRecognition.status;
+  if (!status.isGranted) {
+    await Permission.activityRecognition.request();
+  }
+}
 void main() async{
   WidgetsFlutterBinding.ensureInitialized(); // 바인딩 초기화
   await LocalNotification.init();
-
   //FCM & Firebase
   if (Platform.isIOS) {
     await Firebase.initializeApp();
@@ -36,7 +42,7 @@ void main() async{
       options: DefaultFirebaseOptions.currentPlatform
     );
   }
-  await FirebaseMessaging.instance.subscribeToTopic('weather');
+  await FirebaseMessaging.instance.subscribeToTopic(Category().ID);
   // subscribe to topic on each app start-up
   FirebaseMessaging.instance.requestPermission(
     badge: true,
@@ -52,6 +58,7 @@ void main() async{
   });
   //background에서 FCM설정
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  await _requestPermission();
 
   final stepCounterService = PedometerAPI();
   stepCounterService.refreshSteps();
@@ -64,17 +71,17 @@ void main() async{
     sound: true,
   );
 
-  if(step!.toInt()!=0) {
-    DataStore().saveData(Category().ID, Category().FCM, {
-      Category().TOTALSTEP_KEY: '$step',
-      Category().FIRSTSTEP_KEY : '$step',
-    });
-
-    //FCM이 들어왔을때, 파이어베이스에 값(FCM을 잘 받았는지, 현재까지 걸은것, 어플을 켰을때 초기 걸음수) 저장함.
-    //FCM을 받았는지 확인하는 코드
-    await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: "true"});
-    DataStore().saveSharedPreferencesInt(Category().FIRSTSTEP_KEY,step.toInt());
-  }
+  // if(step!.toInt()!=0) {
+  //   DataStore().saveData(Category().ID, Category().FCM, {
+  //     Category().TOTALSTEP_KEY: '$step',
+  //     Category().FIRSTSTEP_KEY : '$step',
+  //   });
+  //
+  //   //FCM이 들어왔을때, 파이어베이스에 값(FCM을 잘 받았는지, 현재까지 걸은것, 어플을 켰을때 초기 걸음수) 저장함.
+  //   //FCM을 받았는지 확인하는 코드
+  //   await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: "true"});
+  //   await DataStore().saveSharedPreferencesInt(Category().FIRSTSTEP_KEY,step.toInt());
+  // }
   runApp(MyApp());
 }
 
