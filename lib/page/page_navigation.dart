@@ -16,8 +16,8 @@ class PageNavigation extends StatefulWidget {
 class _PageNavigationState extends State<PageNavigation> {
   int _selectedIndex = 0;
   final List<Widget> _pages = [
-    Profile(),
     ChatPage(),
+    Profile(),
   ];
 
   void _onItemTapped(int index) {
@@ -39,13 +39,14 @@ class _PageNavigationState extends State<PageNavigation> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.man),
-            label: '프로필',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.chat),
             label: '채팅',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.man),
+            label: '프로필',
+          ),
+
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.amber[800],

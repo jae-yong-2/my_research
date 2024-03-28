@@ -15,5 +15,7 @@ class Category{
   String CONTENT="content";
   String TIMESTAMP="timestamp";
   String ISPREDICTIONCORRECT="isPredictionCorrect";
+  String CHAT_PAGE_ACCESS_COUNT="chatPageAccessCount";
+  String OPEN_STATE="openState";
 
 }

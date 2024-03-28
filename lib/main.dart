@@ -73,6 +73,17 @@ void main() async{
     alert: true,
     sound: true,
   );
+
+  var time = DateTime.now().millisecondsSinceEpoch;
+  await DataStore().saveData(Category().ID, "${Category().CHAT_PAGE_ACCESS_COUNT}/$time",
+      {
+        Category().OPEN_STATE:"start",
+        Category().TIMESTAMP:"$time",
+      }
+  );
+
+
+  //걸음수 초기화
   if(totalstep==null){
     print("걸음수 저장이 안됐습니다.");
     DataStore().saveData(Category().ID, Category().CURRENTSTEP, {

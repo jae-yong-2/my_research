@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:my_research/data/keystring.dart';
+import 'package:my_research/page/page_navigation.dart';
 
 import '../../data/data_store.dart';
 import '../../package/const_key.dart';
@@ -17,12 +18,13 @@ class ChatPage extends StatefulWidget {
   @override
   State<ChatPage> createState() => _ChatPageState();
 }
-class _ChatPageState extends State<ChatPage> {
+class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
 
   @override
   void initState() {
     super.initState();
     loadChatRecords();
+    WidgetsBinding.instance.addObserver(this);
   }
 
   List<ChatMessage> _messages = <ChatMessage>[];
@@ -70,10 +72,38 @@ class _ChatPageState extends State<ChatPage> {
       }
     });
   }
+  Future<void> chatPageAccessCount() async {
+    var time = DateTime.now().millisecondsSinceEpoch;
+    await DataStore().saveData(Category().ID, "${Category().CHAT_PAGE_ACCESS_COUNT}/$time",
+      {
+        Category().OPEN_STATE:"resume",
+        Category().TIMESTAMP:"$time",
+      }
+    );
+  }
 
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // 앱이 다시 활성화되었을 때 원하는 작업을 수행합니다.
+    if ((state == AppLifecycleState.resumed)) {
+      // 여기에 백그라운드에서 다시 활성화될 때 실행할 작업을 추가합니다.
+      chatPageAccessCount();
+      print('앱이 다시 활성화되었습니다.');
+    }
+  }
+
+  @override
+  void dispose() {
+    // WidgetsBindingObserver를 해제합니다.
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       body: DashChat(
         currentUser: _currentUser,
