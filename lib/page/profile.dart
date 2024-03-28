@@ -43,24 +43,26 @@ class _ProfileState extends State<Profile> {
     }).catchError((error) {
       Fluttertoast.showToast(msg: "저장 실패: $error", gravity: ToastGravity.CENTER);
     });
+    DataStore().saveSharedPreferencesString(Category().HABIT_STATE,  _habitController.text);
+    DataStore().saveSharedPreferencesString(Category().CURRENT_BODY_ISSUE,  _bodyIssueController.text);
   }
 
-  void _update() {
-    // 사용자 입력을 Map 형태로 SaveData 클래스에 전달
-    var userData = {
-      "습관 및 자세": _habitController.text,
-      "신체 특이 사항": _bodyIssueController.text,
-    };
-    DataStore().deleteData(Category().ID,Category().BODYPROFILE).then((_) {
-    }).catchError((error) {
-      Fluttertoast.showToast(msg: "삭제 실패: $error", gravity: ToastGravity.CENTER);
-    });
-    DataStore().saveData(Category().ID,Category().BODYPROFILE,userData).then((_) {
-    }).catchError((error) {
-      Fluttertoast.showToast(msg: "저장 실패: $error", gravity: ToastGravity.CENTER);
-    });
-    Fluttertoast.showToast(msg: "변경되었습니다.", gravity: ToastGravity.CENTER);
-  }
+  // void _update() {
+  //   // 사용자 입력을 Map 형태로 SaveData 클래스에 전달
+  //   var userData = {
+  //     "습관 및 자세": _habitController.text,
+  //     "신체 특이 사항": _bodyIssueController.text,
+  //   };
+  //   DataStore().deleteData(Category().ID,Category().BODYPROFILE).then((_) {
+  //   }).catchError((error) {
+  //     Fluttertoast.showToast(msg: "삭제 실패: $error", gravity: ToastGravity.CENTER);
+  //   });
+  //   DataStore().saveData(Category().ID,Category().BODYPROFILE,userData).then((_) {
+  //   }).catchError((error) {
+  //     Fluttertoast.showToast(msg: "저장 실패: $error", gravity: ToastGravity.CENTER);
+  //   });
+  //   Fluttertoast.showToast(msg: "변경되었습니다.", gravity: ToastGravity.CENTER);
+  // }
 
 
   void _deleteData() {
@@ -101,25 +103,27 @@ class _ProfileState extends State<Profile> {
             ),
             SizedBox(height: 20),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ElevatedButton(
                   onPressed: _saveData,
+                  style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.zero
+                      )// primary: Colors.red, // 삭제 버튼 색상
+                  ),
                   child: Text('저장하기'),
+
                 ),
-                SizedBox(height: 10),
+                Text("Device_${Category().ID}"),
                 ElevatedButton(
                   onPressed: _deleteData,
                   style: ElevatedButton.styleFrom(
-                    // primary: Colors.red, // 삭제 버튼 색상
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero
+                    )// primary: Colors.red, // 삭제 버튼 색상
                   ),
                   child: Text('삭제하기'),
-                ),
-                ElevatedButton(
-                  onPressed:_update,
-                  style: ElevatedButton.styleFrom(
-                    // primary: Colors.red, // 삭제 버튼 색상
-                  ),
-                  child: Text('변경하기'),
                 ),
               ],
             ),
@@ -146,6 +150,16 @@ class _ProfileState extends State<Profile> {
                       return Center(child: Text('Error: ${snapshot.error}'));
                     } else if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
                       Map<dynamic, dynamic> data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+                      if(data.isEmpty) {
+                        print("데이터 없음");
+                      }else{
+                        DataStore().saveSharedPreferencesString(
+                            Category().HABIT_STATE, "${data.values
+                            .last["습관 및 자세"]}");
+                        DataStore().saveSharedPreferencesString(
+                            Category().CURRENT_BODY_ISSUE, "${data.values
+                            .last["신체 특이 사항"]}");
+                      }
                       return ListView.builder(
                         itemCount: data.length,
                         itemBuilder: (context, index) {

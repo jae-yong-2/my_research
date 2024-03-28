@@ -17,5 +17,7 @@ class Category{
   String ISPREDICTIONCORRECT="isPredictionCorrect";
   String CHAT_PAGE_ACCESS_COUNT="chatPageAccessCount";
   String OPEN_STATE="openState";
+  String CURRENT_BODY_ISSUE = "cureent_body_issue";
+  String HABIT_STATE= "habitStatus";
 
 }

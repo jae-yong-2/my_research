@@ -44,9 +44,13 @@ class ServerDataListener {
   );
 //GPT에게 원하는 내용 생성
   Future<String?> sendGPT(text, category) async {
+
+    var habit = await DataStore().getSharedPreferencesString(Category().HABIT_STATE);
+    var bodyissue = await DataStore().getSharedPreferencesString(Category().CURRENT_BODY_ISSUE);
     // Messages 객체 리스트 생성
     if(category =="wakeup") {
-      text = "1시간동안 움직임이 없었다고 움직임이 필요하다는 것을 저에게 알려주는 글을 20자 이하의 존댓말로 문장 딱 1개만! 생성해줘요.";
+
+      text = "평소 습관이 $habit, 신체 특이사항이 $bodyissue 인 저에게 1시간동안 움직임이 없었다고 걷기가 필요하다는 것을 저에게 알려주는 글을 40자 정도의 존댓말로 문장 딱 1개만! 생성해줘요.";
     }
     if(category =="GPTask") {
       int i = DateTime.now().hashCode;
@@ -60,10 +64,10 @@ class ServerDataListener {
       if(i%3==2){
         reseaon = "귀찮음";
       }
-      text = "제가 상대방에게 $reseaon 의 이유로 운동을 하지 않았다고 변명하는 메시지를 20자 이하의 존댓말로 문장 딱 1개만! 생성해주세요.";
+      text = "상대방에게 $reseaon 의 이유로 한 시간 동안 운동을 하지 않았다고 변명하는 메시지를 30자 정도의 존댓말로 문장 딱 1개만! 생성해주세요.";
     }
     if(category =="agent") {
-      text = "다음 문장을 보고 저에게 움직이도록 유도하는 글을 20자 이하의 존댓말로 문장 딱 1개만! 생성해주세요. $text";
+      text = "다음 문장을 보고 평소 습관이 $habit, 신체 특이사항이 $bodyissue 인 '저'에게 지금 바로 걷기를 장려하는 글을 40자 정도의 존댓말로 문장 딱 1개만! 생성해주세요. $text";
     }
     List<Messages> messagesHistory = [
       Messages(
