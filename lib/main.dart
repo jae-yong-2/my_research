@@ -42,7 +42,7 @@ void main() async{
       options: DefaultFirebaseOptions.currentPlatform
     );
   }
-  for(int i=0; i<5;i++) {
+  for(int i =0; i<10 ; i ++) {
     await FirebaseMessaging.instance.unsubscribeFromTopic('$i');
   }
   await FirebaseMessaging.instance.subscribeToTopic(Category().ID);
@@ -65,35 +65,50 @@ void main() async{
 
   final stepCounterService = PedometerAPI();
   stepCounterService.refreshSteps();
-  var step = await DataStore().getSharedPreferencesInt(Category().TOTALSTEP_KEY);
-  print('저장된 걸음수 : $step');
+  var totalstep = await DataStore().getSharedPreferencesInt(Category().TOTALSTEP_KEY);
+  print('저장된 걸음수 : $totalstep');
 
   FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
     badge: true,
     alert: true,
     sound: true,
   );
-  if(step==null){
-    DataStore().saveData(Category().ID, Category().FCM, {
+  if(totalstep==null){
+    print("걸음수 저장이 안됐습니다.");
+    DataStore().saveData(Category().ID, Category().CURRENTSTEP, {
       Category().TOTALSTEP_KEY: '0',
       Category().FIRSTSTEP_KEY : '0',
     });
 
     //FCM이 들어왔을때, 파이어베이스에 값(FCM을 잘 받았는지, 현재까지 걸은것, 어플을 켰을때 초기 걸음수) 저장함.
     //FCM을 받았는지 확인하는 코드
-    await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: "true"});
+    // await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: "true"});
     await DataStore().saveSharedPreferencesInt(Category().FIRSTSTEP_KEY,0);
-  } else if(step!.toInt()!=0) {
-    DataStore().saveData(Category().ID, Category().FCM, {
-      Category().TOTALSTEP_KEY: '$step',
-      Category().FIRSTSTEP_KEY : '$step',
-    });
+  } else if((totalstep!.toInt()!=0) ) {
+    print("걸음수 저장이 됐습니다.");
+    if(await DataStore().getSharedPreferencesInt(Category().FIRSTSTEP_KEY) != null) {
+      print("최초걸음수가 저장이 됐습니다.");
+      DataStore().saveData(Category().ID, Category().CURRENTSTEP, {
+        Category().TOTALSTEP_KEY: '$totalstep',
+        Category().FIRSTSTEP_KEY: '$totalstep',
+      });
+
+    }else{
+      print("최초걸음수가 저장이 안됐습니다.");
+
+      await DataStore().saveSharedPreferencesInt(
+          Category().FIRSTSTEP_KEY, totalstep.toInt());
+      }
+      DataStore().saveData(Category().ID, Category().CURRENTSTEP, {
+        Category().TOTALSTEP_KEY: '$totalstep',
+        Category().FIRSTSTEP_KEY: '$totalstep',
+      });
+    }
 
     //FCM이 들어왔을때, 파이어베이스에 값(FCM을 잘 받았는지, 현재까지 걸은것, 어플을 켰을때 초기 걸음수) 저장함.
     //FCM을 받았는지 확인하는 코드
-    await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: "true"});
-    await DataStore().saveSharedPreferencesInt(Category().FIRSTSTEP_KEY,step.toInt());
-  }
+    // await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: "true"});
+
   runApp(MyApp());
 }
 

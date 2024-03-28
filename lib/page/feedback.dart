@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:health/health.dart';
 import 'package:my_research/data/data_store.dart';
@@ -103,7 +104,8 @@ class _BackgroundServiceState extends State<FeedbackPage> {
                           }
                         );
                     //저장하는 코드
-                    Navigator.pop(context);
+                    SystemNavigator.pop();
+
                   },
                   child: Text(
                     "맞습니다.",
@@ -141,7 +143,7 @@ class _BackgroundServiceState extends State<FeedbackPage> {
                         }
                     );
                     //저장하는 코드
-                    Navigator.pop(context);
+                    SystemNavigator.pop();
                   },
                   child: Text(
                     "틀렸습니다.",

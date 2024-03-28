@@ -112,6 +112,7 @@ class ServerDataListener {
     stepCounterService.refreshSteps();
     var step = await DataStore().getSharedPreferencesInt(
         Category().TOTALSTEP_KEY);
+    step ??= 0;
     String? gptContent = "key가 없거나 오류가 났습니다.";
     String? agentContent = "key가 없거나 오류가 났습니다.";
     var time = DateTime
@@ -128,9 +129,9 @@ class ServerDataListener {
             Category().FIRSTSTEP_KEY)}",
       };
       //FCM이 들어왔을때, 파이어베이스에 값(FCM을 잘 받았는지, 현재까지 걸은것, 어플을 켰을때 초기 걸음수) 저장함.
-      await DataStore().saveData(Category().ID, Category().FCM, data);
+      await DataStore().saveData(Category().ID, Category().CURRENTSTEP, data);
       //FCM을 받았는지 확인하는 코드
-      await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: message.data[Category().ISFCM]});
+      // await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: message.data[Category().ISFCM]});
       await DataStore().saveData(
           Category().ID, '${Category().STEPHISTORY}/$time',
           {

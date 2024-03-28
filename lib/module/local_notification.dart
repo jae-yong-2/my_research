@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get/state_manager.dart';
 import 'package:my_research/page/feedback.dart';
 
 import '../main.dart';
@@ -48,6 +49,6 @@ class LocalNotification {
     const NotificationDetails notificationDetails = NotificationDetails(android: androidNotificationDetails);
 
     final int notificationId = DateTime.now().hashCode;
-    await _flutterLocalNotificationsPlugin.show(notificationId, title, body, notificationDetails, payload: payload);
+    await _flutterLocalNotificationsPlugin.show(int.parse(payload), title, body, notificationDetails, payload: payload);
   }
 }

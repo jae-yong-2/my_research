@@ -2,7 +2,7 @@ class Category{
   String ID = "0";
   String CHAT_ID = "id";
   String BODYPROFILE = "프로필 신체 특이 사항";
-  String FCM = "FCM";
+  String CURRENTSTEP = "currentstep";
   String ISFCM = "isfcm";
   String Chat = "chat";
   String FIRSTSTEP_KEY = "firststep";
