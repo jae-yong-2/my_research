@@ -50,7 +50,7 @@ class ServerDataListener {
     // Messages 객체 리스트 생성
     if(category =="wakeup") {
 
-      text = "평소 습관이 $habit, 신체 특이사항이 $bodyissue 인 저에게 1시간동안 움직임이 없었다고 걷기가 필요하다는 것을 저에게 알려주는 글을 40자 정도의 존댓말로 문장 딱 1개만! 생성해줘요.";
+      text = "평소 습관이 $habit, 신체 특이사항이 $bodyissue 인 저에게 1시간동안 움직임이 없었다고 걷기가 필요하다는 것을 저에게 알려주는 글을 40자 정도의 존댓말로 자연스러운 문장 딱 1개만! 생성해줘요.";
     }
     if(category =="GPTask") {
       int i = DateTime.now().hashCode;
@@ -64,11 +64,24 @@ class ServerDataListener {
       if(i%3==2){
         reseaon = "귀찮음";
       }
-      text = "상대방에게 $reseaon 의 이유로 한 시간 동안 운동을 하지 않았다고 변명하는 메시지를 30자 정도의 존댓말로 문장 딱 1개만! 생성해주세요.";
+      text = "다음 알람을 보고 상대방에게 $reseaon 의 이유로 알람을 보고도 움직이지 않았다고 변명하는 메시지를 30자 정도의 존댓말로 자연스러운 문장 딱 1개만! 생성해주세요. $text";
     }
     if(category =="agent") {
-      text = "다음 문장을 보고 평소 습관이 $habit, 신체 특이사항이 $bodyissue 인 '저'에게 지금 바로 걷기를 장려하는 글을 40자 정도의 존댓말로 문장 딱 1개만! 생성해주세요. $text";
+      text = "다음 문장을 보고 평소 습관이 $habit, 신체 특이사항이 $bodyissue 인 '저'에게 지금 바로 걷기를 장려하는 글을 40자 정도의 존댓말로 자연스러운 문장 딱 1개만! 생성해주세요. $text";
     }
+
+    if(category =="GPTanswer"){
+      int i = DateTime.now().hashCode;
+      String reseaon = '업무';
+      if(i%2==0){
+        reseaon = "할게요..";
+      }
+      if(i%2==1){
+        reseaon = "안할게요..";
+      }
+      text ="다음 문장을 보고 평소 습관이 $habit, 신체 특이사항이 $bodyissue 인 제가 '걷기나 스트레칭 등 가벼운 활동을 $reseaon'라고 말하는 글을 20자 정도의 존댓말로 자연스러운 문작 딱 1개만! 추천해주세요. $text";
+    }
+
     List<Messages> messagesHistory = [
       Messages(
         role: Role.user,
@@ -81,9 +94,6 @@ class ServerDataListener {
       maxToken: 200,
       temperature: 1,
     );
-    var time = DateTime
-        .now()
-        .millisecondsSinceEpoch;
     final response = await _openAI.onChatCompletion(request: request);
     for(var element in response!.choices){
       final message = element.message;
@@ -124,7 +134,7 @@ class ServerDataListener {
         .millisecondsSinceEpoch;
     print("Handling a background message: ${message.data}");
 //--------------------------------------------------------------------------
-    if (message.data["isRecord"] == "wakeup") {
+    if (message.data["isRecord"] == "update") {
       print("${message.data}");
       Map<String, dynamic> data = {
         // Category().ISFCM: message.data[Category().ISFCM],
@@ -136,6 +146,11 @@ class ServerDataListener {
       await DataStore().saveData(Category().ID, Category().CURRENTSTEP, data);
       //FCM을 받았는지 확인하는 코드
       // await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: message.data[Category().ISFCM]});
+
+      //이 문구를 서버에 보내고 기다림
+    }
+
+    if (message.data["isRecord"] == "wakeup"){
       await DataStore().saveData(
           Category().ID, '${Category().STEPHISTORY}/$time',
           {
@@ -143,8 +158,6 @@ class ServerDataListener {
             Category().TIMESTAMP: time,
           }
       );
-
-
       //TODO
       //GPT가 물어볼말 서버에 전달하기
       //gptContent = 지피티에게 왜 운동하지 않았냐? 라는 문구를 생성하도록 요구.
@@ -158,8 +171,6 @@ class ServerDataListener {
             Category().CONTENT: gptContent,
           }
       );
-
-      //이 문구를 서버에 보내고 기다림
     }
 //--------------------------------------------------------------------------
     if (message.data["isRecord"] == "GPTask") {
@@ -242,6 +253,39 @@ class ServerDataListener {
       //히스토리에 저장
       await DataStore().saveData(Category().ID, '${Category().Chat}/$time', {
         Category().CHAT_ID: Category().GPT,
+        Category().CONTENT: message.data["content"],
+        Category().TIMESTAMP: time,
+      });
+
+      //GPT가 생성한 내용을 서버에 전달
+      //                                                        "opinion"
+      agentContent = await sendGPT(message.data["content"], message.data["isRecord"]);
+
+      await DataStore().saveData(
+          Category().ID, Category().CONVERSATION,
+          {
+            Category().WHO: Category().GPT,
+            Category().CONTENT: agentContent,
+          }
+      );
+
+      //FCM이 마무리된걸 표시하는 코드
+      // Fluttertoast.showToast(msg: message.data["content"], gravity: ToastGravity.CENTER);
+      // await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: message.data[Category().ISFCM]});
+    }
+
+    if (message.data["isRecord"] == "opinion") {
+      //TODO
+      //서버에서 받은 GPT내용 받기
+      LocalNotification.showOngoingNotification(
+          title: '${message.data["title"]}',
+          body: '${message.data["content"]}',
+          payload: "4"
+      );
+
+      //히스토리에 저장
+      await DataStore().saveData(Category().ID, '${Category().Chat}/$time', {
+        Category().CHAT_ID: Category().AGENT,
         Category().CONTENT: message.data["content"],
         Category().TIMESTAMP: time,
       });
