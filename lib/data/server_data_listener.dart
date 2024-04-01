@@ -81,6 +81,12 @@ class ServerDataListener {
       }
       text ="다음 문장을 보고 평소 습관이 $habit, 신체 특이사항이 $bodyissue 인 제가 '걷기나 스트레칭 등 가벼운 활동을 $reseaon'라고 말하는 글을 20자 정도의 존댓말로 자연스러운 문작 딱 1개만! 추천해주세요. $text";
     }
+    if(category =="move") {
+      text = "제가 알람을 보고 움직였다는 글을 30자 정도의 존댓말로 자연스러운 문장 딱 1개만! 생성해주세요.";
+    }
+    if(category =="movedGPTanswer") {
+      text = "다음 문장을 보고 평소 습관이 $habit, 신체 특이사항이 $bodyissue 인 저에게 계속 활동을 격려하는 글을 20자 정도의 존댓말로 자연스러운 문작 딱 1개만! 추천해주세요. $text";
+    }
 
     List<Messages> messagesHistory = [
       Messages(
@@ -135,13 +141,15 @@ class ServerDataListener {
     print("Handling a background message: ${message.data}");
 //--------------------------------------------------------------------------
     if (message.data["isRecord"] == "update") {
-      print("${message.data}");
+      print("${await DataStore().getSharedPreferencesInt(
+          Category().FIRSTSTEP_KEY)}");
       Map<String, dynamic> data = {
         // Category().ISFCM: message.data[Category().ISFCM],
         Category().TOTALSTEP_KEY: '$step',
         Category().FIRSTSTEP_KEY: "${await DataStore().getSharedPreferencesInt(
             Category().FIRSTSTEP_KEY)}",
       };
+
       //FCM이 들어왔을때, 파이어베이스에 값(FCM을 잘 받았는지, 현재까지 걸은것, 어플을 켰을때 초기 걸음수) 저장함.
       await DataStore().saveData(Category().ID, Category().CURRENTSTEP, data);
       //FCM을 받았는지 확인하는 코드
@@ -282,7 +290,6 @@ class ServerDataListener {
           body: '${message.data["content"]}',
           payload: "4"
       );
-
       //히스토리에 저장
       await DataStore().saveData(Category().ID, '${Category().Chat}/$time', {
         Category().CHAT_ID: Category().AGENT,
@@ -293,6 +300,68 @@ class ServerDataListener {
       //FCM이 마무리된걸 표시하는 코드
       // Fluttertoast.showToast(msg: message.data["content"], gravity: ToastGravity.CENTER);
       // await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: message.data[Category().ISFCM]});
+    }
+
+    //움직였을때 무브
+
+    if (message.data["isRecord"] == "move"){
+      await DataStore().saveData(
+          Category().ID, '${Category().STEPHISTORY}/$time',
+          {
+            Category().TOTALSTEP_KEY: '$step',
+            Category().TIMESTAMP: time,
+          }
+      );
+      //TODO
+      //GPT가 물어볼말 서버에 전달하기
+      //gptContent = 지피티에게 왜 운동하지 않았냐? 라는 문구를 생성하도록 요구.
+      //                                                     "move"
+      agentContent = await sendGPT(message.data["content"],message.data["isRecord"]);
+
+      await DataStore().saveData(
+          Category().ID, Category().CONVERSATION,
+          {
+            Category().WHO: Category().AGENT,
+            Category().CONTENT: agentContent,
+          }
+      );
+    }
+
+    if (message.data["isRecord"] == "movedGPTanswer"){
+      await DataStore().saveData(
+          Category().ID, '${Category().STEPHISTORY}/$time',
+          {
+            Category().TOTALSTEP_KEY: '$step',
+            Category().TIMESTAMP: time,
+          }
+      );
+      //TODO
+      //GPT가 물어볼말 서버에 전달하기
+      //gptContent = 지피티에게 왜 운동하지 않았냐? 라는 문구를 생성하도록 요구.
+      //                                                     "movedGPTanswer"
+      gptContent = await sendGPT(message.data["content"],message.data["isRecord"]);
+
+      await DataStore().saveData(
+          Category().ID, Category().CONVERSATION,
+          {
+            Category().WHO: Category().GPT,
+            Category().CONTENT: gptContent,
+          }
+      );
+    }
+    if(message.data["isRecored"]=="movedopinion"){
+      LocalNotification.showOngoingNotification(
+          title: '${message.data["title"]}',
+          body: '${message.data["content"]}',
+          payload: "4"
+      );
+
+      //히스토리에 저장
+      await DataStore().saveData(Category().ID, '${Category().Chat}/$time', {
+        Category().CHAT_ID: Category().GPT,
+        Category().CONTENT: message.data["content"],
+        Category().TIMESTAMP: time,
+      });
     }
   }
 }

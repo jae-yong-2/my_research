@@ -64,7 +64,6 @@ class _ProfileState extends State<Profile> {
   //   Fluttertoast.showToast(msg: "변경되었습니다.", gravity: ToastGravity.CENTER);
   // }
 
-
   void _deleteData() {
     // 데이터 삭제 로직을 여기에 구현합니다.
     DataStore().deleteData(Category().ID,Category().BODYPROFILE).then((_) {

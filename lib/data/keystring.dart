@@ -1,5 +1,5 @@
 class Category{
-  String ID = "0";
+  String ID = "1";
   String CHAT_ID = "id";
   String BODYPROFILE = "프로필 신체 특이 사항";
   String CURRENTSTEP = "currentstep";
@@ -19,5 +19,4 @@ class Category{
   String OPEN_STATE="openState";
   String CURRENT_BODY_ISSUE = "cureent_body_issue";
   String HABIT_STATE= "habitStatus";
-
 }

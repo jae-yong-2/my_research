@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,7 @@ Future<void> _requestPermission() async {
     await Permission.activityRecognition.request();
   }
 }
+final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
 void main() async{
   WidgetsFlutterBinding.ensureInitialized(); // 바인딩 초기화
   await LocalNotification.init();
@@ -42,12 +44,17 @@ void main() async{
       options: DefaultFirebaseOptions.currentPlatform
     );
   }
-  for(int i =0; i<10 ; i ++) {
-    await FirebaseMessaging.instance.unsubscribeFromTopic('$i');
-  }
+  // for(int i =0; i<10 ; i ++) {
+  await FirebaseMessaging.instance.unsubscribeFromTopic(Category().ID);
+  // }
   await FirebaseMessaging.instance.subscribeToTopic(Category().ID);
   // subscribe to topic on each app start-up
   FirebaseMessaging.instance.requestPermission(
+    badge: true,
+    alert: true,
+    sound: true,
+  );
+  FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
     badge: true,
     alert: true,
     sound: true,
@@ -64,11 +71,6 @@ void main() async{
   await _requestPermission();
 
 
-  FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-    badge: true,
-    alert: true,
-    sound: true,
-  );
 
   var time = DateTime.now().millisecondsSinceEpoch;
   await DataStore().saveData(Category().ID, "${Category().CHAT_PAGE_ACCESS_COUNT}/$time",
@@ -84,9 +86,17 @@ void main() async{
   var totalstep = await DataStore().getSharedPreferencesInt(Category().TOTALSTEP_KEY);
   var firststep = await DataStore().getSharedPreferencesInt(Category().FIRSTSTEP_KEY);
   //걸음수 초기화
-
+  print(firststep);
+  print(totalstep);
   try {
-    if (firststep == null || firststep == 0) {
+    if(totalstep == null){
+      await DataStore().saveSharedPreferencesInt(
+          Category().FIRSTSTEP_KEY, 0);
+      DataStore().saveData(Category().ID, Category().CURRENTSTEP, {
+        Category().TOTALSTEP_KEY: '0',
+        Category().FIRSTSTEP_KEY: '0',
+      });
+    }else if (firststep == null || firststep == 0) {
       firststep = totalstep;
       await DataStore().saveSharedPreferencesInt(
           Category().FIRSTSTEP_KEY, firststep!);
