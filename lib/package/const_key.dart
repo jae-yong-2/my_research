@@ -1,1 +1,1 @@
-const API_KEY = '1234';
+const API_KEY = 'sk-';

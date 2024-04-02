@@ -4,6 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:my_research/data/keystring.dart';
 import 'package:my_research/data/data_store.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:my_research/module/healthKit.dart';
 
 class Profile extends StatefulWidget {
   const Profile({Key? key}) : super(key: key);
@@ -18,12 +19,17 @@ class _ProfileState extends State<Profile> {
   final DataStore _dataControllerInstance = DataStore();
   final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
 
-
   @override
   void dispose() {
     _habitController.dispose();
     _bodyIssueController.dispose();
     super.dispose();
+  }
+
+  Future<void> _updateSteps() async {
+    HealthKit healthHelper = HealthKit();
+    int steps = await healthHelper.getSteps();
+    print(steps);
   }
 
   void _saveData() {
@@ -114,7 +120,16 @@ class _ProfileState extends State<Profile> {
                   child: Text('저장하기'),
 
                 ),
-                Text("Device_${Category().ID}"),
+                ElevatedButton(
+                  onPressed: _updateSteps,
+                  style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.zero
+                      )// primary: Colors.red, // 삭제 버튼 색상
+                  ),
+                  child: Text("Device_${Category().ID}"),
+
+                ),
                 ElevatedButton(
                   onPressed: _deleteData,
                   style: ElevatedButton.styleFrom(
