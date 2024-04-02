@@ -54,7 +54,7 @@ dependencies:
   logger: ^2.0.2
   firebase_database: ^10.4.6
   http: ^0.13.3
-
+  flutter_health_connect: ^1.2.3
   fluttertoast: ^8.2.4
   device_info_plus: ^9.1.2
 dev_dependencies:
