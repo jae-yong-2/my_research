@@ -210,8 +210,8 @@ class ServerDataListener {
       );
 
       //피드백 페이지를 위한 저장 장소
-      await DataStore().saveSharedPreferencesString(Category().CONVERSATION, agentContent!);
-      await DataStore().saveSharedPreferencesString(Category().TIMESTAMP, '$time');
+      await DataStore().saveSharedPreferencesString("${Category().CONVERSATION}1", agentContent!);
+      await DataStore().saveSharedPreferencesString("${Category().TIMESTAMP}1", '$time');
       print("agent");
     }
     // Fluttertoast.showToast(msg: '$agentContent', gravity: ToastGravity.CENTER);
@@ -268,6 +268,9 @@ class ServerDataListener {
       //GPT가 생성한 내용을 서버에 전달
       //                                                        "opinion"
       agentContent = await sendGPT(message.data["content"], message.data["isRecord"]);
+
+      await DataStore().saveSharedPreferencesString("${Category().CONVERSATION}2", agentContent!);
+      await DataStore().saveSharedPreferencesString("${Category().TIMESTAMP}2", '$time');
 
       await DataStore().saveData(
           Category().ID, Category().CONVERSATION,

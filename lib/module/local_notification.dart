@@ -4,6 +4,7 @@ import 'package:get/state_manager.dart';
 import 'package:my_research/page/feedback.dart';
 
 import '../main.dart';
+import '../page/page_navigation.dart';
 
 
 class LocalNotification {
@@ -21,10 +22,12 @@ class LocalNotification {
     await _flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onDidReceiveNotificationResponse: (NotificationResponse details) async {
           // 액션 클릭 처리
-          print("notification 클릭했습니다.");
-            // 컨텍스트 없이 네비게이션하기 위해 navigatorKey 사용
-          navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) => FeedbackPage()));
-
+          print("notification 클릭했습니다.");navigatorKey.currentState?.pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => PageNavigation()), // MainPage로 이동
+                (_) => false, // 스택에 있는 다른 페이지들을 모두 제거
+          ).then((_) =>
+              navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) => FeedbackPage())), // FeedbackPage로 이동
+          );
         });
     print("notification 을 초기화했습니다.");
   }
