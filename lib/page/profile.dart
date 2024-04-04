@@ -29,7 +29,7 @@ class _ProfileState extends State<Profile> {
   Future<void> _updateSteps() async {
     HealthKit healthHelper = HealthKit();
     int steps = await healthHelper.getSteps();
-    print(steps);
+    print("Steps today: $steps");
   }
 
   void _saveData() {
@@ -123,12 +123,11 @@ class _ProfileState extends State<Profile> {
                 ElevatedButton(
                   onPressed: _updateSteps,
                   style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.zero
-                      )// primary: Colors.red, // 삭제 버튼 색상
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
+                    ),
                   ),
-                  child: Text("Device_${Category().ID}"),
-
+                  child: Text("Update Steps"),
                 ),
                 ElevatedButton(
                   onPressed: _deleteData,

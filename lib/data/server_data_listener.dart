@@ -12,6 +12,7 @@ import 'package:my_research/data/keystring.dart';
 import 'package:my_research/data/data_store.dart';
 import 'package:my_research/module/pedometerAPI.dart';
 
+import '../module/healthKit.dart';
 import '../module/local_notification.dart';
 import '../package/const_key.dart';
 import '../page/chat/chat_message.dart';
@@ -128,10 +129,12 @@ class ServerDataListener {
 
   //FCM을 통해서 받은 데이터를 휴대폰에서 처리하는 함수.
   Future<void> FCMactivce(RemoteMessage message) async {
-    final stepCounterService = PedometerAPI();
-    stepCounterService.refreshSteps();
-    var step = await DataStore().getSharedPreferencesInt(
-        Category().TOTALSTEP_KEY);
+    // final stepCounterService = PedometerAPI();
+    // stepCounterService.refreshSteps();
+    // var step = await DataStore().getSharedPreferencesInt(
+    //     Category().TOTALSTEP_KEY);
+    HealthKit healthHelper = HealthKit();
+    int step = await healthHelper.getSteps();
     step ??= 0;
     String? gptContent = "key가 없거나 오류가 났습니다.";
     String? agentContent = "key가 없거나 오류가 났습니다.";
