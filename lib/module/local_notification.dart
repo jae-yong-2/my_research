@@ -11,7 +11,7 @@ class LocalNotification {
   static final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
-  static Future<void> init() async {
+  static Future<bool> init() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('@mipmap/ic_launcher');
     final DarwinInitializationSettings initializationSettingsDarwin =
@@ -20,16 +20,17 @@ class LocalNotification {
         android: initializationSettingsAndroid, iOS: initializationSettingsDarwin);
 
     await _flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onDidReceiveNotificationResponse: (NotificationResponse details) async {
-          // 액션 클릭 처리
-          print("notification 클릭했습니다.");navigatorKey.currentState?.pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => PageNavigation()), // MainPage로 이동
-                (_) => false, // 스택에 있는 다른 페이지들을 모두 제거
-          ).then((_) =>
-              navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) => FeedbackPage())), // FeedbackPage로 이동
-          );
-        });
+        onDidReceiveNotificationResponse: (NotificationResponse response) async {
+          // 알람 클릭 이벤트 처리
+          navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) => FeedbackPage()));
+    });
+
+    // 알람 클릭으로 앱이 시작되었는지 확인
+    final details = await _flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+    bool isLaunchedByNotification = details?.didNotificationLaunchApp ?? false;
+
     print("notification 을 초기화했습니다.");
+    return isLaunchedByNotification;
   }
 
   static Future<void> showOngoingNotification({
@@ -43,7 +44,7 @@ class LocalNotification {
       channelDescription: 'ongoing',
       importance: Importance.max,
       priority: Priority.max,
-      ongoing: false,
+      ongoing: true,
       autoCancel: false,
       actions: <AndroidNotificationAction>[
       ],

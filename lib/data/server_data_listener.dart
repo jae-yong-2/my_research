@@ -179,7 +179,7 @@ class ServerDataListener {
         }
     );
   }
-  Future<void> makeAgentContent(var agentContent, String content, String isRecord) async {
+  Future<void> makeAgentContent(var agentContent, String content, String isRecord, var time) async {
     agentContent =
     await sendGPT(content, isRecord);
 
@@ -190,6 +190,10 @@ class ServerDataListener {
           KeyValue().CONTENT: agentContent,
         }
     );
+    await DataStore().saveSharedPreferencesString(
+        "${KeyValue().CONVERSATION}1", agentContent!);
+    await DataStore().saveSharedPreferencesString(
+        "${KeyValue().TIMESTAMP}1", time);
   }
 
   //FCM을 통해서 받은 데이터를 휴대폰에서 처리하는 함수.
@@ -246,13 +250,10 @@ class ServerDataListener {
       //TODO
       //agentContent = {사실 전달} 때문에 못했습니다. 라고 말하기.         "notWalkingReason"
       // //agent가 대신할말 서버에 전달하기
-      makeAgentContent(agentContent, message.data["content"], message.data["isRecord"]);
+      makeAgentContent(agentContent, message.data["content"], message.data["isRecord"],time);
 
       //피드백 페이지를 위한 저장 장소
-      await DataStore().saveSharedPreferencesString(
-          "${KeyValue().CONVERSATION}1", agentContent!);
-      await DataStore().saveSharedPreferencesString(
-          "${KeyValue().TIMESTAMP}1", time);
+
       print("agent");
     }
     // Fluttertoast.showToast(msg: '$agentContent', gravity: ToastGravity.CENTER);
@@ -281,7 +282,7 @@ class ServerDataListener {
       //GPT가 물어볼말 서버에 전달하기
       //gptContent = 지피티에게 왜 운동하지 않았냐? 라는 문구를 생성하도록 요구.
       //                                                     "move"
-      makeAgentContent(agentContent, message.data["content"], message.data["isRecord"]);
+      makeAgentContent(agentContent, message.data["content"], message.data["isRecord"],time);
     }
 
     if (message.data["isRecord"] == "makeWalkingNextTime") {

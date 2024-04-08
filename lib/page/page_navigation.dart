@@ -7,19 +7,28 @@ import 'package:my_research/page/profile.dart';
 import 'feedback.dart';
 
 class PageNavigation extends StatefulWidget {
-  const PageNavigation({super.key});
+  final int initialIndex;
+
+  const PageNavigation({super.key, required this.initialIndex});
 
   @override
   _PageNavigationState createState() => _PageNavigationState();
 }
 
 class _PageNavigationState extends State<PageNavigation> {
-  int _selectedIndex = 0;
+  late int _selectedIndex = 0;
   final List<Widget> _pages = [
     ChatPage(),
     Profile(),
+    FeedbackPage(),
   ];
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _selectedIndex = widget.initialIndex;
+  }
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -45,6 +54,10 @@ class _PageNavigationState extends State<PageNavigation> {
           BottomNavigationBarItem(
             icon: Icon(Icons.man),
             label: '프로필',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.feedback,size: 10,),
+            label: "피드백",
           ),
 
         ],

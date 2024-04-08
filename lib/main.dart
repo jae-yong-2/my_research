@@ -36,7 +36,8 @@ Future<void> _requestPermission() async {
 final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
 void main() async{
   WidgetsFlutterBinding.ensureInitialized(); // 바인딩 초기화
-  await LocalNotification.init();
+  bool isLaunchedByNotification = await LocalNotification.init();
+  print(isLaunchedByNotification);
 
   //FCM & Firebase
   if (Platform.isIOS) {
@@ -103,11 +104,12 @@ void main() async{
     // await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: "true"});
   await Permission.activityRecognition.request();
   await Permission.location.request();
-  runApp(MyApp());
+  runApp(MyApp(isLaunchedByNotification: isLaunchedByNotification));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLaunchedByNotification;
+  const MyApp({super.key, required this.isLaunchedByNotification});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -115,7 +117,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Bottom Navigation Demo',
       home: Scaffold(
-        body: PageNavigation(),
+        body: isLaunchedByNotification
+            ? PageNavigation(initialIndex: 2) // FeedbackPage가 있는 인덱스
+            : PageNavigation(initialIndex: 0,),
       )
     );
   }

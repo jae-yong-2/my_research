@@ -58,8 +58,6 @@ class _BackgroundServiceState extends State<FeedbackPage> {
 //   //health kit
   var content1;
   bool check1=false;
-  var content2;
-  bool check2=false;
 
   @override
   WithForegroundTask build(BuildContext context) => WithForegroundTask(
@@ -172,102 +170,6 @@ class _BackgroundServiceState extends State<FeedbackPage> {
               },
             ),
             SizedBox(height: 20),
-            FutureBuilder<String?>(
-              future: DataStore().getSharedPreferencesString(
-                  "${KeyValue().CONVERSATION}1"),
-              builder: (BuildContext context, AsyncSnapshot<String?> snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator(); // 로딩 중인 경우
-                } else if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                } else {
-                  content2= snapshot.data;
-                  return
-                    Column(children: [
-                      Text('ChatGPT에게 답장했습니다.\n${snapshot.data}\n\n'),
-                      SizedBox(
-                        height: 50,
-                        width: 300,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.lightBlueAccent, // 배경색을 회색으로 설정
-                            borderRadius: BorderRadius.zero, // 모서리를 90도로 각지게 설정
-                          ),
-                          child: TextButton(
-                            style: TextButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.zero, // 버튼 내부의 모서리도 90도로 설정
-                              ),
-                            ),
-                            onPressed: () async {
-                              // ServerDataListener().sendMessage("test");
-                              if(!check2) {
-                                check2 = !check2;
-                                print(content2);
-                                await DataStore().saveData(
-                                    KeyValue().ID,
-                                    KeyValue().ISPREDICTIONCORRECT, {
-                                    KeyValue().CONVERSATION: content2,
-                                    KeyValue().ISPREDICTIONCORRECT: "true",
-                                    KeyValue().TIMESTAMP: await DataStore().getSharedPreferencesString("${KeyValue().TIMESTAMP}2")
-                                });
-                                  //저장하는 코드
-                                  SystemNavigator.pop();
-                                }else{
-                                  Fluttertoast.showToast(msg: "현재 질문은 피드백이 완료되었습니다.");
-                                }
-                              },
-                            child: Text(
-                              "맞습니다.",
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      SizedBox(
-                        height: 50,
-                        width: 300,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.redAccent, // 배경색을 회색으로 설정
-                            borderRadius: BorderRadius.zero, // 모서리를 90도로 각지게 설정
-                          ),
-                          child: TextButton(
-                            style: TextButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.zero, // 버튼 내부의 모서리도 90도로 설정
-                              ),
-                            ),
-                            onPressed: () async {
-                              if(!check2) {
-                                check2 = !check2;
-                                // ServerDataListener().sendMessage("test");
-                                print(content2);
-                                await DataStore().saveData(
-                                    KeyValue().ID,
-                                    KeyValue().ISPREDICTIONCORRECT, {
-                                    KeyValue().CONVERSATION: content2,
-                                    KeyValue().ISPREDICTIONCORRECT: "false",
-                                    KeyValue().TIMESTAMP: await DataStore().getSharedPreferencesString("${KeyValue().TIMESTAMP}2")
-                                });
-                                //저장하는 코드
-                                SystemNavigator.pop();
-                              }else{
-                                  Fluttertoast.showToast(msg: "현재 질문은 피드백이 완료되었습니다.");
-                                }
-                            },
-                            child: Text(
-                              "틀렸습니다.",
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],); // 'snapshot.data'는 'String?'입니다.
-                }
-              },
-            ),
             // Text(_pedometerService.steps.toString()),
             Center(
             ),
