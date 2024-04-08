@@ -1,5 +1,5 @@
-class Category{
-  String ID = "1";
+class KeyValue{
+  String ID = "0";
   String CHAT_ID = "id";
   String BODYPROFILE = "프로필 신체 특이 사항";
   String CURRENTSTEP = "currentstep";
@@ -14,6 +14,7 @@ class Category{
   String WHO='who';
   String CONTENT="content";
   String TIMESTAMP="timestamp";
+  String MILLITIMESTAMP = "millitimestamp";
   String ISPREDICTIONCORRECT="isPredictionCorrect";
   String CHAT_PAGE_ACCESS_COUNT="chatPageAccessCount";
   String OPEN_STATE="openState";

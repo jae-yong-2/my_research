@@ -25,10 +25,10 @@ class _ProfileState extends State<Profile> {
     _bodyIssueController.dispose();
     super.dispose();
   }
-
+  int steps=0;
   Future<void> _updateSteps() async {
     HealthKit healthHelper = HealthKit();
-    int steps = await healthHelper.getSteps();
+    steps = await healthHelper.getSteps();
     print("Steps today: $steps");
   }
 
@@ -44,13 +44,13 @@ class _ProfileState extends State<Profile> {
       "신체 특이 사항": _bodyIssueController.text,
     };
 
-    DataStore().saveDataProfile(Category().ID,Category().BODYPROFILE,userData).then((_) {
+    DataStore().saveDataProfile(KeyValue().ID,KeyValue().BODYPROFILE,userData).then((_) {
       Fluttertoast.showToast(msg: "저장되었습니다.", gravity: ToastGravity.CENTER);
     }).catchError((error) {
       Fluttertoast.showToast(msg: "저장 실패: $error", gravity: ToastGravity.CENTER);
     });
-    DataStore().saveSharedPreferencesString(Category().HABIT_STATE,  _habitController.text);
-    DataStore().saveSharedPreferencesString(Category().CURRENT_BODY_ISSUE,  _bodyIssueController.text);
+    DataStore().saveSharedPreferencesString(KeyValue().HABIT_STATE,  _habitController.text);
+    DataStore().saveSharedPreferencesString(KeyValue().CURRENT_BODY_ISSUE,  _bodyIssueController.text);
   }
 
   // void _update() {
@@ -72,7 +72,7 @@ class _ProfileState extends State<Profile> {
 
   void _deleteData() {
     // 데이터 삭제 로직을 여기에 구현합니다.
-    DataStore().deleteData(Category().ID,Category().BODYPROFILE).then((_) {
+    DataStore().deleteData(KeyValue().ID,KeyValue().BODYPROFILE).then((_) {
       Fluttertoast.showToast(msg: "삭제되었습니다.", gravity: ToastGravity.CENTER);
     }).catchError((error) {
       Fluttertoast.showToast(msg: "삭제 실패: $error", gravity: ToastGravity.CENTER);
@@ -127,7 +127,7 @@ class _ProfileState extends State<Profile> {
                       borderRadius: BorderRadius.zero,
                     ),
                   ),
-                  child: Text("Update Steps"),
+                  child: Text("${KeyValue().ID}"),
                 ),
                 ElevatedButton(
                   onPressed: _deleteData,
@@ -157,7 +157,7 @@ class _ProfileState extends State<Profile> {
                 constraints: BoxConstraints(maxHeight: 300),
                 // Use a ListView.builder for a scrollable list
                 child: StreamBuilder<DatabaseEvent>(
-                  stream: _dataControllerInstance.getUserRecordsStream(Category().ID,Category().BODYPROFILE),
+                  stream: _dataControllerInstance.getUserRecordsStream(KeyValue().ID,KeyValue().BODYPROFILE),
                   builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
                     if (snapshot.hasError) {
                       return Center(child: Text('Error: ${snapshot.error}'));
@@ -167,10 +167,10 @@ class _ProfileState extends State<Profile> {
                         print("데이터 없음");
                       }else{
                         DataStore().saveSharedPreferencesString(
-                            Category().HABIT_STATE, "${data.values
+                            KeyValue().HABIT_STATE, "${data.values
                             .last["습관 및 자세"]}");
                         DataStore().saveSharedPreferencesString(
-                            Category().CURRENT_BODY_ISSUE, "${data.values
+                            KeyValue().CURRENT_BODY_ISSUE, "${data.values
                             .last["신체 특이 사항"]}");
                       }
                       return ListView.builder(

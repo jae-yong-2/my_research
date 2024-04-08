@@ -40,7 +40,7 @@ class _BackgroundServiceState extends State<FeedbackPage> {
           _steps = int.parse('${stepCount.steps}');
           if(_oldSteps != _steps) {
             // ServerDataListener().sendMessage('$_steps');
-            DataStore().saveSharedPreferencesInt(Category().TOTALSTEP_KEY, _steps);
+            DataStore().saveSharedPreferencesInt(KeyValue().TOTALSTEP_KEY, _steps);
           }
           _oldSteps=_steps;
         });
@@ -71,7 +71,7 @@ class _BackgroundServiceState extends State<FeedbackPage> {
           children: [
             FutureBuilder<String?>(
               future: DataStore().getSharedPreferencesString(
-                  "${Category().CONVERSATION}1"),
+                  "${KeyValue().CONVERSATION}1"),
               builder: (BuildContext context, AsyncSnapshot<String?> snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircularProgressIndicator(); // 로딩 중인 경우
@@ -102,14 +102,14 @@ class _BackgroundServiceState extends State<FeedbackPage> {
                               if(!check1) {
                                 check1= !check1;
                                 await DataStore().saveData(
-                                    Category().ID,
-                                    Category().ISPREDICTIONCORRECT,
+                                    KeyValue().ID,
+                                    KeyValue().ISPREDICTIONCORRECT,
                                     {
-                                      Category().CONVERSATION: content1,
-                                      Category().ISPREDICTIONCORRECT: "true",
-                                      Category().TIMESTAMP: await DataStore()
+                                      KeyValue().CONVERSATION: content1,
+                                      KeyValue().ISPREDICTIONCORRECT: "true",
+                                      KeyValue().TIMESTAMP: await DataStore()
                                           .getSharedPreferencesString(
-                                          "${Category().TIMESTAMP}1")
+                                          "${KeyValue().TIMESTAMP}1")
                                     }
                                 );
                                 //저장하는 코드
@@ -146,12 +146,12 @@ class _BackgroundServiceState extends State<FeedbackPage> {
                               // ServerDataListener().sendMessage("test");
                                 print(content1);
                                 await DataStore().saveData(
-                                      Category().ID,
-                                      Category().ISPREDICTIONCORRECT,
+                                      KeyValue().ID,
+                                      KeyValue().ISPREDICTIONCORRECT,
                                       {
-                                        Category().CONVERSATION:content1,
-                                        Category().ISPREDICTIONCORRECT:"false",
-                                        Category().TIMESTAMP: await DataStore().getSharedPreferencesString("${Category().TIMESTAMP}1")
+                                        KeyValue().CONVERSATION:content1,
+                                        KeyValue().ISPREDICTIONCORRECT:"false",
+                                        KeyValue().TIMESTAMP: await DataStore().getSharedPreferencesString("${KeyValue().TIMESTAMP}1")
                                       }
                                   );
                                   //저장하는 코드
@@ -174,7 +174,7 @@ class _BackgroundServiceState extends State<FeedbackPage> {
             SizedBox(height: 20),
             FutureBuilder<String?>(
               future: DataStore().getSharedPreferencesString(
-                  "${Category().CONVERSATION}1"),
+                  "${KeyValue().CONVERSATION}1"),
               builder: (BuildContext context, AsyncSnapshot<String?> snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircularProgressIndicator(); // 로딩 중인 경우
@@ -205,11 +205,11 @@ class _BackgroundServiceState extends State<FeedbackPage> {
                                 check2 = !check2;
                                 print(content2);
                                 await DataStore().saveData(
-                                    Category().ID,
-                                    Category().ISPREDICTIONCORRECT, {
-                                    Category().CONVERSATION: content2,
-                                    Category().ISPREDICTIONCORRECT: "true",
-                                    Category().TIMESTAMP: await DataStore().getSharedPreferencesString("${Category().TIMESTAMP}2")
+                                    KeyValue().ID,
+                                    KeyValue().ISPREDICTIONCORRECT, {
+                                    KeyValue().CONVERSATION: content2,
+                                    KeyValue().ISPREDICTIONCORRECT: "true",
+                                    KeyValue().TIMESTAMP: await DataStore().getSharedPreferencesString("${KeyValue().TIMESTAMP}2")
                                 });
                                   //저장하는 코드
                                   SystemNavigator.pop();
@@ -245,11 +245,11 @@ class _BackgroundServiceState extends State<FeedbackPage> {
                                 // ServerDataListener().sendMessage("test");
                                 print(content2);
                                 await DataStore().saveData(
-                                    Category().ID,
-                                    Category().ISPREDICTIONCORRECT, {
-                                    Category().CONVERSATION: content2,
-                                    Category().ISPREDICTIONCORRECT: "false",
-                                    Category().TIMESTAMP: await DataStore().getSharedPreferencesString("${Category().TIMESTAMP}2")
+                                    KeyValue().ID,
+                                    KeyValue().ISPREDICTIONCORRECT, {
+                                    KeyValue().CONVERSATION: content2,
+                                    KeyValue().ISPREDICTIONCORRECT: "false",
+                                    KeyValue().TIMESTAMP: await DataStore().getSharedPreferencesString("${KeyValue().TIMESTAMP}2")
                                 });
                                 //저장하는 코드
                                 SystemNavigator.pop();

@@ -29,8 +29,8 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
 
   List<ChatMessage> _messages = <ChatMessage>[];
 
-  final ChatUser _currentUser = ChatUser(id: Category().AGENT, firstName: 'Me',lastName: '',profileImage: "https://cdn-icons-png.flaticon.com/128/149/149071.png",);
-  final ChatUser _gptChatUser = ChatUser(id: Category().GPT, firstName: 'Chat',lastName: 'GPT',profileImage: "https://cdn-icons-png.flaticon.com/128/6667/6667585.png",);
+  final ChatUser _currentUser = ChatUser(id: KeyValue().AGENT, firstName: 'Me',lastName: '',profileImage: "https://cdn-icons-png.flaticon.com/128/149/149071.png",);
+  final ChatUser _gptChatUser = ChatUser(id: KeyValue().GPT, firstName: 'Chat',lastName: 'GPT',profileImage: "https://cdn-icons-png.flaticon.com/128/6667/6667585.png",);
   final _openAI = OpenAI.instance.build(
       token: API_KEY,
       baseOption: HttpSetup(
@@ -51,7 +51,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
 
   Future<void> loadChatRecords() async {
     final dataController = DataStore();
-    final stream = dataController.getUserRecordsStream(Category().ID, Category().Chat);
+    final stream = dataController.getUserRecordsStream(KeyValue().ID, KeyValue().Chat);
 
     stream.listen((DatabaseEvent event) {
       if (event.snapshot.exists) {
@@ -59,9 +59,9 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
         List<ChatMessage> messages = [];
         data.forEach((key, value) {
           final message = ChatMessage(
-            text: value[Category().CONTENT],
-            user: value[Category().CHAT_ID] == _currentUser.id ? _currentUser : _gptChatUser,
-            createdAt: DateTime.fromMillisecondsSinceEpoch(value["timestamp"]),
+            text: value[KeyValue().CONTENT],
+            user: value[KeyValue().CHAT_ID] == _currentUser.id ? _currentUser : _gptChatUser,
+            createdAt: DateTime.fromMillisecondsSinceEpoch(value[KeyValue().MILLITIMESTAMP]),
           );
           messages.add(message);
         });
@@ -74,10 +74,14 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   }
   Future<void> chatPageAccessCount() async {
     var time = DateTime.now().millisecondsSinceEpoch;
-    await DataStore().saveData(Category().ID, "${Category().CHAT_PAGE_ACCESS_COUNT}/$time",
+
+    var savetime = DateTime.now();
+    var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    String formattedTime = formatter.format(savetime);
+    await DataStore().saveData(KeyValue().ID, "${KeyValue().CHAT_PAGE_ACCESS_COUNT}/$time",
       {
-        Category().OPEN_STATE:"resume",
-        Category().TIMESTAMP:"$time",
+        KeyValue().OPEN_STATE:"resume",
+        KeyValue().TIMESTAMP:formattedTime,
       }
     );
   }
@@ -147,10 +151,10 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
 
     final dataController = DataStore();
     var time = DateTime.now().millisecondsSinceEpoch;
-    await dataController.saveData(Category().ID, '${Category().Chat}/$time', {
-      Category().CHAT_ID: m.user.id,
-      Category().CONTENT: m.text,
-      Category().TIMESTAMP: time,
+    await dataController.saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
+      KeyValue().CHAT_ID: m.user.id,
+      KeyValue().CONTENT: m.text,
+      KeyValue().TIMESTAMP: time,
     });
     // 최근 5개 메시지만 추출
     var recentMessages = _messages.take(10).toList().reversed.toList();
@@ -173,10 +177,10 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
     for(var element in response!.choices){
       if (element.message != null){
         time = DateTime.now().millisecondsSinceEpoch;
-        await dataController.saveData(Category().ID, '${Category().Chat}/$time', {
-          Category().CHAT_ID: Category().GPT,
-          Category().CONTENT: element.message!.content,
-          Category().TIMESTAMP: time,
+        await dataController.saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
+          KeyValue().CHAT_ID: KeyValue().GPT,
+          KeyValue().CONTENT: element.message!.content,
+          KeyValue().TIMESTAMP: time,
         });
         setState(() {
         });

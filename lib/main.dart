@@ -5,6 +5,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:my_research/data/keystring.dart';
 import 'package:my_research/module/healthKit.dart';
 import 'package:my_research/module/local_notification.dart';
@@ -36,6 +37,7 @@ final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
 void main() async{
   WidgetsFlutterBinding.ensureInitialized(); // 바인딩 초기화
   await LocalNotification.init();
+
   //FCM & Firebase
   if (Platform.isIOS) {
     await Firebase.initializeApp();
@@ -49,7 +51,7 @@ void main() async{
   for(int i =0; i<10 ; i ++) {
     await FirebaseMessaging.instance.unsubscribeFromTopic("$i");
   }
-  await FirebaseMessaging.instance.subscribeToTopic(Category().ID);
+  await FirebaseMessaging.instance.subscribeToTopic(KeyValue().ID);
   // subscribe to topic on each app start-up
   FirebaseMessaging.instance.requestPermission(
     badge: true,
@@ -70,47 +72,29 @@ void main() async{
   });
   //background에서 FCM설정
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
   await _requestPermission();
 
 
-
-  var time = DateTime.now().millisecondsSinceEpoch;
-  await DataStore().saveData(Category().ID, "${Category().CHAT_PAGE_ACCESS_COUNT}/$time",
+  var now = DateTime.now();
+  var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+  String time = formatter.format(now);
+  await DataStore().saveData(KeyValue().ID, "${KeyValue().CHAT_PAGE_ACCESS_COUNT}/$time",
       {
-        Category().OPEN_STATE:"start",
-        Category().TIMESTAMP:"$time",
+        KeyValue().OPEN_STATE:"start",
+        KeyValue().TIMESTAMP:"$time",
       }
   );
 
   // final stepCounterService = PedometerAPI();
   // stepCounterService.refreshSteps();
   var totalstep = await HealthKit().getSteps();
-  var firststep = await DataStore().getSharedPreferencesInt(Category().FIRSTSTEP_KEY);
-  //걸음수 초기화
-  print(firststep);
-  print(totalstep);
   try {
-    if(totalstep==0 || firststep == 0){
-      await DataStore().saveSharedPreferencesInt(
-          Category().FIRSTSTEP_KEY, 0);
-      DataStore().saveData(Category().ID, Category().CURRENTSTEP, {
-        Category().TOTALSTEP_KEY: '0',
-        Category().FIRSTSTEP_KEY: '0',
-      });
-    }else if (firststep == null ) {
-      firststep = totalstep;
-      await DataStore().saveSharedPreferencesInt(
-          Category().FIRSTSTEP_KEY, firststep!);
-      DataStore().saveData(Category().ID, Category().CURRENTSTEP, {
-        Category().TOTALSTEP_KEY: '$totalstep',
-        Category().FIRSTSTEP_KEY: '$firststep',
-      });
-    }
+    DataStore().saveData(KeyValue().ID, KeyValue().CURRENTSTEP, {
+      KeyValue().TOTALSTEP_KEY: '$totalstep',
+    });
   }catch(e){
-    DataStore().saveData(Category().ID, Category().CURRENTSTEP, {
-      Category().TOTALSTEP_KEY: '0',
-      Category().FIRSTSTEP_KEY: '0',
+    DataStore().saveData(KeyValue().ID, KeyValue().CURRENTSTEP, {
+      KeyValue().TOTALSTEP_KEY: '0',
     });
   }
 

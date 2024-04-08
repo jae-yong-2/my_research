@@ -9,7 +9,7 @@ class HealthKit {
     int steps = 0;
     DateTime now = DateTime.now();
     DateTime startDate = DateTime(now.year, now.month, now.day, 0, 0, 0);
-    DateTime endDate = DateTime.now();
+    DateTime endDate = now;
 
     if (accessGranted) {
       try {
@@ -22,6 +22,7 @@ class HealthKit {
         print(exception.toString());
       }
     }
+    print("today spep : $steps");
     return steps;
   }
 }
