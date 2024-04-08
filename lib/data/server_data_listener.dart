@@ -228,62 +228,24 @@ class ServerDataListener {
     }
 
     if (message.data["isRecord"] == "makePeriodContent") {
-      // await DataStore().saveData(
-      //     Category().ID, '${Category().STEPHISTORY}/$time',
-      //     {
-      //       Category().TOTALSTEP_KEY: '$step',
-      //       Category().TIMESTAMP: time,
-      //     }
-      // );
       recordStepHistory(time, step);
       //TODO
       //GPT가 물어볼말 서버에 전달하기
       //gptContent = 지피티에게 왜 운동하지 않았냐? 라는 문구를 생성하도록 요구.
       //                                                  "makePeriodContent"
-      // gptContent =
-      // await sendGPT(message.data["content"], message.data["isRecord"]);
-      //
-      // await DataStore().saveData(
-      //     Category().ID, Category().CONVERSATION,
-      //     {
-      //       Category().WHO: Category().GPT,
-      //       Category().CONTENT: gptContent,
-      //     }
-      // );
       makeGPTContent(gptContent, message.data["content"], message.data["isRecord"]);
     }
 //--------------------------------------------------------------------------
     if (message.data["isRecord"] == "notWalkingReason") {
       //서버에서 지피티의 내용 전달 해주기
       // gptContent 내용 받아오기 (왜 안하셨어요? 라고 묻기) or 응원의 메세지로 묻기
-      // LocalNotification.showOngoingNotification(
-      //     title: '${message.data["title"]}',
-      //     body: '${message.data["content"]}',
-      //     payload: "1"
-      // );
-      //
       // //히스토리 저장
-      // await DataStore().saveData(Category().ID, '${Category().Chat}/$time', {
-      //   Category().CHAT_ID: Category().GPT,
-      //   Category().CONTENT: '${message.data["content"]}',
-      //   Category().TIMESTAMP: time,
-      //   Category().MILLITIMESTAMP : millitime,
-      // });
       gptAlarm(
           message.data["title"], message.data["content"], time, millitime, "1");
 
       //TODO
       //agentContent = {사실 전달} 때문에 못했습니다. 라고 말하기.         "notWalkingReason"
-      // var agentContent = await sendGPT(
-      //     message.data["content"], message.data["isRecord"]);
       // //agent가 대신할말 서버에 전달하기
-      // await DataStore().saveData(
-      //     Category().ID, Category().CONVERSATION,
-      //     {
-      //       Category().WHO: Category().AGENT,
-      //       Category().CONTENT: agentContent,
-      //     }
-      // );
       makeAgentContent(agentContent, message.data["content"], message.data["isRecord"]);
 
       //피드백 페이지를 위한 저장 장소
@@ -300,147 +262,46 @@ class ServerDataListener {
       //TODO
       //서버에서 agent내용 FCM받기
       //agent
-      // LocalNotification.showOngoingNotification(
-      //     title: '${message.data["title"]}',
-      //     body: '${message.data["content"]}',
-      //     payload: "2",
-      // );
-      //
       // //히스토리에 저장
-      // await DataStore().saveData(Category().ID, '${Category().Chat}/$time', {
-      //   Category().CHAT_ID: Category().AGENT,
-      //   Category().CONTENT: message.data["content"],
-      //   Category().TIMESTAMP: time,
-      //   Category().MILLITIMESTAMP : millitime,
-      //
-      // });
       agentAlarm(
           message.data["title"], message.data["content"], time, millitime, "2");
       //GPT가 생성한 내용을 서버에 전달
-      //                                                        "RecommendWalkingContent"
-      // gptContent =
-      // await sendGPT(message.data["content"], message.data["isRecord"]);
-      //
-      // await DataStore().saveData(
-      //     Category().ID, Category().CONVERSATION,
-      //     {
-      //       Category().WHO: Category().GPT,
-      //       Category().CONTENT: gptContent,
-      //     }
-      // );
       makeGPTContent(gptContent, message.data["content"], message.data["isRecord"]);
-      //agentContent = {사실 전달 } 때문에 못했습니다. 라고 말하기.
     }
-    // Fluttertoast.showToast(msg: '$gptContent', gravity: ToastGravity.CENTER);
+
 
 //--------------------------------------------------------------------------
+
+    //GPT가 생성한 내용을 서버에 전달
+    //내가 다음에 할 의사 표현을 하는 문구 생성                                 "GPTanswer"
+    //움직였을때 무브
+
+    if (message.data["isRecord"] == "makeIamWalking") {
+      recordStepHistory(time, step);
+      //GPT가 물어볼말 서버에 전달하기
+      //gptContent = 지피티에게 왜 운동하지 않았냐? 라는 문구를 생성하도록 요구.
+      //                                                     "move"
+      makeAgentContent(agentContent, message.data["content"], message.data["isRecord"]);
+    }
+
+    if (message.data["isRecord"] == "makeWalkingNextTime") {
+      // //히스토리에 저장
+      agentAlarm(
+          message.data["title"], message.data["content"], time, millitime, "2");
+      recordStepHistory(time, step);
+      //TODO
+      //GPT가 물어볼말 서버에 전달하기
+      //gptContent = 지피티에게 지속적으로 운동을 더 해달라는 라는 문구를 생성하도록 요구.
+      //                                                     "movedGPTanswer"
+      makeGPTContent(gptContent, message.data["content"], message.data["isRecord"]);
+    }
+
     if (message.data["isRecord"] == "GPTAlarm") {
       //TODO
       //서버에서 받은 GPT내용 받기
-      //   LocalNotification.showOngoingNotification(
-      //       title: '${message.data["title"]}',
-      //       body: '${message.data["content"]}',
-      //       payload: "3"
-      //   );
-      //
       //   //히스토리에 저장
-      //   await DataStore().saveData(Category().ID, '${Category().Chat}/$time', {
-      //     Category().CHAT_ID: Category().GPT,
-      //     Category().CONTENT: message.data["content"],
-      //     Category().TIMESTAMP: time,
-      //     Category().MILLITIMESTAMP : millitime,
-      //
-      //   });
-      // }
       gptAlarm(
           message.data["title"], message.data["content"], time, millitime, "3");
-
-      //GPT가 생성한 내용을 서버에 전달
-      //내가 다음에 할 의사 표현을 하는 문구 생성                                 "GPTanswer"
-      // agentContent = await sendGPT(message.data["content"], message.data["isRecord"]);
-      //
-      // await DataStore().saveSharedPreferencesString("${Category().CONVERSATION}2", agentContent!);
-      // await DataStore().saveSharedPreferencesString("${Category().TIMESTAMP}2", '$time');
-      //
-      // await DataStore().saveData(
-      //     Category().ID, Category().CONVERSATION,
-      //     {
-      //       Category().WHO: Category().GPT,
-      //       Category().CONTENT: agentContent,
-      //     }
-      // );
-
-
-      //움직였을때 무브
-
-      if (message.data["isRecord"] == "makeIamWalking") {
-        // await DataStore().saveData(
-        //     Category().ID, '${Category().STEPHISTORY}/$time',
-        //     {
-        //       Category().TOTALSTEP_KEY: '$step',
-        //       Category().TIMESTAMP: time,
-        //     }
-        // );
-        recordStepHistory(time, step);
-        //TODO
-        //GPT가 물어볼말 서버에 전달하기
-        //gptContent = 지피티에게 왜 운동하지 않았냐? 라는 문구를 생성하도록 요구.
-        //                                                     "move"
-        // agentContent =
-        // await sendGPT(message.data["content"], message.data["isRecord"]);
-        //
-        // await DataStore().saveData(
-        //     Category().ID, Category().CONVERSATION,
-        //     {
-        //       Category().WHO: Category().AGENT,
-        //       Category().CONTENT: agentContent,
-        //     }
-        // );
-        makeAgentContent(agentContent, message.data["content"], message.data["isRecord"]);
-      }
-
-      if (message.data["isRecord"] == "makeWalkingNextTime") {
-        // LocalNotification.showOngoingNotification(
-        //   title: '${message.data["title"]}',
-        //   body: '${message.data["content"]}',
-        //   payload: "2",
-        // );
-        //
-        // //히스토리에 저장
-        // await DataStore().saveData(Category().ID, '${Category().Chat}/$time', {
-        //   Category().CHAT_ID: Category().AGENT,
-        //   Category().CONTENT: message.data["content"],
-        //   Category().TIMESTAMP: time,
-        //   Category().MILLITIMESTAMP : millitime,
-        // });
-        //
-        agentAlarm(
-            message.data["title"], message.data["content"], time, millitime,
-            "2");
-
-        // await DataStore().saveData(
-        //     Category().ID, '${Category().STEPHISTORY}/$time',
-        //     {
-        //       Category().TOTALSTEP_KEY: '$step',
-        //       Category().TIMESTAMP: time,
-        //     }
-        // );
-        recordStepHistory(time, step);
-        //TODO
-        //GPT가 물어볼말 서버에 전달하기
-        //gptContent = 지피티에게 지속적으로 운동을 더 해달라는 라는 문구를 생성하도록 요구.
-        //                                                     "movedGPTanswer"
-        // gptContent = await sendGPT(message.data["content"], message.data["isRecord"]);
-        //
-        // await DataStore().saveData(
-        //     Category().ID, Category().CONVERSATION,
-        //     {
-        //       Category().WHO: Category().GPT,
-        //       Category().CONTENT: gptContent,
-        //     }
-        // );
-        makeGPTContent(gptContent, message.data["content"], message.data["isRecord"]);
-      }
     }
   }
 }
