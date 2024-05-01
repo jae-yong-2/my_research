@@ -28,32 +28,21 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 Future<void> _requestPermission() async {
-  var status = await Permission.activityRecognition.status;
-  if (!status.isGranted) {
-    await Permission.activityRecognition.request();
-  }
+  await [
+    Permission.activityRecognition,
+    Permission.location,
+  ].request();
 }
-final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
-void main() async{
-  WidgetsFlutterBinding.ensureInitialized(); // 바인딩 초기화
+Future<bool> _setupFirebaseMessaging() async {
   bool isLaunchedByNotification = await LocalNotification.init();
   print(isLaunchedByNotification);
 
-  //FCM & Firebase
-  if (Platform.isIOS) {
-    await Firebase.initializeApp();
+  List<Future> unsubscribeFutures = [];
+  for (int i = 0; i < 10; i++) {
+    unsubscribeFutures.add(FirebaseMessaging.instance.unsubscribeFromTopic(KeyValue().ID));
   }
-  if (Platform.isAndroid) {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform
-    );
-  }
-
-  for(int i =0; i<10 ; i ++) {
-    await FirebaseMessaging.instance.unsubscribeFromTopic("$i");
-  }
+  await Future.wait(unsubscribeFutures);
   await FirebaseMessaging.instance.subscribeToTopic(KeyValue().ID);
-  // subscribe to topic on each app start-up
   FirebaseMessaging.instance.requestPermission(
     badge: true,
     alert: true,
@@ -64,46 +53,40 @@ void main() async{
     alert: true,
     sound: true,
   );
-  //foreground에서 FCM설정
   FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-    print('Got a message whilst in the foreground!');
-    print('Message data: ${message.data}');
-
     ServerDataListener().FCMactivce(message);
   });
-  //background에서 FCM설정
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  await _requestPermission();
-
-
+  return isLaunchedByNotification;
+}
+Future<void> _saveInitialData() async {
   var now = DateTime.now();
   var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
   String time = formatter.format(now);
-  await DataStore().saveData(KeyValue().ID, "${KeyValue().CHAT_PAGE_ACCESS_COUNT}/$time",
-      {
-        KeyValue().OPEN_STATE:"start",
-        KeyValue().TIMESTAMP:"$time",
-      }
-  );
+  await DataStore().saveData(KeyValue().ID, "${KeyValue().CHAT_PAGE_ACCESS_COUNT}/$time", {
+    KeyValue().OPEN_STATE: "start",
+    KeyValue().TIMESTAMP: time,
+  });
 
-  // final stepCounterService = PedometerAPI();
-  // stepCounterService.refreshSteps();
-  var totalstep = await HealthKit().getSteps();
+  int totalStep;
   try {
-    DataStore().saveData(KeyValue().ID, KeyValue().CURRENTSTEP, {
-      KeyValue().TOTALSTEP_KEY: '$totalstep',
-    });
-  }catch(e){
-    DataStore().saveData(KeyValue().ID, KeyValue().CURRENTSTEP, {
-      KeyValue().TOTALSTEP_KEY: '0',
-    });
+    totalStep = await HealthKit().getSteps();
+  } catch (e) {
+    totalStep = 0;
   }
+  await DataStore().saveData(KeyValue().ID, KeyValue().CURRENTSTEP, {
+    KeyValue().TOTALSTEP_KEY: '$totalStep',
+  });
+}
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized(); // 바인딩 초기화
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Firebase Messaging 설정
+  bool isLaunchedByNotification = await _setupFirebaseMessaging();
+  //FCM & Firebase
+  await _requestPermission();
+  await _saveInitialData();
 
-    //FCM이 들어왔을때, 파이어베이스에 값(FCM을 잘 받았는지, 현재까지 걸은것, 어플을 켰을때 초기 걸음수) 저장함.
-    //FCM을 받았는지 확인하는 코드
-    // await DataStore().saveData(Category().ID, Category().ISFCM, {Category().ISFCM: "true"});
-  await Permission.activityRecognition.request();
-  await Permission.location.request();
   runApp(MyApp(isLaunchedByNotification: isLaunchedByNotification));
 }
 

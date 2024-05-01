@@ -38,6 +38,11 @@ class LocalNotification {
     required String body,
     required String payload,
   }) async {
+    const String groupKey = 'com.yourcompany.messages';
+    const String groupChannelId = 'grouped_channel_id';
+    const String groupChannelName = 'Grouped Notifications';
+    const String groupChannelDescription = 'Notifications Group';
+
     const AndroidNotificationDetails androidNotificationDetails = AndroidNotificationDetails(
       'ongoing',
       'ongoing',
@@ -46,6 +51,8 @@ class LocalNotification {
       priority: Priority.max,
       ongoing: true,
       autoCancel: false,
+      groupKey: groupKey,
+
       actions: <AndroidNotificationAction>[
       ],
     );
@@ -54,5 +61,7 @@ class LocalNotification {
 
     final int notificationId = DateTime.now().hashCode;
     await _flutterLocalNotificationsPlugin.show(int.parse(payload), title, body, notificationDetails, payload: payload);
+
   }
+
 }

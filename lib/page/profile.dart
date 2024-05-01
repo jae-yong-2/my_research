@@ -18,6 +18,75 @@ class _ProfileState extends State<Profile> {
   final TextEditingController _bodyIssueController = TextEditingController();
   final DataStore _dataControllerInstance = DataStore();
   final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
+  TimeOfDay? _startTime;
+  TimeOfDay? _endTime;
+
+  Future<void> _saveOperateTime() async {
+    if (_startTime != null && _endTime != null) {
+      Map<String, dynamic> operateTime = {
+        'startHour': _startTime!.hour,
+        'startMinute': _startTime!.minute,
+        'endHour': _endTime!.hour,
+        'endMinute': _endTime!.minute,
+      };
+
+      // 'operatetime' 카테고리 아래에 시간 정보를 저장합니다.
+      // 여기서 'id'는 사용자의 고유 식별자입니다.
+      await DataStore().saveData(KeyValue().ID, "operatetime", operateTime);
+      print("Operate time saved to Firebase");
+    }
+  }
+  Future<void> _pickStartTime() async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: _startTime ?? TimeOfDay(hour: 9, minute: 0), // 기본값 설정
+    );
+
+    if (pickedTime != null && pickedTime != _startTime) {
+      setState(() {
+        _startTime = pickedTime;
+      });
+      _saveTime('startHour', pickedTime.hour);
+      _saveTime('startMinute', pickedTime.minute);
+    }
+  }
+  // 종료 시간 선택
+  Future<void> _pickEndTime() async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: _endTime ?? TimeOfDay(hour: 18, minute: 0), // 기본값 설정
+    );
+
+    if (pickedTime != null && pickedTime != _endTime) {
+      setState(() {
+        _endTime = pickedTime;
+      });
+      _saveTime('endHour', pickedTime.hour);
+      _saveTime('endMinute', pickedTime.minute);
+    }
+  }
+
+  Future<void> _saveTime(String key, int value) async {
+    DataStore().saveSharedPreferencesInt(key, value);
+  }
+
+  Future<void> _loadTime() async {
+    final int startHour = await DataStore().getSharedPreferencesInt("startHour") ?? 9;
+    final int startMinute = await DataStore().getSharedPreferencesInt("startMinute") ?? 0;
+    final int endHour = await DataStore().getSharedPreferencesInt("endHour") ?? 18;
+    final int endMinute = await DataStore().getSharedPreferencesInt("endMinute") ?? 0;
+
+    setState(() {
+      _startTime = TimeOfDay(hour: startHour, minute: startMinute);
+      _endTime = TimeOfDay(hour: endHour, minute: endMinute);
+    });
+  }
+
+  @override
+  void initState(){
+    super.initState();
+    _loadTime();
+  }
 
   @override
   void dispose() {
@@ -86,6 +155,34 @@ class _ProfileState extends State<Profile> {
       child: Scaffold(
         body: Column(
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Column(children: [
+                ElevatedButton(
+                  onPressed: _pickStartTime,
+                  child: Text('시작 시간 선택'),
+                ),
+                if (_startTime != null)
+                  Text('시작 시간: ${_startTime!.format(context)}'),
+                ],
+                ),
+                Column(children: [
+                  ElevatedButton(
+                    onPressed: _pickEndTime,
+                    child: Text('종료 시간 선택'),
+                  ),
+                  if (_endTime != null)
+                    Text('종료 시간: ${_endTime!.format(context)}'),
+                ],
+                ),
+              ],
+            ),
+
+            ElevatedButton(
+              onPressed: _saveOperateTime,
+              child: Text('시간 저장'),
+            ),
             SizedBox(height: 10),
             TextFormField(
               controller: _habitController,

@@ -52,55 +52,83 @@ class ServerDataListener {
     var bodyissue = await DataStore().getSharedPreferencesString(
         KeyValue().CURRENT_BODY_ISSUE);
     // Messages 객체 리스트 생성
+    //완료-----------------------------------------
     if (category == "makePeriodContent") {
       text =
-      "평소 습관이 $habit, 신체 특이사항이 $bodyissue 인 저에게 1시간동안 움직임이 없었다고 걷기가 필요하다는 것을 저에게 알려주는 글을 40자 정도의 존댓말로 자연스러운 문장 딱 1개만! 생성해줘요.";
-    }
-
-    if (category == "RecommendWalkingContent") {
-      text =
-      "다음 문장을 보고 평소 습관이 $habit, 신체 특이사항이 $bodyissue 인 '저'에게 지금 바로 걷기를 장려하는 글을 40자 정도의 존댓말로 자연스러운 문장 딱 1개만! 생성해주세요. $text";
+      "평소 습관이 $habit, "
+          "신체 특이사항이 $bodyissue 인 "
+          "저에게 1시간동안 움직임이 없었다고 잠시동안 걸어라고 "
+          "긍정적으로 권유해주는 글을 35자 정도의 존댓말로 자연스러운 문장 딱 1개만! "
+          "생성해줘요.";
     }
 
     if (category == "makeIamWalking") {
-      text = "제가 알람을 보고 움직였다는 글을 30자 정도의 존댓말로 자연스러운 문장 딱 1개만! 생성해주세요.";
-    }
-    if (category == "makeWalkingNextTime") {
       text =
-      "다음 문장을 보고 평소 습관이 $habit, 신체 특이사항이 $bodyissue 인 저에게 계속 활동을 격려하는 글을 20자 정도의 존댓말로 자연스러운 문작 딱 1개만! 추천해주세요. $text";
+      "제가 알람을 보고 움직였다는 글을 30자 정도의 존댓말로 자연스러운 문장 딱 1개만! 생성해주세요.";
     }
+    //움직인 후에 다음에 움직이겠다고 하는 말
+    // if (category == "makeWalkingNextTime") {
+    //   text =
+    //   "다음 문장을 보고 평소 습관이 $habit, "
+    //       "신체 특이사항이 $bodyissue 인 "
+    //       "저에게 다음 문장의 내용을 보고 걷기를 격려하는 글을 20자 정도의 존댓말로 자연스러운 문작 딱 1개만! "
+    //       "추천해주세요. $text";
+    // }
 
     if (category == "notWalkingReason") {
       int i = DateTime
           .now()
           .hashCode;
-      String reseaon = '업무';
-      if (i % 3 == 0) {
-        reseaon = "휴식";
-      }
-      if (i % 3 == 1) {
-        reseaon = "업무";
-      }
-      if (i % 3 == 2) {
-        reseaon = "귀찮음";
-      }
+      // if(KeyValue().CONTENT_TYPE =="사실전달") {
+      //   String reseaon = '업무';
+      //   if (i % 3 == 0) {
+      //     reseaon = "휴식";
+      //   }
+      //   if (i % 3 == 1) {
+      //     reseaon = "업무";
+      //   }
+      //   if (i % 3 == 2) {
+      //     reseaon = "귀찮음";
+      //   }
+      //   text =
+      //       "1분전 받은 알람 : $text 상황 : 1분동안 아무런 움직임이 없었습니다. "
+      //       "이때 상대방에게 $reseaon으로 움직일 수 없는 이유'만' 30글자 정도로 말하려합니다. "
+      //       "다른 표현은 하지 말고 뭐라고 답해야 좋을까요?\n"
+      //       "대답 :";
+      //
+      //   // text =
+      //   // "다음 알람을 보고 상대방에게 $reseaon 의 이유로 알람을 보고도 움직이지 않았다고 변명하는 메시지를 30자 정도의 존댓말로 자연스러운 문장 딱 1개만! 생성해주세요. $text";
+      // }
+        // 단순 이유가 아닌 의지 표현
       text =
-      "다음 알람을 보고 상대방에게 $reseaon 의 이유로 알람을 보고도 움직이지 않았다고 변명하는 메시지를 30자 정도의 존댓말로 자연스러운 문장 딱 1개만! 생성해주세요. $text";
-    }
+      "{"
+          "'역할' : '나를 대신해서 나인 척 내 목표를 상대방에게 전달하는 사람',"
+          "'1분전 받은 알람' :  '$text\n',"
+          "'상황' : '알람을 받고 1분동안 아무런 움직임이 없었습니다.',"
 
-    if (category == "makeOpinion") {
-      int i = DateTime
-          .now()
-          .hashCode;
-      String reseaon = '업무';
-      if (i % 2 == 0) {
-        reseaon = "할게요..";
-      }
-      if (i % 2 == 1) {
-        reseaon = "안할게요..";
-      }
+          "'요구사항' :"
+              "["
+                  "'상대방에게 1회성의 가벼운 걷기 목표를 구체적이고 달성가능고 다양하게 설정해서 제가 할 거라고 채팅으로 전달.',"
+                  "'학습데이터는 내가 평소 채팅에서 쓰는 문장이며, 상대방이 최대한 익숙하게 느낄 수 있도록 학습데이터의 문장들을 분석하여!!! 동일한 말투!!와 말씨!!의 문장 1개 생성. ',"
+                  "'학습데이터의 말투가 아니면 상대방이 어색해 할거니 주의 요망!!!!', "
+                  "'30글자 정도로 생성."
+              "],"
+          "'학습데이터' :"
+              "["
+                  "'n분 있다가 n분 동안 움직일 것임',"
+                  "'일을 끝 마치고 n분 동안 걸어볼 것 임.',"
+                  "'하던 일을 끝내면 n분간 산책을 해볼 것 임.'"
+              "],"
+          "'대답' : '(5~15분사이 랜덤)'"
+      "}";
+    }
+    //안움직였지만 다음에 움직여라고 GPT가 하는 말
+    if (category == "RecommendWalkingContent") {
       text =
-      "다음 문장을 보고 평소 습관이 $habit, 신체 특이사항이 $bodyissue 인 제가 '걷기나 스트레칭 등 가벼운 활동을 $reseaon'라고 말하는 글을 20자 정도의 존댓말로 자연스러운 문작 딱 1개만! 추천해주세요. $text";
+          "방금 전 응답 : $text"
+          "상대방의 방금 전 응답을 확인했고 알겠다는 글을 20자 정도의 존댓말로 자연스러운 문장 딱 1개만! "
+          "추천해주세요.";
+      // "다음 문장을 보고 평소 습관이 $habit, 신체 특이사항이 $bodyissue 인 '저'에게 지금 바로 걷기를 장려하는 글을 40자 정도의 존댓말로 자연스러운 문장 딱 1개만! 생성해주세요. $text";
     }
 
     List<Messages> messagesHistory = [
@@ -113,13 +141,26 @@ class ServerDataListener {
       model: Gpt4ChatModel(),
       messages: messagesHistory,
       maxToken: 200,
-      temperature: 1,
+      temperature: 0.7,
     );
     final response = await _openAI.onChatCompletion(request: request);
     for (var element in response!.choices) {
       final message = element.message;
       if (message != null) {
-        return message.content;
+        try {
+          final messageContent = message.content.replaceAll("'", '"');
+          final decodedMessage = jsonDecode(messageContent);
+          if (decodedMessage.containsKey('대답')) {
+            // '대답' 키가 있으면 해당 값만 반환합니다.
+            return decodedMessage['대답'];
+          }else{
+            return message.content;
+          }
+        }
+        catch (e){
+          // '대답' 키가 없으면 전체 메시지를 반환합니다.
+          return message.content;
+        }
       }
     }
     return null;
@@ -180,8 +221,7 @@ class ServerDataListener {
     );
   }
   Future<void> makeAgentContent(var agentContent, String content, String isRecord, var time) async {
-    agentContent =
-    await sendGPT(content, isRecord);
+    agentContent = await sendGPT(content, isRecord);
 
     await DataStore().saveData(
         KeyValue().ID, KeyValue().CONVERSATION,
@@ -206,6 +246,7 @@ class ServerDataListener {
     // int step = await healthHelper.getSteps();
     print("FCM");
     var step = await HealthKit().getSteps();
+    // var step=0;
     step ??= 0;
     String? gptContent = "key가 없거나 오류가 났습니다.";
     String? agentContent = "key가 없거나 오류가 났습니다.";
@@ -222,10 +263,12 @@ class ServerDataListener {
       try {
         DataStore().saveData(KeyValue().ID, KeyValue().CURRENTSTEP, {
           KeyValue().TOTALSTEP_KEY: '$step',
+          KeyValue().TIMESTAMP : time
         });
       } catch (e) {
         DataStore().saveData(KeyValue().ID, KeyValue().CURRENTSTEP, {
           KeyValue().TOTALSTEP_KEY: '0',
+          KeyValue().TIMESTAMP : time
         });
       }
       //이 문구를 서버에 보내고 기다림
