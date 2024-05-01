@@ -1,8 +1,12 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+import '../main.dart';
+import '../page/feedback.dart';
 
 
 @pragma('vm:entry-point')
-void notificationTapBackground(NotificationResponse notificationResponse) {
+void notificationTapBackground(NotificationResponse notificationResponse) async {
   // handle action
   print(notificationResponse.actionId);
   print(notificationResponse.id);
@@ -35,14 +39,15 @@ class LocalNotification {
               } else {
                 print("No input received.");
               }
+            }else{
+              navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) => FeedbackPage()));
             }
           } catch (e) {
             print("Error handling notification response: $e");
             // 에러 처리 로직
           }
-    },
+      },
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
-
     );
 
     // 알람 클릭으로 앱이 시작되었는지 확인
