@@ -1,5 +1,5 @@
 class KeyValue{
-  String ID = "0";
+  String ID = "1";
   // String JOB = "직장인";
 
 
@@ -23,4 +23,5 @@ class KeyValue{
   String OPEN_STATE="openState";
   String CURRENT_BODY_ISSUE = "cureent_body_issue";
   String HABIT_STATE= "habitStatus";
+  String REPLY='reply';
 }

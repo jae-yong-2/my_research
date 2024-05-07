@@ -1,17 +1,88 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
+import 'package:my_research/data/keystring.dart';
+import 'package:my_research/data/server_data_listener.dart';
 
+import '../data/data_store.dart';
 import '../main.dart';
 import '../page/feedback.dart';
 
 
 @pragma('vm:entry-point')
-void notificationTapBackground(NotificationResponse notificationResponse) async {
-  // handle action
-  print(notificationResponse.actionId);
-  print(notificationResponse.id);
-  print(notificationResponse.input);
-  print(notificationResponse.payload);
+void notificationTapBackground(NotificationResponse response) async {
+  try {
+    if (response.notificationResponseType == NotificationResponseType.selectedNotificationAction) {
+      if (response.input != null) {
+
+        //시간 초기화
+        var millitime = DateTime
+            .now()
+            .millisecondsSinceEpoch;
+        var now = DateTime.now();
+        var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+        String time = formatter.format(now);
+        print("User replied: ${response.input}");
+
+        //수정할때 내용 저장
+        await DataStore().saveData(KeyValue().ID, '${KeyValue().REPLY}/$time', {
+          KeyValue().CHAT_ID: KeyValue().AGENT,
+          KeyValue().CONTENT: response.input,
+          KeyValue().TIMESTAMP: time,
+          KeyValue().MILLITIMESTAMP: millitime,
+        });
+
+        //수정 요청으로 수정된 내용 생성
+        String? agentContent = await ServerDataListener().sendGPT(response.input, KeyValue().REPLY);
+        print('---------------$agentContent');
+
+        //수정 된 내용 서버에 캐시 저장
+        // await DataStore().saveData(
+        //     KeyValue().ID, KeyValue().CONVERSATION,
+        //     {
+        //       KeyValue().WHO: KeyValue().AGENT,
+        //       KeyValue().CONTENT: agentContent,
+        //     }
+        // );
+        //수정된 내용 스마트폰(feedback 용)으로 저장
+        Future.delayed(Duration(seconds: 10), () async {
+          await DataStore().saveSharedPreferencesString(
+              "${KeyValue().CONVERSATION}1", agentContent!);
+          await DataStore().saveSharedPreferencesString(
+              "${KeyValue().TIMESTAMP}1", time);
+          //알람과 동시에 서버에 수정된 내용 저장
+          ServerDataListener().agentAlarm(
+              "GPT에게 답장했습니다.", agentContent, time, millitime, "2");
+
+        });
+
+        Future.delayed(Duration(seconds: 15), () async {
+
+          var millitime = DateTime
+              .now()
+              .millisecondsSinceEpoch;
+          var now = DateTime.now();
+          var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+          String time = formatter.format(now);
+          print("User replied: ${response.input}");
+          String? gptContent = await ServerDataListener().sendGPT(agentContent, 'RecommendWalkingContent');
+          ServerDataListener().gptAlarm("GPT에게 메세지가 도착했습니다.", gptContent!, time, millitime, "3");
+
+        });
+
+
+
+        // 서버로 전송하는 함수 호출
+      } else {
+        print("No input received.");
+      }
+    }else{
+      navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) => FeedbackPage()));
+    }
+  } catch (e) {
+    print("Error handling notification response: $e");
+    // 에러 처리 로직
+  }
 }
 class LocalNotification {
   static final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
@@ -30,23 +101,7 @@ class LocalNotification {
         android: initializationSettingsAndroid, iOS: initializationSettingsDarwin);
 
     await _flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onDidReceiveNotificationResponse: (NotificationResponse response) async {
-          try {
-            if (response.notificationResponseType == NotificationResponseType.selectedNotificationAction) {
-              if (response.input != null) {
-                print("User replied: ${response.input}");
-                // 서버로 전송하는 함수 호출
-              } else {
-                print("No input received.");
-              }
-            }else{
-              navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) => FeedbackPage()));
-            }
-          } catch (e) {
-            print("Error handling notification response: $e");
-            // 에러 처리 로직
-          }
-      },
+        onDidReceiveNotificationResponse: notificationTapBackground,
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
 

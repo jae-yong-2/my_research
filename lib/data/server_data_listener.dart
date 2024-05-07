@@ -81,7 +81,7 @@ class ServerDataListener {
               "나의 대답 : 5분 있다가 10분 정도 걷겠음.',"
               "'example 2)"
               "상대방의 권유 : 오래 앉아 계셨으니, 잠시 허리를 펴며 걸어보시는 건 어떠세요?."
-              "나의 대답 : 좋아 지금 3정도 스트레칭 해보겠음.',"
+              "나의 대답 : 좋아 지금 잠시동안 스트레칭 해보겠음.',"
               "'example 3)"
               "상대방의 권유 : 1시간이 지났어요. 잠시 무릎 통증을 잊고 걸어보는 건 어떨까요?"
               "나의 대답 : 지금 30분정도 걸어보겠음.'"
@@ -89,14 +89,6 @@ class ServerDataListener {
           "'대답' : ''"
       "}";
     }
-    //움직인 후에 다음에 움직이겠다고 하는 말
-    // if (category == "makeWalkingNextTime") {
-    //   text =
-    //   "다음 문장을 보고 평소 습관이 $habit, "
-    //       "신체 특이사항이 $bodyissue 인 "
-    //       "저에게 다음 문장의 내용을 보고 걷기를 격려하는 글을 20자 정도의 존댓말로 자연스러운 문작 딱 1개만! "
-    //       "추천해주세요. $text";
-    // }
 
     if (category == "notWalkingReason") {
         // 단순 이유가 아닌 의지 표현
@@ -136,24 +128,53 @@ class ServerDataListener {
           "[ "
               "'example 1 )"
                 "상대방의 권유 : 잠시마나 일어나셔서 걸어보시는 건 어떠세요? 무릎에도 좋고, 자세 교정에도 도움이 될 거에요."
-                "나의 대답 : 5분 있다가 10분 정도 걷겠음.',"
+                "나의 대답 : 밤 n시에 집앞 공원에서 nkm가량 조깅할 예정~',"
               "'example 2)"
                 "상대방의 권유 : 오래 앉아 계셨으니, 잠시 허리를 펴며 걸어보시는 건 어떠세요?."
-                "나의 대답 : 좋아 지금 3정도 스트레칭 해보겠음.',"
+                "나의 대답 : 지금은 업무중이라 n분 뒤에 일어나서 허리펴고 스트레칭 할게',"
               "'example 3)"
                 "상대방의 권유 : 1시간이 지났어요. 잠시 무릎 통증을 잊고 걸어보는 건 어떨까요?"
-                "나의 대답 : 지금 조금 걸어보겠음.'"
+                "나의 대답 : 그래, n분만 있다가 잠시 n시간 정도는 집앞 산책 다녀오지뭐'"
           "],"
-          "'대답' : ''"
+          "'대답' : '(평소 몸상태가 $bodyissue인 나에게 맞는 n 수치를 생성해줘)'"
       "}";
+      //GPT가 운동을 하는 것에 대한 목적을 생성할 수 있도록 해보자.
+      //카카오
     }
     //안움직였지만 다음에 움직여라고 GPT가 하는 말
     if (category == "RecommendWalkingContent") {
       text =
           "방금 전 응답 : $text"
-          "상대방의 방금 전 응답을 확인했고 알겠다는 글을 20자 정도의 존댓말로 자연스러운 문장 딱 1개만! "
+          "방금 전 응답을 확인했다는 글을 15자 정도의 존댓말 문장 딱 1개만!"
           "추천해주세요.";
       // "다음 문장을 보고 평소 습관이 $habit, 신체 특이사항이 $bodyissue 인 '저'에게 지금 바로 걷기를 장려하는 글을 40자 정도의 존댓말로 자연스러운 문장 딱 1개만! 생성해주세요. $text";
+    }
+    if(category=="reply"){
+      text =
+      "{"
+          "'GPT 역할' : '처음 생성된 문장이 만족스럽지 못해서 수정했으면 함.',"
+          "'처음 생성된 문장' : ${await DataStore().getSharedPreferencesString("${KeyValue().CONVERSATION}1")}"
+          "'요청 사항' : '$text',"
+          "'상황' : '다음 내용을 받고 마음에 들지 않습니다.',"
+          "'요구사항' :"
+            "["
+              "'학습데이터는 말투만 따라하기 위한 데이터이므로 내용은 무시하고 말투만 따라하여 생성한다.',"
+              "'생성될 문장의 내용은 처음 생성된 문장을 요청 사항에 맞게 수정해서 생성한다.',"
+            "],"
+          "'학습데이터' :"
+            "[ "
+              "'example 1 )"
+              "상대방의 권유 : 잠시마나 일어나셔서 걸어보시는 건 어떠세요? 무릎에도 좋고, 자세 교정에도 도움이 될 거에요."
+              "나의 대답 : 밤 n시에 집앞 공원에서 nkm가량 조깅할 예정~',"
+              "'example 2)"
+              "상대방의 권유 : 오래 앉아 계셨으니, 잠시 허리를 펴며 걸어보시는 건 어떠세요?."
+              "나의 대답 : 지금은 업무중이라 n분 뒤에 일어나서 허리펴고 스트레칭 할게',"
+              "'example 3)"
+              "상대방의 권유 : 1시간이 지났어요. 잠시 무릎 통증을 잊고 걸어보는 건 어떨까요?"
+              "나의 대답 : 그래, n분만 있다가 잠시 n시간 정도는 집앞 산책 다녀오지뭐'"
+            "],"
+          "'대답' : '',"
+      "}";
     }
 
     List<Messages> messagesHistory = [
@@ -165,8 +186,8 @@ class ServerDataListener {
     final request = ChatCompleteText(
       model: Gpt4ChatModel(),
       messages: messagesHistory,
-      maxToken: 200,
-      temperature: 0.85,
+      maxToken: 100,
+      temperature: 0.75,
     );
     final response = await _openAI.onChatCompletion(request: request);
     for (var element in response!.choices) {
@@ -178,7 +199,10 @@ class ServerDataListener {
           if (decodedMessage.containsKey("대답")) {
             // '대답' 키가 있으면 해당 값만 반환합니다.
             return decodedMessage["대답"];
-          }else{
+          }else if(decodedMessage.containsKey('대답')){
+            return decodedMessage['대답'];
+          }
+          else{
             return message.content;
           }
         }
