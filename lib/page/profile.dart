@@ -5,6 +5,7 @@ import 'package:my_research/data/keystring.dart';
 import 'package:my_research/data/data_store.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:my_research/module/healthKit.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Profile extends StatefulWidget {
   const Profile({Key? key}) : super(key: key);
@@ -81,11 +82,12 @@ class _ProfileState extends State<Profile> {
       _endTime = TimeOfDay(hour: endHour, minute: endMinute);
     });
   }
-
+  bool isFeedbackEnabled = true;
   @override
-  void initState(){
+  Future<void> initState() async {
     super.initState();
     _loadTime();
+    isFeedbackEnabled = (await DataStore().getSharedPreferencesBool(KeyValue().ISFEEDBACK))!;
   }
 
   @override
@@ -148,6 +150,22 @@ class _ProfileState extends State<Profile> {
     });
   }
 
+  void _launchURL() async {
+    const url = 'https://forms.gle/tf5X6XtqoS97eHZp9';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
+  void _toggleFeedback() async {
+    setState(() {
+      isFeedbackEnabled = !(isFeedbackEnabled ?? true);
+      DataStore().saveSharedPreferencesBool(KeyValue().ISFEEDBACK, isFeedbackEnabled!);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -176,12 +194,21 @@ class _ProfileState extends State<Profile> {
                     Text('종료 시간: ${_endTime!.format(context)}'),
                 ],
                 ),
+
               ],
             ),
 
-            ElevatedButton(
-              onPressed: _saveOperateTime,
-              child: Text('시간 저장'),
+            Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: _saveOperateTime,
+                    child: Text('시간 저장'),
+                ),
+                ElevatedButton(
+                  onPressed: _toggleFeedback,
+                  child: Text(isFeedbackEnabled ? '피드백 가능' : '피드백 불가능'),
+                ),]
             ),
             SizedBox(height: 10),
             TextFormField(
@@ -218,13 +245,13 @@ class _ProfileState extends State<Profile> {
 
                 ),
                 ElevatedButton(
-                  onPressed: _updateSteps,
+                  onPressed: _launchURL,
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.zero,
                     ),
                   ),
-                  child: Text("${KeyValue().ID}"),
+                  child: Text("버그 ${KeyValue().ID}"),
                 ),
                 ElevatedButton(
                   onPressed: _deleteData,

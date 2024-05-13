@@ -60,4 +60,15 @@ class DataStore {
     final myValue = prefs.getInt(key);
     return myValue;
   }
+
+  Future<void> saveSharedPreferencesBool(String key, bool value) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, value ?? true);
+  }
+  Future<bool?> getSharedPreferencesBool(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    // 'myKey'에 저장된 값을 가져옵니다. 값이 없으면 null을 반환합니다.
+    final myValue = prefs.getBool(key);
+    return myValue;
+  }
 }

@@ -88,6 +88,8 @@ class LocalNotification {
   static final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
+  static Future<bool?> get isFeedbackEnable async => await DataStore().getSharedPreferencesBool(KeyValue().ISFEEDBACK);
+
   static Future<bool> init() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -119,12 +121,22 @@ class LocalNotification {
     required String payload,
   }) async {
     const String groupKey = 'com.yourcompany.messages';
-
-    const AndroidNotificationAction replyAction = AndroidNotificationAction(
-      '답장하기',
-      '답장하기',
-      inputs: <AndroidNotificationActionInput>[AndroidNotificationActionInput(label: 'reply_key')],
-    );
+// SharedPreferences에서 답장 가능 여부를 확인
+    bool? feedbackEnabled = await isFeedbackEnable;
+    List<AndroidNotificationAction> actions = [];
+    if (feedbackEnabled == true) {
+      // 답장 액션 활성화
+      actions = [
+        AndroidNotificationAction(
+          "categoryAccept",
+          "답장하기",
+          showsUserInterface: true,
+          inputs: [
+            AndroidNotificationActionInput(label: "Input your text"),
+          ],
+        ),
+      ];
+    }
     final AndroidNotificationDetails androidNotificationDetails = AndroidNotificationDetails(
       '답장하기',
       '답장하기',
@@ -134,17 +146,8 @@ class LocalNotification {
       ongoing: true,
       autoCancel: false,
       groupKey: groupKey,
-      actions: (payload == "2" ? <AndroidNotificationAction>[
-        AndroidNotificationAction(
-          "categoryAccept",
-          "답장하기",
-          showsUserInterface: true,
-          inputs: [
-            AndroidNotificationActionInput(
-              label: "Input your text",
-            )
-          ],
-        )] : []),
+      actions: ((payload == "2")?
+        actions : []),
     );
     // 답장을 위한 RemoteInput 생성
 

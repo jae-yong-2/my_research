@@ -41,7 +41,7 @@ Future<bool> _setupFirebaseMessaging() async {
 
   List<Future> unsubscribeFutures = [];
   for (int i = 0; i < 10; i++) {
-    unsubscribeFutures.add(FirebaseMessaging.instance.unsubscribeFromTopic(KeyValue().ID));
+    unsubscribeFutures.add(FirebaseMessaging.instance.unsubscribeFromTopic('$i'));
   }
   await Future.wait(unsubscribeFutures);
   await FirebaseMessaging.instance.subscribeToTopic(KeyValue().ID);
