@@ -367,7 +367,7 @@ class ServerDataListener {
           String? gptContent = await ServerDataListener().sendGPT(
               message.data["content"], message.data["isRecord"]);
           ServerDataListener().gptAlarm(
-              "GPT에게 메세지가 도착했습니다.", gptContent!, time, millitime, "3");
+              "Agent가 메세지를 보냈습니다.", gptContent!, time, millitime, "3");
         });
       }else{
         recordStepHistory(time, step);
@@ -375,7 +375,7 @@ class ServerDataListener {
         String text = await makeAgentContent(agentContent, message.data["content"], "makeIamWalking",time);
 
         agentAlarm(
-            message.data["title"], text, time, millitime,
+            "Agent에게 답장했습니다.", text, time, millitime,
             "2");
         //GPT가 생성한 내용을 서버에 전달
         makeGPTContent(
@@ -392,7 +392,7 @@ class ServerDataListener {
           String? gptContent = await ServerDataListener().sendGPT(
               message.data["content"], message.data["isRecord"]);
           ServerDataListener().gptAlarm(
-              "GPT에게 메세지가 도착했습니다.", gptContent!, time, millitime, "3");
+              "Agent가 메세지를 보냈습니다", gptContent!, time, millitime, "3");
         });
 
       }

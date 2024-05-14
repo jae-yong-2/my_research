@@ -52,7 +52,7 @@ void notificationTapBackground(NotificationResponse response) async {
               "${KeyValue().TIMESTAMP}1", time);
           //알람과 동시에 서버에 수정된 내용 저장
           ServerDataListener().agentAlarm(
-              "GPT에게 답장했습니다.", agentContent, time, millitime, "2");
+              "Agent에게 답장했습니다.", agentContent, time, millitime, "2");
 
         });
 
@@ -66,7 +66,7 @@ void notificationTapBackground(NotificationResponse response) async {
           String time = formatter.format(now);
           print("User replied: ${response.input}");
           String? gptContent = await ServerDataListener().sendGPT(agentContent, 'RecommendWalkingContent');
-          ServerDataListener().gptAlarm("GPT에게 메세지가 도착했습니다.", gptContent!, time, millitime, "3");
+          ServerDataListener().gptAlarm("Agent가 메세지를 보냈습니다.", gptContent!, time, millitime, "3");
 
         });
 

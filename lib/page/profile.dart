@@ -21,6 +21,7 @@ class _ProfileState extends State<Profile> {
   final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
+  bool isFeedbackEnabled=true;
 
   Future<void> _saveOperateTime() async {
     if (_startTime != null && _endTime != null) {
@@ -35,6 +36,7 @@ class _ProfileState extends State<Profile> {
       // 여기서 'id'는 사용자의 고유 식별자입니다.
       await DataStore().saveData(KeyValue().ID, "operatetime", operateTime);
       print("Operate time saved to Firebase");
+      Fluttertoast.showToast(msg: "저장되었습니다.", gravity: ToastGravity.CENTER);
     }
   }
   Future<void> _pickStartTime() async {
@@ -82,12 +84,21 @@ class _ProfileState extends State<Profile> {
       _endTime = TimeOfDay(hour: endHour, minute: endMinute);
     });
   }
-  bool isFeedbackEnabled = true;
   @override
-  Future<void> initState() async {
+  void initState() {
     super.initState();
     _loadTime();
-    isFeedbackEnabled = (await DataStore().getSharedPreferencesBool(KeyValue().ISFEEDBACK))!;
+    isFeedbackEnabled= true;
+    initializeSettings();
+  }
+
+  void initializeSettings() async {
+    bool? feedbackEnabled = await DataStore().getSharedPreferencesBool(KeyValue().ISFEEDBACK);
+    if (feedbackEnabled != null) {
+      setState(() {
+        isFeedbackEnabled = feedbackEnabled;
+      });
+    }
   }
 
   @override
@@ -95,12 +106,6 @@ class _ProfileState extends State<Profile> {
     _habitController.dispose();
     _bodyIssueController.dispose();
     super.dispose();
-  }
-  int steps=0;
-  Future<void> _updateSteps() async {
-    HealthKit healthHelper = HealthKit();
-    steps = await healthHelper.getSteps();
-    print("Steps today: $steps");
   }
 
   void _saveData() {
@@ -123,24 +128,6 @@ class _ProfileState extends State<Profile> {
     DataStore().saveSharedPreferencesString(KeyValue().HABIT_STATE,  _habitController.text);
     DataStore().saveSharedPreferencesString(KeyValue().CURRENT_BODY_ISSUE,  _bodyIssueController.text);
   }
-
-  // void _update() {
-  //   // 사용자 입력을 Map 형태로 SaveData 클래스에 전달
-  //   var userData = {
-  //     "습관 및 자세": _habitController.text,
-  //     "신체 특이 사항": _bodyIssueController.text,
-  //   };
-  //   DataStore().deleteData(Category().ID,Category().BODYPROFILE).then((_) {
-  //   }).catchError((error) {
-  //     Fluttertoast.showToast(msg: "삭제 실패: $error", gravity: ToastGravity.CENTER);
-  //   });
-  //   DataStore().saveData(Category().ID,Category().BODYPROFILE,userData).then((_) {
-  //   }).catchError((error) {
-  //     Fluttertoast.showToast(msg: "저장 실패: $error", gravity: ToastGravity.CENTER);
-  //   });
-  //   Fluttertoast.showToast(msg: "변경되었습니다.", gravity: ToastGravity.CENTER);
-  // }
-
   void _deleteData() {
     // 데이터 삭제 로직을 여기에 구현합니다.
     DataStore().deleteData(KeyValue().ID,KeyValue().BODYPROFILE).then((_) {
@@ -151,11 +138,9 @@ class _ProfileState extends State<Profile> {
   }
 
   void _launchURL() async {
-    const url = 'https://forms.gle/tf5X6XtqoS97eHZp9';
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
+    final Uri _url = Uri.parse('https://forms.gle/tf5X6XtqoS97eHZp9');
+    if (!await launchUrl(_url)) {
+      throw 'Could not launch $_url';
     }
   }
 
@@ -207,8 +192,9 @@ class _ProfileState extends State<Profile> {
                 ),
                 ElevatedButton(
                   onPressed: _toggleFeedback,
-                  child: Text(isFeedbackEnabled ? '피드백 가능' : '피드백 불가능'),
-                ),]
+                  child: Text(isFeedbackEnabled! ? '피드백 가능' : '피드백 불가능'),
+                ),
+                ]
             ),
             SizedBox(height: 10),
             TextFormField(
@@ -251,7 +237,7 @@ class _ProfileState extends State<Profile> {
                       borderRadius: BorderRadius.zero,
                     ),
                   ),
-                  child: Text("버그 ${KeyValue().ID}"),
+                  child: Text("버그 리포트 ${KeyValue().ID}"),
                 ),
                 ElevatedButton(
                   onPressed: _deleteData,

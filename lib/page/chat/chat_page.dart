@@ -30,7 +30,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   List<ChatMessage> _messages = <ChatMessage>[];
 
   final ChatUser _currentUser = ChatUser(id: KeyValue().AGENT, firstName: 'Me',lastName: '',profileImage: "https://cdn-icons-png.flaticon.com/128/149/149071.png",);
-  final ChatUser _gptChatUser = ChatUser(id: KeyValue().GPT, firstName: 'Chat',lastName: 'GPT',profileImage: "https://cdn-icons-png.flaticon.com/128/6667/6667585.png",);
+  final ChatUser _gptChatUser = ChatUser(id: KeyValue().GPT, firstName: 'HealthCare',lastName: 'Agent',profileImage: "https://cdn-icons-png.flaticon.com/128/6667/6667585.png",);
   final _openAI = OpenAI.instance.build(
       token: API_KEY,
       baseOption: HttpSetup(
