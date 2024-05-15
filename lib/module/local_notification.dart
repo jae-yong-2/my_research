@@ -77,7 +77,7 @@ void notificationTapBackground(NotificationResponse response) async {
         print("No input received.");
       }
     }else{
-      navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) => FeedbackPage()));
+      // navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) => MyApp(isLaunchedByNotification: false,)));
     }
   } catch (e) {
     print("Error handling notification response: $e");

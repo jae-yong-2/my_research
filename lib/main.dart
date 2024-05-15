@@ -102,7 +102,7 @@ class MyApp extends StatelessWidget {
       title: 'Bottom Navigation Demo',
       home: Scaffold(
         body: isLaunchedByNotification
-            ? PageNavigation(initialIndex: 2) // FeedbackPage가 있는 인덱스
+            ? PageNavigation(initialIndex: 1) // FeedbackPage가 있는 인덱스
             : PageNavigation(initialIndex: 0,),
       )
     );

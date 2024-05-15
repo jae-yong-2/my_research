@@ -24,13 +24,16 @@ class KeyValue{
   String CURRENT_BODY_ISSUE = "cureent_body_issue";
   String HABIT_STATE= "habitStatus";
   String REPLY='reply';
-  String replyIntent1="n분 뒤에 집앞에서 n분가량 걸어볼 예정~";
-  String replyIntent2="지금은 업무중이라 n분 뒤에 일어나서 허리펴고 스트레칭 할게";
-  String replyIntent3="그래, n분만 있다가 잠시 n시간 정도는 집앞 산책 다녀오지뭐";
-  String replyComplete1="방금 나가서 잠깐 걸었어~";
-  String replyComplete2="알람을 받고 바로 움직였어~";
-  String replyComplete3="그래, 너가 한 말대로 산책하고왔어";
   String newStep = "newStep";
   String oldStep = "oldStep";
   String ISFEEDBACK = "isfeedbackenable";
+
+  String replyIntent1="음 n분뒤에";
+  String replyIntent2="이거 하고있는것만 끝내고";
+  String replyIntent3="지금 노래 두 곡 시간정도만 걸어볼까";
+
+
+  String replyComplete1="걷고왔어";
+  String replyComplete2="꽤 괜찮네";
+  String replyComplete3="했어";
 }
