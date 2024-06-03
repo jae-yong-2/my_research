@@ -20,6 +20,7 @@ class FeedbackPage extends StatefulWidget {
 class _BackgroundServiceState extends State<FeedbackPage> {
   static const platform = MethodChannel('com.example.app/usage_stats');
   List<Map<String, dynamic>> _usageStats = [];
+  String _currentApp = 'Unknown';
 
   Future<void> _getUsageStats() async {
     try {
@@ -34,6 +35,18 @@ class _BackgroundServiceState extends State<FeedbackPage> {
       } else {
         print("Failed to get usage stats: '${e.message}'.");
       }
+    }
+  }
+
+  Future<void> _getCurrentApp() async {
+    try {
+      final String result = await platform.invokeMethod('getCurrentApp');
+      setState(() {
+        _currentApp = result;
+        print('Current App: $_currentApp');  // 디버깅을 위해 추가
+      });
+    } on PlatformException catch (e) {
+      print("Failed to get current app: '${e.message}'.");
     }
   }
 
@@ -197,7 +210,15 @@ class _BackgroundServiceState extends State<FeedbackPage> {
             child: Text("Get Usage Stats"),
           ),
           SizedBox(height: 20),
-          // Text(_pedometerService.steps.toString()),
+          ElevatedButton(
+            onPressed: () async {
+              await _getCurrentApp();
+              Fluttertoast.showToast(msg: "Current App: $_currentApp");
+              print('Current App: $_currentApp');
+            },
+            child: Text("Get Current App"),
+          ),
+          SizedBox(height: 20),
           Center(),
           Expanded(
             child: _usageStats.isEmpty
@@ -210,7 +231,9 @@ class _BackgroundServiceState extends State<FeedbackPage> {
                 return ListTile(
                   title: Text(usageStat['packageName'] ?? 'Unknown'),
                   subtitle: Text(
-                      'Usage: ${(totalTimeInForeground / 1000 / 60).toStringAsFixed(1)} mins'),
+                      'appname: ${usageStat['appName']}'
+                          '\n'
+                          'Usage: ${(totalTimeInForeground / 1000 / 60).toStringAsFixed(1)} mins'),
                 );
               },
             ),
