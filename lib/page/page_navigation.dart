@@ -20,7 +20,7 @@ class _PageNavigationState extends State<PageNavigation> {
   final List<Widget> _pages = [
     ChatPage(),
     Profile(),
-    // FeedbackPage(),
+    FeedbackPage(),
   ];
 
   @override
@@ -55,10 +55,10 @@ class _PageNavigationState extends State<PageNavigation> {
             icon: Icon(Icons.man),
             label: '프로필',
           ),
-          // BottomNavigationBarItem(
-          //   icon: Icon(Icons.feedback,size: 10,),
-          //   label: "피드백",
-          // ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.feedback,size: 10,),
+            label: "피드백",
+          ),
 
         ],
         currentIndex: _selectedIndex,
