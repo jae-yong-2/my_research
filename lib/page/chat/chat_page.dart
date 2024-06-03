@@ -78,7 +78,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
     var savetime = DateTime.now();
     var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
     String formattedTime = formatter.format(savetime);
-    await DataStore().saveData(KeyValue().ID, "${KeyValue().CHAT_PAGE_ACCESS_COUNT}/$time",
+    await DataStore().saveData(KeyValue().ID, "${KeyValue().CHAT_PAGE_ACCESS_COUNT}/$formattedTime",
       {
         KeyValue().OPEN_STATE:"resume",
         KeyValue().TIMESTAMP:formattedTime,

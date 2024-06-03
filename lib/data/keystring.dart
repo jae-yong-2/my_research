@@ -1,4 +1,5 @@
 class KeyValue{
+  //정현제
   String ID = "0";
   // String JOB = "직장인";
 
@@ -28,12 +29,12 @@ class KeyValue{
   String oldStep = "oldStep";
   String ISFEEDBACK = "isfeedbackenable";
 
-  String replyIntent1="음 n분뒤에";
-  String replyIntent2="이거 하고있는것만 끝내고";
-  String replyIntent3="지금 노래 두 곡 시간정도만 걸어볼까";
+  String replyIntent1="바로 일어나서 편의점 다녀오면서 n분정도 산책 갔다올게요";
+  String replyIntent2="하던 일만 마저 끝내고 n분 뒤쯤에 편의점으로 n분 정도 산책 갔다올게요";
+  String replyIntent3="n분정도 이따가 n분 간 산책 갔다올게요";
 
 
-  String replyComplete1="걷고왔어";
-  String replyComplete2="꽤 괜찮네";
-  String replyComplete3="했어";
+  String replyComplete1="알람 보고 바로 일어나서 편의점 갔다왔어요";
+  String replyComplete2="알람 오자마자 스트레칭 하고 잠깐 걷고 왔어요";
+  // String replyComplete3="덕분에 건강을 챙길 수 있어서 고마워요";
 }

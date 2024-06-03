@@ -14,6 +14,7 @@ import 'package:my_research/module/pedometerAPI.dart';
 import 'package:my_research/package/firebase_options.dart';
 import 'package:my_research/page/page_navigation.dart';
 import 'package:my_research/data/server_data_listener.dart';
+import 'package:my_research/page/profile.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'data/data_store.dart';
@@ -28,7 +29,28 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   ServerDataListener().FCMactivce(message);
 }
 
+Future<void> _loadTime()async{
 
+  final int startHour = await DataStore().getSharedPreferencesInt("startHour") ?? 9;
+  final int startMinute = await DataStore().getSharedPreferencesInt("startMinute") ?? 0;
+  final int endHour = await DataStore().getSharedPreferencesInt("endHour") ?? 18;
+  final int endMinute = await DataStore().getSharedPreferencesInt("endMinute") ?? 0;
+  TimeOfDay? _startTime;
+  TimeOfDay? _endTime;
+  _startTime = TimeOfDay(hour: startHour, minute: startMinute);
+  _endTime = TimeOfDay(hour: endHour, minute: endMinute);
+
+  Map<String, dynamic> operateTime = {
+    'startHour': _startTime!.hour,
+    'startMinute': _startTime!.minute,
+    'endHour': _endTime!.hour,
+    'endMinute': _endTime!.minute,
+  };
+
+  // 'operatetime' 카테고리 아래에 시간 정보를 저장합니다.
+  // 여기서 'id'는 사용자의 고유 식별자입니다.
+  await DataStore().saveData("operatetime", KeyValue().ID, operateTime);
+}
 Future<void> _requestPermission() async {
   await [
     Permission.activityRecognition,
@@ -45,6 +67,7 @@ Future<bool> _setupFirebaseMessaging() async {
   }
   await Future.wait(unsubscribeFutures);
   await FirebaseMessaging.instance.subscribeToTopic(KeyValue().ID);
+  await FirebaseMessaging.instance.subscribeToTopic("update");
   FirebaseMessaging.instance.requestPermission(
     badge: true,
     alert: true,
@@ -79,6 +102,12 @@ Future<void> _saveInitialData() async {
   await DataStore().saveData(KeyValue().ID, KeyValue().CURRENTSTEP, {
     KeyValue().TOTALSTEP_KEY: '$totalStep',
   });
+  DataStore().saveData("currentstep", KeyValue().ID, {
+    KeyValue().TOTALSTEP_KEY: '$totalStep',
+    KeyValue().TIMESTAMP : time
+  });
+  _loadTime();
+
 }
 void main() async{
   WidgetsFlutterBinding.ensureInitialized(); // 바인딩 초기화

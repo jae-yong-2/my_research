@@ -34,6 +34,7 @@ class _ProfileState extends State<Profile> {
 
       // 'operatetime' 카테고리 아래에 시간 정보를 저장합니다.
       // 여기서 'id'는 사용자의 고유 식별자입니다.
+      await DataStore().saveData("operatetime", KeyValue().ID, operateTime);
       await DataStore().saveData(KeyValue().ID, "operatetime", operateTime);
       print("Operate time saved to Firebase");
       Fluttertoast.showToast(msg: "저장되었습니다.", gravity: ToastGravity.CENTER);

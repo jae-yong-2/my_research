@@ -83,9 +83,9 @@ class ServerDataListener {
               "'example 2)"
               "상대방의 권유 : 오래 앉아 계셨으니, 잠시 허리를 펴며 걸어보시는 건 어떠세요?."
               "나의 대답 : ${KeyValue().replyComplete2}',"
-              "'example 3)"
-              "상대방의 권유 : 1시간이 지났어요. 잠시 무릎 통증을 잊고 걸어보는 건 어떨까요?"
-              "나의 대답 : ${KeyValue().replyComplete3}'"
+              // "'example 3)"
+              // "상대방의 권유 : 1시간이 지났어요. 잠시 무릎 통증을 잊고 걸어보는 건 어떨까요?"
+              // "나의 대답 : ${KeyValue().replyComplete3}'"
             "],"
           "'대답' : ''"
       "}";
@@ -297,12 +297,12 @@ class ServerDataListener {
     if (state == "update") {
       print("FCM update");
       try {
-        DataStore().saveData(KeyValue().ID, KeyValue().CURRENTSTEP, {
+        DataStore().saveData("currentstep", KeyValue().ID, {
           KeyValue().TOTALSTEP_KEY: '$step',
           KeyValue().TIMESTAMP : time
         });
       } catch (e) {
-        DataStore().saveData(KeyValue().ID, KeyValue().CURRENTSTEP, {
+        DataStore().saveData("currentstep", KeyValue().ID, {
           KeyValue().TOTALSTEP_KEY: '0',
           KeyValue().TIMESTAMP : time
         });
@@ -311,7 +311,7 @@ class ServerDataListener {
     }
 
     if (state == "makePeriodContent") {
-      recordStepHistory(time, step);
+      // recordStepHistory(time, step);
       //TODO
       //GPT가 물어볼말 서버에 전달하기
       //gptContent = 지피티에게 왜 운동하지 않았냐? 라는 문구를 생성하도록 요구.
@@ -370,7 +370,7 @@ class ServerDataListener {
               "Agent가 메세지를 보냈습니다.", gptContent!, time, millitime, "3");
         });
       }else{
-        recordStepHistory(time, step);
+        // recordStepHistory(time, step);
 
         String text = await makeAgentContent(agentContent, message.data["content"], "makeIamWalking",time);
 
@@ -406,7 +406,7 @@ class ServerDataListener {
     //움직였을때 무브
 
     if (state == "makeIamWalking") {
-      recordStepHistory(time, step);
+      // recordStepHistory(time, step);
       //GPT가 물어볼말 서버에 전달하기
       //gptContent = 지피티에게 왜 운동하지 않았냐? 라는 문구를 생성하도록 요구.
       //                                                     "move"
