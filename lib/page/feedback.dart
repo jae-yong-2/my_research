@@ -9,6 +9,7 @@ import 'package:my_research/data/data_store.dart';
 import 'package:pedometer/pedometer.dart';
 
 import '../data/keystring.dart';
+import '../module/usageAppservice.dart';
 
 class FeedbackPage extends StatefulWidget {
   const FeedbackPage({super.key});
@@ -18,37 +19,10 @@ class FeedbackPage extends StatefulWidget {
 }
 
 class _BackgroundServiceState extends State<FeedbackPage> {
-  static const platform = MethodChannel('com.example.app/usage_stats');
+  final UsageAppService _usageAppService = UsageAppService();
   List<Map<String, dynamic>> _usageStats = [];
+  List<Map<String, dynamic>> _top10Apps = [];
   String _currentApp = 'Unknown';
-
-  Future<void> _getUsageStats() async {
-    try {
-      final List<dynamic> result = await platform.invokeMethod('getUsageStats');
-      setState(() {
-        _usageStats = result.map((e) => Map<String, dynamic>.from(e as Map)).toList();
-        print(_usageStats);  // 디버깅을 위해 추가
-      });
-    } on PlatformException catch (e) {
-      if (e.code == "PERMISSION_DENIED") {
-        Fluttertoast.showToast(msg: "Usage Stats permission is denied. Please grant the permission in settings.");
-      } else {
-        print("Failed to get usage stats: '${e.message}'.");
-      }
-    }
-  }
-
-  Future<void> _getCurrentApp() async {
-    try {
-      final String result = await platform.invokeMethod('getCurrentApp');
-      setState(() {
-        _currentApp = result;
-        print('Current App: $_currentApp');  // 디버깅을 위해 추가
-      });
-    } on PlatformException catch (e) {
-      print("Failed to get current app: '${e.message}'.");
-    }
-  }
 
   @override
   void initState() {
@@ -204,29 +178,46 @@ class _BackgroundServiceState extends State<FeedbackPage> {
           SizedBox(height: 20),
           ElevatedButton(
             onPressed: () async {
-              await _getUsageStats();
-              print(_usageStats);
+              final usageStats = await _usageAppService.getUsageStats();
+              setState(() {
+                _usageStats = usageStats;
+                print(_usageStats);
+              });
             },
             child: Text("Get Usage Stats"),
           ),
           SizedBox(height: 20),
           ElevatedButton(
             onPressed: () async {
-              await _getCurrentApp();
+              final currentApp = await _usageAppService.getCurrentApp();
+              setState(() {
+                _currentApp = currentApp;
+              });
               Fluttertoast.showToast(msg: "Current App: $_currentApp");
               print('Current App: $_currentApp');
             },
             child: Text("Get Current App"),
           ),
           SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () async {
+              final top10Apps = await _usageAppService.getTop10Apps();
+              setState(() {
+                _top10Apps = top10Apps;
+                print(_top10Apps);
+              });
+            },
+            child: Text("Get Top 10 Apps"),
+          ),
+          SizedBox(height: 20),
           Center(),
           Expanded(
-            child: _usageStats.isEmpty
+            child: _top10Apps.isEmpty
                 ? Center(child: Text("데이터 없음"))
                 : ListView.builder(
-              itemCount: _usageStats.length,
+              itemCount: _top10Apps.length,
               itemBuilder: (context, index) {
-                final usageStat = _usageStats[index];
+                final usageStat = _top10Apps[index];
                 final totalTimeInForeground = int.tryParse(usageStat['totalTimeInForeground'].toString()) ?? 0;
                 return ListTile(
                   title: Text(usageStat['packageName'] ?? 'Unknown'),
