@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -39,6 +40,15 @@ class UsageAppService {
         print("Failed to get top 10 apps: '${e.message}'.");
       }
       return [];
+    }
+  }
+  Future<int> getAppUsageTime(String packageName) async {
+    try {
+      final int result = await platform.invokeMethod('getAppUsageTime', {'packageName': packageName});
+      return result;
+    } on PlatformException catch (e) {
+      print("Failed to get app usage time: '${e.message}'.");
+      return 0;
     }
   }
 }

@@ -230,16 +230,6 @@ class ServerDataListener {
       KeyValue().MILLITIMESTAMP: millitime,
     });
   }
-
-  Future<void> recordStepHistory(var time, var step) async {
-    await DataStore().saveData(
-        KeyValue().ID, '${KeyValue().STEPHISTORY}/$time',
-        {
-          KeyValue().TOTALSTEP_KEY: '$step',
-          KeyValue().TIMESTAMP: time,
-        }
-    );
-  }
   Future<void> makeGPTContent(var gptContent, String content, String isRecord) async {
     gptContent = await sendGPT(content, isRecord);
 
@@ -278,9 +268,7 @@ class ServerDataListener {
     // HealthKit healthHelper = HealthKit();
     // int step = await healthHelper.getSteps();
     print("FCM");
-    var step = await HealthKit().getSteps();
     // var step=0;
-    step ??= 0;
     String? gptContent = "key가 없거나 오류가 났습니다.";
     String? agentContent = "key가 없거나 오류가 났습니다.";
     var now = DateTime.now();
@@ -291,64 +279,12 @@ class ServerDataListener {
     String time = formatter.format(now);
     print("Handling a background message: ${message.data}");
     var state = message.data["isRecord"];
-    DataStore().saveSharedPreferencesInt(KeyValue().newStep, step);
 
 //--------------------------------------------------------------------------
     if (state == "update") {
       print("FCM update");
-      try {
-        DataStore().saveData("currentstep", KeyValue().ID, {
-          KeyValue().TOTALSTEP_KEY: '$step',
-          KeyValue().TIMESTAMP : time
-        });
-      } catch (e) {
-        DataStore().saveData("currentstep", KeyValue().ID, {
-          KeyValue().TOTALSTEP_KEY: '0',
-          KeyValue().TIMESTAMP : time
-        });
-      }
-      //이 문구를 서버에 보내고 기다림
-    }
 
-    if (state == "makePeriodContent") {
-      // recordStepHistory(time, step);
-      //TODO
-      //GPT가 물어볼말 서버에 전달하기
-      //gptContent = 지피티에게 왜 운동하지 않았냐? 라는 문구를 생성하도록 요구.
-      //                                                  "makePeriodContent"
-      makeGPTContent(gptContent, message.data["content"], message.data["isRecord"]);
-    }
-//--------------------------------------------------------------------------
-    if (state == "notWalkingReason") {
-      //서버에서 지피티의 내용 전달 해주기
-      // gptContent 내용 받아오기 (왜 안하셨어요? 라고 묻기) or 응원의 메세지로 묻기
-      // //히스토리 저장
-      DataStore().saveSharedPreferencesInt(KeyValue().oldStep, step);
-      gptAlarm(
-          message.data["title"], message.data["content"], time, millitime, "1");
-
-      //TODO
-      //agentContent = {사실 전달} 때문에 못했습니다. 라고 말하기.         "notWalkingReason"
-      // //agent가 대신할말 서버에 전달하기
-      makeAgentContent(agentContent, message.data["content"], message.data["isRecord"],time);
-
-      //피드백 페이지를 위한 저장 장소
-
-      print("agent");
-    }
-    // Fluttertoast.showToast(msg: '$agentContent', gravity: ToastGravity.CENTER);
-
-//--------------------------------------------------------------------------
-    if (state == "RecommendWalkingContent") {
-      //TODO
-      //서버에서 agent내용 FCM받기
-      //agent
-      // //히스토리에 저장
-
-      int? newStep = await DataStore().getSharedPreferencesInt(KeyValue().newStep);
-      int? oldStep = await DataStore().getSharedPreferencesInt(KeyValue().oldStep);
-
-      if (newStep! == oldStep!) {
+      if (true) {
         agentAlarm(
             message.data["title"], message.data["content"], time, millitime,
             "2");
@@ -404,22 +340,6 @@ class ServerDataListener {
     //GPT가 생성한 내용을 서버에 전달
     //내가 다음에 할 의사 표현을 하는 문구 생성                                 "GPTanswer"
     //움직였을때 무브
-
-    if (state == "makeIamWalking") {
-      // recordStepHistory(time, step);
-      //GPT가 물어볼말 서버에 전달하기
-      //gptContent = 지피티에게 왜 운동하지 않았냐? 라는 문구를 생성하도록 요구.
-      //                                                     "move"
-      makeAgentContent(agentContent, message.data["content"], message.data["isRecord"],time);
-    }
-
-    if (state == "GPTAlarm") {
-      //TODO
-      //서버에서 받은 GPT내용 받기
-      //   //히스토리에 저장
-      gptAlarm(
-          message.data["title"], message.data["content"], time, millitime, "3");
-    }
 
   }
 }

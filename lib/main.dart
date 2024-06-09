@@ -30,32 +30,32 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 Future<void> _loadTime()async{
-
-  final int startHour = await DataStore().getSharedPreferencesInt("startHour") ?? 9;
-  final int startMinute = await DataStore().getSharedPreferencesInt("startMinute") ?? 0;
-  final int endHour = await DataStore().getSharedPreferencesInt("endHour") ?? 18;
-  final int endMinute = await DataStore().getSharedPreferencesInt("endMinute") ?? 0;
-  TimeOfDay? _startTime;
-  TimeOfDay? _endTime;
-  _startTime = TimeOfDay(hour: startHour, minute: startMinute);
-  _endTime = TimeOfDay(hour: endHour, minute: endMinute);
-
-  Map<String, dynamic> operateTime = {
-    'startHour': _startTime!.hour,
-    'startMinute': _startTime!.minute,
-    'endHour': _endTime!.hour,
-    'endMinute': _endTime!.minute,
-  };
-
-  // 'operatetime' 카테고리 아래에 시간 정보를 저장합니다.
-  // 여기서 'id'는 사용자의 고유 식별자입니다.
-  await DataStore().saveData("operatetime", KeyValue().ID, operateTime);
+  //
+  // final int startHour = await DataStore().getSharedPreferencesInt("startHour") ?? 9;
+  // final int startMinute = await DataStore().getSharedPreferencesInt("startMinute") ?? 0;
+  // final int endHour = await DataStore().getSharedPreferencesInt("endHour") ?? 18;
+  // final int endMinute = await DataStore().getSharedPreferencesInt("endMinute") ?? 0;
+  // TimeOfDay? _startTime;
+  // TimeOfDay? _endTime;
+  // _startTime = TimeOfDay(hour: startHour, minute: startMinute);
+  // _endTime = TimeOfDay(hour: endHour, minute: endMinute);
+  //
+  // Map<String, dynamic> operateTime = {
+  //   'startHour': _startTime!.hour,
+  //   'startMinute': _startTime!.minute,
+  //   'endHour': _endTime!.hour,
+  //   'endMinute': _endTime!.minute,
+  // };
+  //
+  // // 'operatetime' 카테고리 아래에 시간 정보를 저장합니다.
+  // // 여기서 'id'는 사용자의 고유 식별자입니다.
+  // await DataStore().saveData("operatetime", KeyValue().ID, operateTime);
 }
 Future<void> _requestPermission() async {
-  await [
-    Permission.activityRecognition,
-    Permission.location,
-  ].request();
+  // await [
+  //   Permission.activityRecognition,
+  //   Permission.location,
+  // ].request();
 }
 Future<bool> _setupFirebaseMessaging() async {
   bool isLaunchedByNotification = await LocalNotification.init();
@@ -92,20 +92,6 @@ Future<void> _saveInitialData() async {
     KeyValue().OPEN_STATE: "start",
     KeyValue().TIMESTAMP: time,
   });
-
-  int totalStep;
-  try {
-    totalStep = await HealthKit().getSteps();
-  } catch (e) {
-    totalStep = 0;
-  }
-  await DataStore().saveData(KeyValue().ID, KeyValue().CURRENTSTEP, {
-    KeyValue().TOTALSTEP_KEY: '$totalStep',
-  });
-  DataStore().saveData("currentstep", KeyValue().ID, {
-    KeyValue().TOTALSTEP_KEY: '$totalStep',
-    KeyValue().TIMESTAMP : time
-  });
   _loadTime();
 
 }
@@ -113,16 +99,15 @@ void main() async{
   WidgetsFlutterBinding.ensureInitialized(); // 바인딩 초기화
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Firebase Messaging 설정
-  bool isLaunchedByNotification = await _setupFirebaseMessaging();
+  await _setupFirebaseMessaging();
   //FCM & Firebase
   await _requestPermission();
   await _saveInitialData();
-  runApp(MyApp(isLaunchedByNotification: isLaunchedByNotification));
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final bool isLaunchedByNotification;
-  const MyApp({super.key, required this.isLaunchedByNotification});
+  const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -130,9 +115,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Bottom Navigation Demo',
       home: Scaffold(
-        body: isLaunchedByNotification
-            ? PageNavigation(initialIndex: 1) // FeedbackPage가 있는 인덱스
-            : PageNavigation(initialIndex: 0,),
+        body: PageNavigation(initialIndex: 0),
       )
     );
   }
