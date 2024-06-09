@@ -2,10 +2,12 @@ package com.example.my_research;
 
 import java.util.HashMap;
 import java.util.Map;
+import android.util.Log;
+
 
 public class FriendlyNameMapper {
     private static final Map<String, String> friendlyNames = new HashMap<>();
-
+    private static final String TAG = "FriendlyNameMapper";
     static {
         // Google Apps
         friendlyNames.put("com.google.android.youtube", "YouTube");
@@ -85,7 +87,13 @@ public class FriendlyNameMapper {
 
     public static String getFriendlyName(String packageName) {
         String name = friendlyNames.getOrDefault(packageName, "Unknown");
-        System.out.println(name);
+//        Log.d(TAG, "Package: " + packageName + ", FriendlyName: " + name);
         return name;
     }
+    // FriendlyNameMapper 클래스에서 패키지 이름을 앱 이름으로 변환
+    private void logCurrentAppName(String currentAppPackageName) {
+        String appName = getFriendlyName(currentAppPackageName);
+//        Log.d(TAG, "Current App Name: " + appName);
+    }
+
 }

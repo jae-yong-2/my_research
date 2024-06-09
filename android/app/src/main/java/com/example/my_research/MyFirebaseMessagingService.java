@@ -40,12 +40,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     Log.d(TAG, "Usage Stats: " + usageStats.toString());
 
                     String currentApp = getCurrentApp();
-                    Log.d(TAG, "Current App: " + currentApp);
+                    logCurrentAppName(currentApp); // 패키지 이름을 앱 이름으로 변환하여 로그
 
                     List<Map<String, Object>> top10Apps = getTop10Apps();
                     Log.d(TAG, "Top 10 Apps: " + top10Apps.toString());
 
-                    String packageName = "com.example.someapp"; // 원하는 앱의 패키지 이름
+                    String packageName = currentApp; // 원하는 앱의 패키지 이름
                     long appUsageTime = getAppUsageTime(packageName);
                     Log.d(TAG, "App Usage Time for " + packageName + ": " + appUsageTime);
 
@@ -67,6 +67,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private void sendNotification(String messageBody) {
         // 알림을 생성하고 보여주는 코드를 여기에 작성합니다.
+    }
+
+    private void logCurrentAppName(String currentAppPackageName) {
+        String appName = FriendlyNameMapper.getFriendlyName(currentAppPackageName);
+        Log.d(TAG, "Current App Name: " + appName);
     }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
@@ -92,7 +97,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     String appName = pm.getApplicationLabel(appInfo).toString();
                     usageMap.put("appName", appName);
                 } catch (PackageManager.NameNotFoundException e) {
-                    usageMap.put("appName", "Unknown");
+                    usageMap.put("appName", FriendlyNameMapper.getFriendlyName(packageName));
                 }
                 usageStats.add(usageMap);
             }
@@ -124,7 +129,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     String appName = pm.getApplicationLabel(appInfo).toString();
                     usageMap.put("appName", appName);
                 } catch (PackageManager.NameNotFoundException e) {
-                    usageMap.put("appName", "Unknown");
+                    String name = FriendlyNameMapper.getFriendlyName(packageName);
+                    Log.e(TAG, name);
+                    usageMap.put("appName", name);
                 }
                 usageStats.add(usageMap);
             }
@@ -147,7 +154,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             if (runningProcesses != null && !runningProcesses.isEmpty()) {
                 for (ActivityManager.RunningAppProcessInfo processInfo : runningProcesses) {
                     if (processInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
-                        return processInfo.processName;
+                        // Return the first package name from the pkgList
+                        if (processInfo.pkgList != null && processInfo.pkgList.length > 0) {
+                            return processInfo.pkgList[0];
+                        }
                     }
                 }
             }
@@ -160,27 +170,33 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         return "Unknown";
     }
 
+
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private long getAppUsageTime(String packageName) {
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
         Calendar calendar = Calendar.getInstance();
+
+        // 현재 시간을 설정
         long endTime = calendar.getTimeInMillis();
 
+        // 하루의 시작 시간을 설정
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         long startTime = calendar.getTimeInMillis();
 
+        // 하루 단위로 앱 사용 시간을 조회
         List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime);
+
+        // 주어진 패키지 이름에 해당하는 사용 시간 반환
         for (UsageStats usageStat : stats) {
             if (usageStat.getPackageName().equals(packageName)) {
-                return usageStat.getTotalTimeInForeground() / 1000 / 60; // Convert milliseconds to minutes
+                return usageStat.getTotalTimeInForeground();
             }
         }
         return 0;
     }
-
     private void saveResultsToSharedPreferences(String currentApp, List<Map<String, Object>> usageStats, List<Map<String, Object>> top10Apps, long appUsageTime) {
         SharedPreferences prefs = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
@@ -192,5 +208,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         editor.putLong("appUsageTime", appUsageTime);
 
         editor.apply();
+        Log.d(TAG, "currentApp"+currentApp);
+        Log.d(TAG, "usageStats"+gson.toJson(usageStats));
+        Log.d(TAG, "top10Apps"+gson.toJson(top10Apps));
+        Log.d(TAG, "appUsageTime"+appUsageTime);
+
     }
 }
+
+

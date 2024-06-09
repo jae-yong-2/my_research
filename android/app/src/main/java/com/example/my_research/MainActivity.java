@@ -31,6 +31,7 @@ import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 
+import com.example.my_research.MyFirebaseMessagingService;
 public class MainActivity extends FlutterActivity {
     private static final String CHANNEL = "com.example.app/usage_stats";
     private static final String TAG = "MainActivity";
@@ -50,9 +51,9 @@ public class MainActivity extends FlutterActivity {
                                     if (usageStats.isEmpty()) {
                                         Log.e(TAG, "No usage stats found");
                                     } else {
-                                        for (Map<String, Object> stat : usageStats) {
-                                            Log.d(TAG, "Package: " + stat.get("packageName") + ", Time: " + stat.get("totalTimeInForeground") + ", AppName: " + stat.get("appName"));
-                                        }
+//                                        for (Map<String, Object> stat : usageStats) {
+//                                            Log.d(TAG, "Package: " + stat.get("packageName") + ", Time: " + stat.get("totalTimeInForeground") + ", AppName: " + stat.get("appName"));
+//                                        }
                                     }
                                     result.success(usageStats);
                                 } else {
@@ -176,7 +177,10 @@ public class MainActivity extends FlutterActivity {
             if (runningProcesses != null && !runningProcesses.isEmpty()) {
                 for (ActivityManager.RunningAppProcessInfo processInfo : runningProcesses) {
                     if (processInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
-                        return processInfo.processName;
+                        // Return the first package name from the pkgList
+                        if (processInfo.pkgList != null && processInfo.pkgList.length > 0) {
+                            return processInfo.pkgList[0];
+                        }
                     }
                 }
             }
@@ -193,22 +197,29 @@ public class MainActivity extends FlutterActivity {
     private long getAppUsageTime(String packageName) {
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
         Calendar calendar = Calendar.getInstance();
+
+        // 현재 시간을 설정
         long endTime = calendar.getTimeInMillis();
 
+        // 하루의 시작 시간을 설정
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         long startTime = calendar.getTimeInMillis();
 
+        // 하루 단위로 앱 사용 시간을 조회
         List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime);
+
+        // 주어진 패키지 이름에 해당하는 사용 시간 반환
         for (UsageStats usageStat : stats) {
             if (usageStat.getPackageName().equals(packageName)) {
-                return usageStat.getTotalTimeInForeground() / 1000 / 60; // Convert milliseconds to minutes
+                return usageStat.getTotalTimeInForeground();
             }
         }
         return 0;
     }
+
 
     private boolean hasUsageStatsPermission() {
         AppOpsManager appOps = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
@@ -221,4 +232,5 @@ public class MainActivity extends FlutterActivity {
         startActivity(intent);
         Toast.makeText(this, "Please grant Usage Stats permission", Toast.LENGTH_LONG).show();
     }
+
 }

@@ -277,16 +277,18 @@ class ServerDataListener {
       final currentApp = await DataStore().getSharedPreferencesString('currentApp') ?? 'Unknown';
       final usageStatsString = await DataStore().getSharedPreferencesString('usageStats') ?? '[]';
       final top10AppsString = await DataStore().getSharedPreferencesString('top10Apps') ?? '[]';
-      final appUsageTime = await DataStore().getSharedPreferencesString('appUsageTime') ?? 0;
+      final appUsageTime = await DataStore().getSharedPreferencesInt('appUsageTime') ?? 0;
 
       final usageStats = List<Map<String, dynamic>>.from(json.decode(usageStatsString));
       final top10Apps = List<Map<String, dynamic>>.from(json.decode(top10AppsString));
 
       // 읽어온 데이터 사용 예시
+      print('===========================');
       print('Current App: $currentApp');
       print('Usage Stats: $usageStats');
       print('Top 10 Apps: $top10Apps');
       print('App Usage Time: $appUsageTime');
+      print('===========================');
 
       if (true) {
         return;
