@@ -6,12 +6,14 @@ import 'dart:math';
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:chat_gpt_sdk/src/model/chat_complete/response/message.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:my_research/data/keystring.dart';
 import 'package:my_research/data/data_store.dart';
 import 'package:my_research/module/pedometerAPI.dart';
+import 'package:my_research/module/usageAppservice.dart';
 
 import '../module/healthKit.dart';
 import '../module/local_notification.dart';
@@ -244,6 +246,9 @@ class ServerDataListener {
 
   //FCM을 통해서 받은 데이터를 휴대폰에서 처리하는 함수.
   Future<void> FCMactivce(RemoteMessage message) async {
+    // 네이티브 코드 호출
+    const platform = MethodChannel('com.example.app/usage_stats');
+
     // final stepCounterService = PedometerAPI();
     // stepCounterService.refreshSteps();
     // var step = await DataStore().getSharedPreferencesInt(
@@ -266,6 +271,22 @@ class ServerDataListener {
 //--------------------------------------------------------------------------
     if (state == "update") {
       print("FCM update");
+      print('Handling a background message: ${message.messageId}');
+
+      // SharedPreferences에서 데이터 읽기
+      final currentApp = await DataStore().getSharedPreferencesString('currentApp') ?? 'Unknown';
+      final usageStatsString = await DataStore().getSharedPreferencesString('usageStats') ?? '[]';
+      final top10AppsString = await DataStore().getSharedPreferencesString('top10Apps') ?? '[]';
+      final appUsageTime = await DataStore().getSharedPreferencesString('appUsageTime') ?? 0;
+
+      final usageStats = List<Map<String, dynamic>>.from(json.decode(usageStatsString));
+      final top10Apps = List<Map<String, dynamic>>.from(json.decode(top10AppsString));
+
+      // 읽어온 데이터 사용 예시
+      print('Current App: $currentApp');
+      print('Usage Stats: $usageStats');
+      print('Top 10 Apps: $top10Apps');
+      print('App Usage Time: $appUsageTime');
 
       if (true) {
         return;

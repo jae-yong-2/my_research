@@ -84,6 +84,8 @@ public class FriendlyNameMapper {
     }
 
     public static String getFriendlyName(String packageName) {
-        return friendlyNames.getOrDefault(packageName, "Unknown");
+        String name = friendlyNames.getOrDefault(packageName, "Unknown");
+        System.out.println(name);
+        return name;
     }
 }

@@ -1,22 +1,20 @@
 package com.example.my_research;
 
 import android.app.ActivityManager;
-import android.app.AppOpsManager;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
-import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.provider.Settings;
 import android.util.Log;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
-import com.google.firebase.FirebaseApp;
+import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.firebase.messaging.RemoteMessage;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -26,75 +24,49 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.flutter.embedding.android.FlutterActivity;
-import io.flutter.embedding.engine.FlutterEngine;
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.MethodChannel;
+public class MyFirebaseMessagingService extends FirebaseMessagingService {
+    private static final String TAG = "MyFirebaseMsgService";
 
-public class MainActivity extends FlutterActivity {
-    private static final String CHANNEL = "com.example.app/usage_stats";
-    private static final String TAG = "MainActivity";
     @Override
-    public void configureFlutterEngine(@NonNull FlutterEngine flutterEngine) {
-        super.configureFlutterEngine(flutterEngine);
-        FirebaseApp.initializeApp(this);
+    public void onMessageReceived(RemoteMessage remoteMessage) {
+        Log.d(TAG, "From: " + remoteMessage.getFrom());
 
-        new MethodChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), CHANNEL)
-                .setMethodCallHandler(new MethodChannel.MethodCallHandler() {
-                    @Override
-                    public void onMethodCall(MethodCall call, MethodChannel.Result result) {
-                        if (call.method.equals("getUsageStats")) {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                if (hasUsageStatsPermission()) {
-                                    List<Map<String, Object>> usageStats = getUsageStats();
-                                    if (usageStats.isEmpty()) {
-                                        Log.e(TAG, "No usage stats found");
-                                    } else {
-                                        for (Map<String, Object> stat : usageStats) {
-                                            Log.d(TAG, "Package: " + stat.get("packageName") + ", Time: " + stat.get("totalTimeInForeground") + ", AppName: " + stat.get("appName"));
-                                        }
-                                    }
-                                    result.success(usageStats);
-                                } else {
-                                    requestUsageStatsPermission();
-                                    result.error("PERMISSION_DENIED", "Usage stats permission is denied", null);
-                                }
-                            } else {
-                                result.error("UNAVAILABLE", "Usage stats are not available on this device.", null);
-                            }
-                        } else if (call.method.equals("getCurrentApp")) {
-                            String currentApp = getCurrentApp();
-                            result.success(currentApp);
-                        } else if (call.method.equals("getTop10Apps")) {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                if (hasUsageStatsPermission()) {
-                                    List<Map<String, Object>> top10Apps = getTop10Apps();
-                                    result.success(top10Apps);
-                                } else {
-                                    requestUsageStatsPermission();
-                                    result.error("PERMISSION_DENIED", "Usage stats permission is denied", null);
-                                }
-                            } else {
-                                result.error("UNAVAILABLE", "Usage stats are not available on this device.", null);
-                            }
-                        } else if(call.method.equals("getAppUsageTime")) {
-                            String packageName = call.argument("packageName");
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                if (hasUsageStatsPermission()) {
-                                    long usageTime = getAppUsageTime(packageName);
-                                    result.success((int) usageTime);
-                                } else {
-                                    requestUsageStatsPermission();
-                                    result.error("PERMISSION_DENIED", "Usage stats permission is denied", null);
-                                }
-                            } else {
-                                result.error("UNAVAILABLE", "Usage stats are not available on this device.", null);
-                            }
-                        } else {
-                            result.notImplemented();
-                        }
-                    }
-                });
+        if (remoteMessage.getData().size() > 0) {
+            Log.d(TAG, "Message data payload: " + remoteMessage.getData());
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                try {
+                    List<Map<String, Object>> usageStats = getUsageStats();
+                    Log.d(TAG, "Usage Stats: " + usageStats.toString());
+
+                    String currentApp = getCurrentApp();
+                    Log.d(TAG, "Current App: " + currentApp);
+
+                    List<Map<String, Object>> top10Apps = getTop10Apps();
+                    Log.d(TAG, "Top 10 Apps: " + top10Apps.toString());
+
+                    String packageName = "com.example.someapp"; // 원하는 앱의 패키지 이름
+                    long appUsageTime = getAppUsageTime(packageName);
+                    Log.d(TAG, "App Usage Time for " + packageName + ": " + appUsageTime);
+
+                    // 결과를 SharedPreferences에 저장
+                    saveResultsToSharedPreferences(currentApp, usageStats, top10Apps, appUsageTime);
+                } catch (Exception e) {
+                    Log.e(TAG, "Error processing usage stats", e);
+                }
+            } else {
+                Log.e(TAG, "Usage stats are not available on this device.");
+            }
+        }
+
+        if (remoteMessage.getNotification() != null) {
+            Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
+            sendNotification(remoteMessage.getNotification().getBody());
+        }
+    }
+
+    private void sendNotification(String messageBody) {
+        // 알림을 생성하고 보여주는 코드를 여기에 작성합니다.
     }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
@@ -120,7 +92,7 @@ public class MainActivity extends FlutterActivity {
                     String appName = pm.getApplicationLabel(appInfo).toString();
                     usageMap.put("appName", appName);
                 } catch (PackageManager.NameNotFoundException e) {
-                    usageMap.put("appName", FriendlyNameMapper.getFriendlyName(packageName));
+                    usageMap.put("appName", "Unknown");
                 }
                 usageStats.add(usageMap);
             }
@@ -152,8 +124,7 @@ public class MainActivity extends FlutterActivity {
                     String appName = pm.getApplicationLabel(appInfo).toString();
                     usageMap.put("appName", appName);
                 } catch (PackageManager.NameNotFoundException e) {
-                    String name = FriendlyNameMapper.getFriendlyName(packageName);
-                    usageMap.put("appName", name);
+                    usageMap.put("appName", "Unknown");
                 }
                 usageStats.add(usageMap);
             }
@@ -210,15 +181,16 @@ public class MainActivity extends FlutterActivity {
         return 0;
     }
 
-    private boolean hasUsageStatsPermission() {
-        AppOpsManager appOps = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
-        int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), getPackageName());
-        return mode == AppOpsManager.MODE_ALLOWED;
-    }
+    private void saveResultsToSharedPreferences(String currentApp, List<Map<String, Object>> usageStats, List<Map<String, Object>> top10Apps, long appUsageTime) {
+        SharedPreferences prefs = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
 
-    private void requestUsageStatsPermission() {
-        Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
-        startActivity(intent);
-        Toast.makeText(this, "Please grant Usage Stats permission", Toast.LENGTH_LONG).show();
+        Gson gson = new Gson();
+        editor.putString("currentApp", currentApp);
+        editor.putString("usageStats", gson.toJson(usageStats));
+        editor.putString("top10Apps", gson.toJson(top10Apps));
+        editor.putLong("appUsageTime", appUsageTime);
+
+        editor.apply();
     }
 }
