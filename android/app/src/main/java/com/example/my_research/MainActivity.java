@@ -75,7 +75,21 @@ public class MainActivity extends FlutterActivity {
                             } else {
                                 result.error("UNAVAILABLE", "Usage stats are not available on this device.", null);
                             }
-                        } else {
+                        } else if(call.method.equals("getAppUsageTime")){
+                            String packageName = call.argument("packageName");
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                if (hasUsageStatsPermission()) {
+                                    long usageTime = getAppUsageTime(packageName);
+                                    result.success((int) usageTime);
+                                } else {
+                                    requestUsageStatsPermission();
+                                    result.error("PERMISSION_DENIED", "Usage stats permission is denied", null);
+                                }
+                            } else {
+                                result.error("UNAVAILABLE", "Usage stats are not available on this device.", null);
+                            }
+                        }
+                        else {
                             result.notImplemented();
                         }
                     }
@@ -175,6 +189,27 @@ public class MainActivity extends FlutterActivity {
         }
         return "Unknown";
     }
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    private long getAppUsageTime(String packageName) {
+        UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
+        Calendar calendar = Calendar.getInstance();
+        long endTime = calendar.getTimeInMillis();
+
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        long startTime = calendar.getTimeInMillis();
+
+        List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime);
+        for (UsageStats usageStat : stats) {
+            if (usageStat.getPackageName().equals(packageName)) {
+                return usageStat.getTotalTimeInForeground();
+            }
+        }
+        return 0;
+    }
+
 
     private String getFriendlyNameForPackage(String packageName) {
         Map<String, String> friendlyNames = new HashMap<>();

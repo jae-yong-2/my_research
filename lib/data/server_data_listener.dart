@@ -197,8 +197,8 @@ class ServerDataListener {
     return null;
   }
 
-  Future<void> agentAlarm(String title, String content, var time, var millitime,
-      String payload) async {
+  Future<void> sendAlarm(String title, String content, var time, var millitime,
+      String payload, String who) async {
     LocalNotification.showOngoingNotification(
       title: title,
       body: content,
@@ -206,28 +206,11 @@ class ServerDataListener {
     );
     //히스토리에 저장
     await DataStore().saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
-      KeyValue().CHAT_ID: KeyValue().AGENT,
+      KeyValue().CHAT_ID: who,
       KeyValue().CONTENT: content,
       KeyValue().TIMESTAMP: time,
       KeyValue().MILLITIMESTAMP: millitime,
 
-    });
-  }
-
-  Future<void> gptAlarm(String title, String content, var time, var millitime,
-      String payload) async {
-    LocalNotification.showOngoingNotification(
-        title: title,
-        body: content,
-        payload: payload
-    );
-
-    //히스토리 저장
-    await DataStore().saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
-      KeyValue().CHAT_ID: KeyValue().GPT,
-      KeyValue().CONTENT: content,
-      KeyValue().TIMESTAMP: time,
-      KeyValue().MILLITIMESTAMP: millitime,
     });
   }
   Future<void> makeGPTContent(var gptContent, String content, String isRecord) async {
@@ -285,9 +268,10 @@ class ServerDataListener {
       print("FCM update");
 
       if (true) {
-        agentAlarm(
+        return;
+        sendAlarm(
             message.data["title"], message.data["content"], time, millitime,
-            "2");
+            "2",KeyValue().AGENT);
         //GPT가 생성한 내용을 서버에 전달
         makeGPTContent(
             gptContent, message.data["content"], message.data["isRecord"]);
@@ -302,17 +286,17 @@ class ServerDataListener {
           print("User replied: $agentContent");
           String? gptContent = await ServerDataListener().sendGPT(
               message.data["content"], message.data["isRecord"]);
-          ServerDataListener().gptAlarm(
-              "Agent가 메세지를 보냈습니다.", gptContent!, time, millitime, "3");
+          ServerDataListener().sendAlarm(
+              "Agent가 메세지를 보냈습니다.", gptContent!, time, millitime, "3",KeyValue().GPT);
         });
       }else{
         // recordStepHistory(time, step);
 
         String text = await makeAgentContent(agentContent, message.data["content"], "makeIamWalking",time);
 
-        agentAlarm(
+        sendAlarm(
             "Agent에게 답장했습니다.", text, time, millitime,
-            "2");
+            "2",KeyValue().AGENT);
         //GPT가 생성한 내용을 서버에 전달
         makeGPTContent(
             gptContent, text, message.data["isRecord"]);
@@ -327,8 +311,8 @@ class ServerDataListener {
           print("User replied: $agentContent");
           String? gptContent = await ServerDataListener().sendGPT(
               message.data["content"], message.data["isRecord"]);
-          ServerDataListener().gptAlarm(
-              "Agent가 메세지를 보냈습니다", gptContent!, time, millitime, "3");
+          ServerDataListener().sendAlarm(
+              "Agent가 메세지를 보냈습니다", gptContent!, time, millitime, "3",KeyValue().GPT);
         });
 
       }
