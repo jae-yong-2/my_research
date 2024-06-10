@@ -5,6 +5,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:my_research/data/keystring.dart';
@@ -27,6 +28,16 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // If you're going to use other Firebase services in the background, such as Firestore,
   // make sure you call `initializeApp` before using other Firebase services.
   ServerDataListener().FCMactivce(message);
+}
+
+const platform = MethodChannel('com.example.app/foreground_service');
+
+Future<void> startForegroundService() async {
+  try {
+    await platform.invokeMethod('startForegroundService');
+  } on PlatformException catch (e) {
+    print("Failed to start foreground service: '${e.message}'.");
+  }
 }
 
 Future<void> _loadTime()async{
@@ -103,6 +114,7 @@ void main() async{
   //FCM & Firebase
   await _requestPermission();
   await _saveInitialData();
+  startForegroundService();
   runApp(MyApp());
 }
 

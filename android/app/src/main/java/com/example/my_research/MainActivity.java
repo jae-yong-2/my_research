@@ -12,6 +12,7 @@ import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
+import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -91,6 +92,18 @@ public class MainActivity extends FlutterActivity {
                             } else {
                                 result.error("UNAVAILABLE", "Usage stats are not available on this device.", null);
                             }
+                        } else {
+                            result.notImplemented();
+                        }
+                    }
+                });
+        new MethodChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), FOREGROUND_SERVICE_CHANNEL)
+                .setMethodCallHandler(new MethodChannel.MethodCallHandler() {
+                    @Override
+                    public void onMethodCall(MethodCall call, MethodChannel.Result result) {
+                        if (call.method.equals("startForegroundService")) {
+                            startForegroundService();
+                            result.success(null);
                         } else {
                             result.notImplemented();
                         }
@@ -193,25 +206,20 @@ public class MainActivity extends FlutterActivity {
         return "Unknown";
     }
 
+
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private long getAppUsageTime(String packageName) {
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
         Calendar calendar = Calendar.getInstance();
-
-        // 현재 시간을 설정
         long endTime = calendar.getTimeInMillis();
 
-        // 하루의 시작 시간을 설정
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         long startTime = calendar.getTimeInMillis();
 
-        // 하루 단위로 앱 사용 시간을 조회
         List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime);
-
-        // 주어진 패키지 이름에 해당하는 사용 시간 반환
         for (UsageStats usageStat : stats) {
             if (usageStat.getPackageName().equals(packageName)) {
                 return usageStat.getTotalTimeInForeground();
@@ -219,7 +227,6 @@ public class MainActivity extends FlutterActivity {
         }
         return 0;
     }
-
 
     private boolean hasUsageStatsPermission() {
         AppOpsManager appOps = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
@@ -232,5 +239,21 @@ public class MainActivity extends FlutterActivity {
         startActivity(intent);
         Toast.makeText(this, "Please grant Usage Stats permission", Toast.LENGTH_LONG).show();
     }
+//-----------------
+private static final String FOREGROUND_SERVICE_CHANNEL = "com.example.app/foreground_service";
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        startForegroundService();
+    }
+
+    private void startForegroundService() {
+        Intent serviceIntent = new Intent(this, MyForegroundService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent);
+        } else {
+            startService(serviceIntent);
+        }
+    }
 }

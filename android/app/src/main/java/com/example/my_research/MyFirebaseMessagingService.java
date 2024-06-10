@@ -40,14 +40,17 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     Log.d(TAG, "Usage Stats: " + usageStats.toString());
 
                     String currentApp = getCurrentApp();
-                    logCurrentAppName(currentApp); // 패키지 이름을 앱 이름으로 변환하여 로그
+                    Log.d(TAG, "Current App ProjectName: " + currentApp);
+                    String appName = getCurrentAppName(currentApp); // 패키지 이름을 앱 이름으로 변환하여 로그
+                    Log.d(TAG, "Current App Name: " + appName);
 
                     List<Map<String, Object>> top10Apps = getTop10Apps();
-                    Log.d(TAG, "Top 10 Apps: " + top10Apps.toString());
+//                    Log.d(TAG, "Top 10 Apps: " + top10Apps.toString());
 
                     String packageName = currentApp; // 원하는 앱의 패키지 이름
                     long appUsageTime = getAppUsageTime(packageName);
-                    Log.d(TAG, "App Usage Time for " + packageName + ": " + appUsageTime);
+                    appUsageTime = (appUsageTime / 1000 / 60);
+//                    Log.d(TAG, "App Usage Time for " + packageName + ": " + appUsageTime);
 
                     // 결과를 SharedPreferences에 저장
                     saveResultsToSharedPreferences(currentApp, usageStats, top10Apps, appUsageTime);
@@ -69,9 +72,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         // 알림을 생성하고 보여주는 코드를 여기에 작성합니다.
     }
 
-    private void logCurrentAppName(String currentAppPackageName) {
+    private String logCurrentAppName(String currentAppPackageName) {
         String appName = FriendlyNameMapper.getFriendlyName(currentAppPackageName);
-        Log.d(TAG, "Current App Name: " + appName);
+        return appName;
     }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
@@ -83,28 +86,39 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         long startTime = calendar.getTimeInMillis();
 
         List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime);
-        List<Map<String, Object>> usageStats = new ArrayList<>();
+        Map<String, Map<String, Object>> usageStatsMap = new HashMap<>();
         PackageManager pm = getPackageManager();
 
         for (UsageStats usageStat : stats) {
             if (usageStat.getTotalTimeInForeground() > 0) {
-                Map<String, Object> usageMap = new HashMap<>();
                 String packageName = usageStat.getPackageName();
-                usageMap.put("packageName", packageName);
-                usageMap.put("totalTimeInForeground", usageStat.getTotalTimeInForeground() / 1000 / 60); // Convert milliseconds to minutes
-                try {
-                    ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
-                    String appName = pm.getApplicationLabel(appInfo).toString();
-                    usageMap.put("appName", appName);
-                } catch (PackageManager.NameNotFoundException e) {
-                    usageMap.put("appName", FriendlyNameMapper.getFriendlyName(packageName));
+                long totalTimeInForeground = usageStat.getTotalTimeInForeground() / 1000 / 60; // Convert milliseconds to minutes
+
+                if (usageStatsMap.containsKey(packageName)) {
+                    // If the package already exists, update the existing time
+                    Map<String, Object> usageMap = usageStatsMap.get(packageName);
+                    long existingTime = (long) usageMap.get("totalTimeInForeground");
+                    usageMap.put("totalTimeInForeground", existingTime + totalTimeInForeground);
+                } else {
+                    // If the package doesn't exist, create a new entry
+                    Map<String, Object> usageMap = new HashMap<>();
+                    usageMap.put("packageName", packageName);
+                    usageMap.put("totalTimeInForeground", totalTimeInForeground);
+                    try {
+                        ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
+                        String appName = pm.getApplicationLabel(appInfo).toString();
+                        usageMap.put("appName", appName);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        usageMap.put("appName", FriendlyNameMapper.getFriendlyName(packageName));
+                    }
+                    usageStatsMap.put(packageName, usageMap);
                 }
-                usageStats.add(usageMap);
             }
         }
 
-        return usageStats;
+        return new ArrayList<>(usageStatsMap.values());
     }
+
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private List<Map<String, Object>> getTop10Apps() {
@@ -130,7 +144,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     usageMap.put("appName", appName);
                 } catch (PackageManager.NameNotFoundException e) {
                     String name = FriendlyNameMapper.getFriendlyName(packageName);
-                    Log.e(TAG, name);
                     usageMap.put("appName", name);
                 }
                 usageStats.add(usageMap);
@@ -145,6 +158,17 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         });
 
         return usageStats.subList(0, Math.min(10, usageStats.size()));
+    }
+
+
+    private String getCurrentAppName(String packageName) {
+        PackageManager pm = getPackageManager();
+        try {
+            ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
+            return pm.getApplicationLabel(appInfo).toString();
+        } catch (PackageManager.NameNotFoundException e) {
+            return FriendlyNameMapper.getFriendlyName(packageName);
+        }
     }
 
     private String getCurrentApp() {
@@ -197,21 +221,30 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
         return 0;
     }
+
     private void saveResultsToSharedPreferences(String currentApp, List<Map<String, Object>> usageStats, List<Map<String, Object>> top10Apps, long appUsageTime) {
         SharedPreferences prefs = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-
         Gson gson = new Gson();
+
         editor.putString("currentApp", currentApp);
         editor.putString("usageStats", gson.toJson(usageStats));
         editor.putString("top10Apps", gson.toJson(top10Apps));
         editor.putLong("appUsageTime", appUsageTime);
-
+        System.out.println("---------------save_data---------------");
         editor.apply();
-        Log.d(TAG, "currentApp"+currentApp);
-        Log.d(TAG, "usageStats"+gson.toJson(usageStats));
-        Log.d(TAG, "top10Apps"+gson.toJson(top10Apps));
-        Log.d(TAG, "appUsageTime"+appUsageTime);
+
+        String currentApp1 = prefs.getString("currentApp", "Unknown");
+        String usageStatsJson1 = prefs.getString("usageStats", "[]");
+        String top10AppsJson1 = prefs.getString("top10Apps", "[]");
+        long appUsageTime1 = prefs.getLong("appUsageTime", 0);
+
+        Log.d(TAG, "currentApp : "+currentApp1);
+        Log.d(TAG, "appUsageTime : "+appUsageTime1);
+//        Log.d(TAG, "usageStats : "+usageStatsJson1);
+        Log.d(TAG, "top10Apps : "+top10AppsJson1);
+
+        System.out.println("---------------save_data---------------");
 
     }
 }

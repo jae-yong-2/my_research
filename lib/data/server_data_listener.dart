@@ -283,7 +283,7 @@ class ServerDataListener {
       final top10Apps = List<Map<String, dynamic>>.from(json.decode(top10AppsString));
 
       // 읽어온 데이터 사용 예시
-      print('===========================');
+      print('=============flutter shared preference==============');
       print('Current App: $currentApp');
       print('Usage Stats: $usageStats');
       print('Top 10 Apps: $top10Apps');
