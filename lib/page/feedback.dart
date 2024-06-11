@@ -1,15 +1,14 @@
 import 'dart:async';
-import 'dart:isolate';
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:my_research/data/data_store.dart';
 import 'package:pedometer/pedometer.dart';
+import 'package:native_shared_preferences/native_shared_preferences.dart';
 
 import '../data/keystring.dart';
-import '../module/usageAppservice.dart';
 
 class FeedbackPage extends StatefulWidget {
   const FeedbackPage({super.key});
@@ -19,10 +18,10 @@ class FeedbackPage extends StatefulWidget {
 }
 
 class _BackgroundServiceState extends State<FeedbackPage> {
-  final UsageAppService _usageAppService = UsageAppService();
   List<Map<String, dynamic>> _usageStats = [];
   List<Map<String, dynamic>> _top10Apps = [];
   String _currentApp = 'Unknown';
+  int _appUsageTime = 0;
 
   @override
   void initState() {
@@ -178,7 +177,7 @@ class _BackgroundServiceState extends State<FeedbackPage> {
           SizedBox(height: 20),
           ElevatedButton(
             onPressed: () async {
-              final usageStats = await _usageAppService.getUsageStats();
+              final usageStats = await _getUsageStats();
               setState(() {
                 _usageStats = usageStats;
                 print(_usageStats);
@@ -189,7 +188,7 @@ class _BackgroundServiceState extends State<FeedbackPage> {
           SizedBox(height: 20),
           ElevatedButton(
             onPressed: () async {
-              final currentApp = await _usageAppService.getCurrentApp();
+              final currentApp = await _getCurrentApp();
               setState(() {
                 _currentApp = currentApp;
               });
@@ -201,7 +200,7 @@ class _BackgroundServiceState extends State<FeedbackPage> {
           SizedBox(height: 20),
           ElevatedButton(
             onPressed: () async {
-              final top10Apps = await _usageAppService.getTop10Apps();
+              final top10Apps = await _getTop10Apps();
               setState(() {
                 _top10Apps = top10Apps;
                 print(_top10Apps);
@@ -224,7 +223,7 @@ class _BackgroundServiceState extends State<FeedbackPage> {
                   subtitle: Text(
                       'appname: ${usageStat['appName']}'
                           '\n'
-                          'Usage: ${(totalTimeInForeground / 1000 / 60).toStringAsFixed(1)} mins'),
+                          'Usage: ${(totalTimeInForeground).toStringAsFixed(1)} mins'),
                 );
               },
             ),
@@ -233,4 +232,22 @@ class _BackgroundServiceState extends State<FeedbackPage> {
       ),
     ),
   );
+
+  Future<List<Map<String, dynamic>>> _getUsageStats() async {
+    final prefs = await NativeSharedPreferences.getInstance();
+    String usageStatsString = prefs.getString('usageStats') ?? '[]';
+    List<dynamic> usageStatsList = jsonDecode(usageStatsString);
+    return usageStatsList.cast<Map<String, dynamic>>();
+  }
+
+  Future<String> _getCurrentApp() async {
+    final prefs = await NativeSharedPreferences.getInstance();
+    return prefs.getString('currentApp') ?? 'Unknown';
+  }
+
+  Future<List<Map<String, dynamic>>> _getTop10Apps() async {
+    List<Map<String, dynamic>> usageStats = await _getUsageStats();
+    usageStats.sort((a, b) => (b['totalTimeInForeground'] as int).compareTo(a['totalTimeInForeground'] as int));
+    return usageStats.take(10).toList();
+  }
 }
