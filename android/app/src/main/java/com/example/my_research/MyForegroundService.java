@@ -41,11 +41,13 @@ public class MyForegroundService extends Service {
     private static final String TAG = "MyForegroundService";
     private Handler handler = new Handler();
     private Runnable updateTask;
+    private NotificationManager notificationManager;
 
     @Override
     public void onCreate() {
         super.onCreate();
         createNotificationChannel();
+        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         startForegroundService();
     }
 
@@ -69,6 +71,9 @@ public class MyForegroundService extends Service {
                 } else {
                     startForeground(1, notification);
                 }
+
+                // Update the notification content instead of starting a new foreground service
+                notificationManager.notify(1, notification);
 
                 handler.postDelayed(this, 60000); // 1분마다 업데이트
             }
