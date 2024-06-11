@@ -18,9 +18,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import com.google.firebase.FirebaseApp;
-
-import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -31,6 +30,10 @@ import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
+
+import android.content.pm.PackageManager;
+import android.content.pm.ApplicationInfo;
+
 
 import com.example.my_research.MyFirebaseMessagingService;
 public class MainActivity extends FlutterActivity {
@@ -84,7 +87,7 @@ public class MainActivity extends FlutterActivity {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                 if (hasUsageStatsPermission()) {
                                     long usageTime = getAppUsageTime(packageName);
-                                    result.success((int) usageTime);
+                                    result.success(usageTime);
                                 } else {
                                     requestUsageStatsPermission();
                                     result.error("PERMISSION_DENIED", "Usage stats permission is denied", null);
@@ -205,29 +208,18 @@ public class MainActivity extends FlutterActivity {
         }
         return "Unknown";
     }
-
-
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private long getAppUsageTime(String packageName) {
-        UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
-        Calendar calendar = Calendar.getInstance();
-        long endTime = calendar.getTimeInMillis();
+        List<Map<String, Object>> usageStats = getUsageStats();
+        Log.d(TAG, "Usage Stats: " + usageStats.toString());
 
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        long startTime = calendar.getTimeInMillis();
-
-        List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime);
-        for (UsageStats usageStat : stats) {
-            if (usageStat.getPackageName().equals(packageName)) {
-                return usageStat.getTotalTimeInForeground();
+        for (Map<String, Object> usageStat : usageStats) {
+            if (usageStat.get("packageName").equals(packageName)) {
+                return (int)usageStat.get("totalTimeInForeground");
             }
         }
         return 0;
     }
-
     private boolean hasUsageStatsPermission() {
         AppOpsManager appOps = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
         int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), getPackageName());
