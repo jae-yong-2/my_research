@@ -163,6 +163,12 @@ public class MainActivity extends FlutterActivity {
         for (UsageStats usageStat : stats) {
             if (usageStat.getTotalTimeInForeground() > 0) {
                 String packageName = usageStat.getPackageName();
+
+                // Exclude "One UI 홈"
+                if (packageName.equals("com.sec.android.app.launcher")) {
+                    continue;
+                }
+
                 if (seenPackages.contains(packageName)) {
                     continue; // Skip duplicates
                 }
@@ -192,7 +198,6 @@ public class MainActivity extends FlutterActivity {
 
         return usageStats.subList(0, Math.min(10, usageStats.size()));
     }
-
 
     private String getCurrentApp() {
         ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
