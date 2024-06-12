@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
@@ -247,7 +248,6 @@ class ServerDataListener {
   //FCM을 통해서 받은 데이터를 휴대폰에서 처리하는 함수.
   Future<void> FCMactivce(RemoteMessage message) async {
     // 네이티브 코드 호출
-    const platform = MethodChannel('com.example.app/usage_stats');
 
     // final stepCounterService = PedometerAPI();
     // stepCounterService.refreshSteps();
@@ -267,28 +267,26 @@ class ServerDataListener {
     String time = formatter.format(now);
     print("Handling a background message: ${message.data}");
     var state = message.data["isRecord"];
-
+    var duration = const Duration(milliseconds: 500);
 //--------------------------------------------------------------------------
     if (state == "update") {
       print("FCM update");
+      sleep(duration);
       print('Handling a background message: ${message.messageId}');
 
-      // SharedPreferences에서 데이터 읽기
-      final currentApp = await DataStore().getSharedPreferencesString('currentApp') ?? 'Unknown';
-      final usageStatsString = await DataStore().getSharedPreferencesString('usageStats') ?? '[]';
-      final top10AppsString = await DataStore().getSharedPreferencesString('top10Apps') ?? '[]';
-      final appUsageTime = await DataStore().getSharedPreferencesInt('appUsageTime') ?? 0;
 
-      final usageStats = List<Map<String, dynamic>>.from(json.decode(usageStatsString));
-      final top10Apps = List<Map<String, dynamic>>.from(json.decode(top10AppsString));
+      // SharedPreferences에서 데이터 읽기
+      final currentApp = await UsageAppService().getCurrentApp();
+      final usageTimeString = await UsageAppService().getAppUsageTime();
+      final usageStatsString = await UsageAppService().getUsageStats();
+
 
       // 읽어온 데이터 사용 예시
       print('=============flutter shared preference==============');
       print('Current App: $currentApp');
-      print('Usage Stats: $usageStats');
-      print('Top 10 Apps: $top10Apps');
-      print('App Usage Time: $appUsageTime');
-      print('===========================');
+      print('Usage Time: $usageTimeString');
+      print('Usage Stats: $usageStatsString');
+      print('====================================================');
 
       if (true) {
         return;

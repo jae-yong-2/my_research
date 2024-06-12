@@ -46,18 +46,18 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 try {
                     List<Map<String, Object>> usageStats = getUsageStats();
-                    Log.d(TAG, "Usage Stats: " + usageStats.toString());
+//                    Log.d(TAG, "Usage Stats: " + usageStats.toString());
                     currentApp = getCurrentApp();
-                    Log.d(TAG, "Current App ProjectName: " + currentApp);
+//                    Log.d(TAG, "Current App ProjectName: " + currentApp);
                     appName = getCurrentAppName(currentApp); // 패키지 이름을 앱 이름으로 변환하여 로그
-                    Log.d(TAG, "Current App Name: " + appName);
+//                    Log.d(TAG, "Current App Name: " + appName);
 
                     packageName = currentApp; // 원하는 앱의 패키지 이름
                     appUsageTime = getAppUsageTime(packageName);
                     // Log.d(TAG, "App Usage Time for " + packageName + ": " + appUsageTime);
 
                     // 결과를 SharedPreferences에 저장
-                    saveResultsToSharedPreferences(currentApp, usageStats, appUsageTime);
+                    saveResultsToSharedPreferences(currentApp, usageStats, appUsageTime, appName);
                 } catch (Exception e) {
                     Log.e(TAG, "Error processing usage stats", e);
                 }
@@ -180,12 +180,22 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         return "0분";
     }
 
-    private void saveResultsToSharedPreferences(String currentApp, List<Map<String, Object>> usageStats, String appUsageTime) {
+    private void saveResultsToSharedPreferences(String currentApp, List<Map<String, Object>> usageStats, String appUsageTime, String appName) {
         SharedPreferences prefs = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         Gson gson = new Gson();
+        Log.d(TAG, "----------------------------------------------------------");
         editor.putString("currentApp", currentApp);
+        Log.d(TAG, "currentApp : " + currentApp);
+        editor.putString("currentAppName", appName);
+        Log.d(TAG, "currentAppName : " + appName);
+        editor.putString("appUsageTime", appUsageTime);
+        Log.d(TAG, "appUsageTime : " + appUsageTime);
         editor.putString("usageStats", gson.toJson(usageStats));
+        Log.d(TAG, "usageStats :  "+ gson.toJson(usageStats));
+
         editor.apply();
+        Log.d(TAG, "--------------------save android data---------------------");
+
     }
 }

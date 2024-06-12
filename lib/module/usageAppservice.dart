@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:my_research/data/data_store.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:native_shared_preferences/native_shared_preferences.dart';
 
 import '../data/keystring.dart';
 
 class UsageAppService {
   static const platform = MethodChannel('com.example.app/usage_stats');
 
-  Future<List<Map<String, dynamic>>> getUsageStats() async {
+  Future<List<Map<String, dynamic>>> getFlutterUsageStats() async {
     try {
       final List<dynamic> result = await platform.invokeMethod('getUsageStats');
       return result.map((e) => Map<String, dynamic>.from(e as Map)).toList();
@@ -25,7 +25,7 @@ class UsageAppService {
     }
   }
 
-  Future<String> getCurrentApp() async {
+  Future<String> getFlutterCurrentApp() async {
     try {
       final String result = await platform.invokeMethod('getCurrentApp');
       return result;
@@ -48,8 +48,7 @@ class UsageAppService {
       return [];
     }
   }
-
-  Future<int> getAppUsageTime(String packageName) async {
+  Future<int> getFlutterAppUsageTime(String packageName) async {
     try {
       final int result = await platform.invokeMethod('getAppUsageTime', {'packageName': packageName});
       return result;
@@ -58,7 +57,6 @@ class UsageAppService {
       return 0;
     }
   }
-
   Future<void> currentUsageTest() async {
     final String? selectedDurationJson = await DataStore()
         .getSharedPreferencesString(KeyValue().SELECTEDDURATION);
@@ -69,8 +67,8 @@ class UsageAppService {
           hours: selectedDurationMap['hours'],
           minutes: selectedDurationMap['minutes']);
 
-      final currentApp = await getCurrentApp();
-      final usageTime = await getAppUsageTime(currentApp);
+      final currentApp = await getFlutterCurrentApp();
+      final usageTime = await getFlutterAppUsageTime(currentApp);
 
       final int savedHours = selectedDuration?.inHours ?? 0;
       final int savedMinutes = selectedDuration?.inMinutes ?? 0;
@@ -90,27 +88,24 @@ class UsageAppService {
       }
     }
   }
-
-  // SharedPreferences를 사용한 메서드들 추가
-  Future<String> getCurrentAppFromPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
+  Future<String> getCurrentApp() async {
+    final prefs = await NativeSharedPreferences.getInstance();
     return prefs.getString('currentApp') ?? 'Unknown';
   }
 
-  Future<List<Map<String, dynamic>>> getUsageStatsFromPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    final usageStatsString = prefs.getString('usageStats') ?? '[]';
-    return List<Map<String, dynamic>>.from(json.decode(usageStatsString));
+  Future<String> getCurrentAppName() async {
+    final prefs = await NativeSharedPreferences.getInstance();
+    return prefs.getString('currentAppName') ?? 'Unknown';
+  }
+  Future<String> getAppUsageTime() async {
+    final prefs = await NativeSharedPreferences.getInstance();
+    return prefs.getString('appUsageTime') ?? '0분';
   }
 
-  Future<List<Map<String, dynamic>>> getTop10AppsFromPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    final top10AppsString = prefs.getString('top10Apps') ?? '[]';
-    return List<Map<String, dynamic>>.from(json.decode(top10AppsString));
-  }
-
-  Future<int> getAppUsageTimeFromPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt('appUsageTime') ?? 0;
+  Future<List<Map<String, dynamic>>> getUsageStats() async {
+    final prefs = await NativeSharedPreferences.getInstance();
+    String usageStatsString = prefs.getString('usageStats') ?? '[]';
+    List<dynamic> usageStatsList = jsonDecode(usageStatsString);
+    return usageStatsList.cast<Map<String, dynamic>>();
   }
 }

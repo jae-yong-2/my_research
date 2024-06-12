@@ -123,9 +123,8 @@ class _ProfileState extends State<Profile> {
   }
 
   Future<void> _currentUsageTest() async {
-    final currentApp = await _usageAppService.getCurrentApp();
-    final usageTime = await _usageAppService.getAppUsageTime(currentApp);
-    print("${usageTime} : 000000000");
+    final currentApp = await _usageAppService.getFlutterCurrentApp();
+    final usageTime = await _usageAppService.getFlutterAppUsageTime(currentApp);
 
     setState(() {
       _currentAppName = currentApp;
