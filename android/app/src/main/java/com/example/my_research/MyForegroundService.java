@@ -14,23 +14,15 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import java.util.ArrayList;
-
-import java.util.Collections;
-import java.util.Comparator;
-import android.content.pm.PackageManager;
-import android.content.pm.ApplicationInfo;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import android.content.pm.PackageManager;
+import android.content.pm.ApplicationInfo;
 import android.app.usage.UsageStats;
-import android.app.usage.UsageStatsManager;
-
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
-
 import java.util.Calendar;
 
 // FriendlyNameMapper import 추가
@@ -39,7 +31,6 @@ import com.example.my_research.FriendlyNameMapper;
 public class MyForegroundService extends Service {
     private static final String CHANNEL_ID = "ForegroundServiceChannel";
     private static final String TAG = "MyForegroundService";
-    private Handler handler = new Handler();
     private Runnable updateTask;
     private NotificationManager notificationManager;
 
@@ -52,34 +43,18 @@ public class MyForegroundService extends Service {
     }
 
     private void startForegroundService() {
-        updateTask = new Runnable() {
-            @Override
-            public void run() {
-                String currentApp = getCurrentApp();
-                String currentUsageTime = getAppUsageTime(currentApp);
-                Log.d(TAG, "Current App Package: " + currentApp);
+        // 최초 실행 시 startForeground 호출
+        String currentApp = getCurrentApp();
+        String currentUsageTime = getAppUsageTime(currentApp);
+        Notification initialNotification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Current App in Use")
+                .setContentText("Package: " + currentApp + "\n" + "Time: " + currentUsageTime)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setOngoing(true)
+                .build();
+        startForeground(1, initialNotification);
 
-                Notification notification = new NotificationCompat.Builder(MyForegroundService.this, CHANNEL_ID)
-                        .setContentTitle("Current App in Use")
-                        .setContentText("Package: " + currentApp + "\n" + "Time: " + currentUsageTime)
-                        .setSmallIcon(R.mipmap.ic_launcher)
-                        .setOngoing(true)
-                        .build();
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    startForeground(1, notification);
-                } else {
-                    startForeground(1, notification);
-                }
-
-                // Update the notification content instead of starting a new foreground service
-                notificationManager.notify(1, notification);
-
-                handler.postDelayed(this, 60000); // 1분마다 업데이트
-            }
-        };
-
-        handler.post(updateTask);
+        // 알림 업데이트를 위한 Runnable 정의
     }
 
     @Override
@@ -91,7 +66,6 @@ public class MyForegroundService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        handler.removeCallbacks(updateTask);
         Intent broadcastIntent = new Intent(this, ServiceRestartReceiver.class);
         sendBroadcast(broadcastIntent);
     }
@@ -99,7 +73,6 @@ public class MyForegroundService extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-        handler.removeCallbacks(updateTask);
         Intent broadcastIntent = new Intent(this, ServiceRestartReceiver.class);
         sendBroadcast(broadcastIntent);
     }
@@ -115,7 +88,7 @@ public class MyForegroundService extends Service {
             NotificationChannel serviceChannel = new NotificationChannel(
                     CHANNEL_ID,
                     "Foreground Service Channel",
-                    NotificationManager.IMPORTANCE_HIGH
+                    NotificationManager.IMPORTANCE_LOW
             );
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager != null) {
@@ -123,6 +96,7 @@ public class MyForegroundService extends Service {
             }
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private List<Map<String, Object>> getUsageStats() {
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
@@ -166,6 +140,7 @@ public class MyForegroundService extends Service {
         }
         return new ArrayList<>(usageStatsMap.values());
     }
+
     private String getCurrentApp() {
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
         long endTime = System.currentTimeMillis();

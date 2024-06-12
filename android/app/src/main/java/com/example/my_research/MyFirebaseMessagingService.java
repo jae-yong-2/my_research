@@ -1,6 +1,10 @@
 package com.example.my_research;
 
-import android.app.ActivityManager;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import androidx.core.app.NotificationCompat;
+
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
@@ -11,7 +15,6 @@ import android.os.Build;
 import android.util.Log;
 
 import android.app.usage.UsageEvents;
-import android.app.usage.UsageStatsManager;
 
 import androidx.annotation.RequiresApi;
 
@@ -21,18 +24,21 @@ import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private static final String TAG = "MyFirebaseMsgService";
+    private static final String CHANNEL_ID = "ForegroundServiceChannel";
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         Log.d(TAG, "From: " + remoteMessage.getFrom());
+        String currentApp = "Unknown";
+        String packageName = "Unknown";
+        String appUsageTime = "0분";
+        String appName = "Unknown";
 
         if (remoteMessage.getData().size() > 0) {
             Log.d(TAG, "Message data payload: " + remoteMessage.getData());
@@ -41,17 +47,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 try {
                     List<Map<String, Object>> usageStats = getUsageStats();
                     Log.d(TAG, "Usage Stats: " + usageStats.toString());
-
-                    String currentApp = getCurrentApp();
+                    currentApp = getCurrentApp();
                     Log.d(TAG, "Current App ProjectName: " + currentApp);
-                    String appName = getCurrentAppName(currentApp); // 패키지 이름을 앱 이름으로 변환하여 로그
+                    appName = getCurrentAppName(currentApp); // 패키지 이름을 앱 이름으로 변환하여 로그
                     Log.d(TAG, "Current App Name: " + appName);
 
-
-                    String packageName = currentApp; // 원하는 앱의 패키지 이름
-                    long appUsageTime = getAppUsageTime(packageName);
-                    appUsageTime = (appUsageTime / 1000 / 60);
-//                    Log.d(TAG, "App Usage Time for " + packageName + ": " + appUsageTime);
+                    packageName = currentApp; // 원하는 앱의 패키지 이름
+                    appUsageTime = getAppUsageTime(packageName);
+                    // Log.d(TAG, "App Usage Time for " + packageName + ": " + appUsageTime);
 
                     // 결과를 SharedPreferences에 저장
                     saveResultsToSharedPreferences(currentApp, usageStats, appUsageTime);
@@ -62,15 +65,30 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 Log.e(TAG, "Usage stats are not available on this device.");
             }
         }
-
-        if (remoteMessage.getNotification() != null) {
-            Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
-            sendNotification(remoteMessage.getNotification().getBody());
+        if (remoteMessage.getData().size() > 0) {
+            Log.d(TAG, "Data Message Body: " + remoteMessage.getData().get("body"));
+            sendNotification(appName, appUsageTime);
+        } else {
+            Log.d(TAG, "No notification payload and no data payload");
         }
     }
 
-    private void sendNotification(String messageBody) {
-        // 알림을 생성하고 보여주는 코드를 여기에 작성합니다.
+    private void sendNotification(String currentApp, String currentUsageTime) {
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Firebase Message Channel", NotificationManager.IMPORTANCE_HIGH);
+            notificationManager.createNotificationChannel(channel);
+        }
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Current App in Use")
+                .setContentText("Package: " + currentApp + "\n" + "Time: " + currentUsageTime)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setOngoing(true)
+                .build();
+        // 알림을 업데이트합니다.
+        notificationManager.notify(1, notification);
     }
 
     private String logCurrentAppName(String currentAppPackageName) {
@@ -99,12 +117,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 long totalTimeInForeground = usageStat.getTotalTimeInForeground() / 1000 / 60; // Convert milliseconds to minutes
 
                 if (usageStatsMap.containsKey(packageName)) {
-                    // If the package already exists, update the existing time
                     Map<String, Object> usageMap = usageStatsMap.get(packageName);
                     long existingTime = (long) usageMap.get("totalTimeInForeground");
                     usageMap.put("totalTimeInForeground", existingTime + totalTimeInForeground);
                 } else {
-                    // If the package doesn't exist, create a new entry
                     Map<String, Object> usageMap = new HashMap<>();
                     usageMap.put("packageName", packageName);
                     usageMap.put("totalTimeInForeground", totalTimeInForeground);
@@ -122,7 +138,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         return new ArrayList<>(usageStatsMap.values());
     }
 
-
     private String getCurrentAppName(String packageName) {
         PackageManager pm = getPackageManager();
         try {
@@ -132,7 +147,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             return FriendlyNameMapper.getFriendlyName(packageName);
         }
     }
-
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private String getCurrentApp() {
@@ -155,27 +169,23 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    private long getAppUsageTime(String packageName) {
+    private String getAppUsageTime(String packageName) {
         List<Map<String, Object>> usageStats = getUsageStats();
 
         for (Map<String, Object> usageStat : usageStats) {
             if (usageStat.get("packageName").equals(packageName)) {
-                Log.d(TAG, "current totalTimeInForeground : " + usageStats.toString());
-                return (long)usageStat.get("totalTimeInForeground");
+                return usageStat.get("totalTimeInForeground") + "분";
             }
         }
-        return 0;
+        return "0분";
     }
 
-    private void saveResultsToSharedPreferences(String currentApp, List<Map<String, Object>> usageStats, long appUsageTime) {
+    private void saveResultsToSharedPreferences(String currentApp, List<Map<String, Object>> usageStats, String appUsageTime) {
         SharedPreferences prefs = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         Gson gson = new Gson();
         editor.putString("currentApp", currentApp);
         editor.putString("usageStats", gson.toJson(usageStats));
         editor.apply();
-
     }
 }
-
-
