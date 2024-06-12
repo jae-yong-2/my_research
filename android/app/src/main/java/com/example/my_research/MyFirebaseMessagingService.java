@@ -189,16 +189,18 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Gson gson = new Gson();
         Log.d(TAG, "----------------------------------------------------------");
         editor.putString("currentApp", currentApp);
-        Log.d(TAG, "currentApp : " + currentApp);
         editor.putString("currentAppName", appName);
-        Log.d(TAG, "currentAppName : " + appName);
         editor.putInt("appUsageTime", appUsageTime);
-        Log.d(TAG, "appUsageTime : " + appUsageTime);
         editor.putString("usageStats", gson.toJson(usageStats));
-        Log.d(TAG, "usageStats :  "+ gson.toJson(usageStats));
 
         editor.apply();
         Log.d(TAG, "--------------------save android data---------------------");
 
+        // 추가된 확인 로그
+        Log.d(TAG, "Saved currentApp: " + prefs.getString("currentApp", "N/A"));
+        Log.d(TAG, "Saved currentAppName: " + prefs.getString("currentAppName", "N/A"));
+        Log.d(TAG, "Saved appUsageTime: " + prefs.getInt("appUsageTime", -1));
+        Log.d(TAG, "Saved usageStats: " + prefs.getString("usageStats", "N/A"));
     }
+
 }

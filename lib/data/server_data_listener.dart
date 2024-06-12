@@ -15,6 +15,7 @@ import 'package:my_research/data/keystring.dart';
 import 'package:my_research/data/data_store.dart';
 import 'package:my_research/module/pedometerAPI.dart';
 import 'package:my_research/module/usageAppservice.dart';
+import 'package:native_shared_preferences/native_shared_preferences.dart';
 
 import '../module/healthKit.dart';
 import '../module/local_notification.dart';
@@ -22,13 +23,26 @@ import '../package/const_key.dart';
 import '../page/chat/chat_message.dart';
 
 class ServerDataListener {
+  Future<String> getCurrentApp() async {
+    final prefs = await NativeSharedPreferences.getInstance();
+    return prefs.getString('currentApp') ?? 'Unknown';
+  }
 
-  //백그라운드에서 작업할 내용을 작성
-  Future<void> FCMbackgroundMessage(RemoteMessage message) async {
-    // If you're going to use other Firebase services in the background, such as Firestore,
-    // make sure you call `initializeApp` before using other Firebase services.
-    FCMactivce(message);
-    //key값은 서버에서 보내줌
+  Future<String> getCurrentAppName() async {
+    final prefs = await NativeSharedPreferences.getInstance();
+    return prefs.getString('currentAppName') ?? 'Unknown';
+  }
+
+  Future<int> getAppUsageTime() async {
+    final prefs = await NativeSharedPreferences.getInstance();
+    return prefs.getInt('appUsageTime') ?? 0;
+  }
+
+  Future<List<Map<String, dynamic>>> getUsageStats() async {
+    final prefs = await NativeSharedPreferences.getInstance();
+    String usageStatsString = prefs.getString('usageStats') ?? '[]';
+    List<dynamic> usageStatsList = jsonDecode(usageStatsString);
+    return usageStatsList.cast<Map<String, dynamic>>();
   }
 
   //ChatGPT API사용
@@ -267,26 +281,23 @@ class ServerDataListener {
     String time = formatter.format(now);
     print("Handling a background message: ${message.data}");
     var state = message.data["isRecord"];
-    var duration = const Duration(milliseconds: 500);
-//--------------------------------------------------------------------------
+    var duration = const Duration(milliseconds: 1500);
+
     if (state == "update") {
-      print("FCM update");
-      sleep(duration);
-      print('Handling a background message: ${message.messageId}');
+      await Future.delayed(duration); // 1.5초 지연
 
+      final currentApp = await getCurrentApp();
+      final currentAppName = await getCurrentAppName();
+      final usageTimeString = await getAppUsageTime();
+      final usageStatsString = await getUsageStats();
 
-      // SharedPreferences에서 데이터 읽기
-      final currentApp = await UsageAppService().getCurrentApp();
-      final usageTimeString = await UsageAppService().getAppUsageTime();
-      final usageStatsString = await UsageAppService().getUsageStats();
-
-
-      // 읽어온 데이터 사용 예시
       print('=============flutter shared preference==============');
       print('Current App: $currentApp');
+      print('Current App Name: $currentAppName');
       print('Usage Time: $usageTimeString');
       print('Usage Stats: $usageStatsString');
       print('====================================================');
+
 
       if (true) {
         return;
