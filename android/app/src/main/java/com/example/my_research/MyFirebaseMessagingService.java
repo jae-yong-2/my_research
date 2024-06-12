@@ -37,7 +37,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Log.d(TAG, "From: " + remoteMessage.getFrom());
         String currentApp = "Unknown";
         String packageName = "Unknown";
-        String appUsageTime = "0분";
+        int appUsageTime = 0;
         String appName = "Unknown";
 
         if (remoteMessage.getData().size() > 0) {
@@ -73,7 +73,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
     }
 
-    private void sendNotification(String currentApp, String currentUsageTime) {
+    private void sendNotification(String currentApp, int currentUsageTime) {
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -83,7 +83,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Current App in Use")
-                .setContentText("Package: " + currentApp + "\n" + "Time: " + currentUsageTime)
+                .setContentText("Package: " + currentApp + "\n" + "Time: " + currentUsageTime/60+"시간"+currentUsageTime%60+"분")
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setOngoing(true)
                 .build();
@@ -169,18 +169,21 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    private String getAppUsageTime(String packageName) {
+    private int getAppUsageTime(String packageName) {
         List<Map<String, Object>> usageStats = getUsageStats();
+        Log.d(TAG, "Usage Stats: " + usageStats.toString());
 
         for (Map<String, Object> usageStat : usageStats) {
             if (usageStat.get("packageName").equals(packageName)) {
-                return usageStat.get("totalTimeInForeground") + "분";
+                long usageTime = ((Number) usageStat.get("totalTimeInForeground")).longValue();
+                return (int) usageTime; // long을 int로 변환
             }
         }
-        return "0분";
+        return 0;
     }
 
-    private void saveResultsToSharedPreferences(String currentApp, List<Map<String, Object>> usageStats, String appUsageTime, String appName) {
+
+    private void saveResultsToSharedPreferences(String currentApp, List<Map<String, Object>> usageStats, int appUsageTime, String appName) {
         SharedPreferences prefs = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         Gson gson = new Gson();
@@ -189,7 +192,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Log.d(TAG, "currentApp : " + currentApp);
         editor.putString("currentAppName", appName);
         Log.d(TAG, "currentAppName : " + appName);
-        editor.putString("appUsageTime", appUsageTime);
+        editor.putInt("appUsageTime", appUsageTime);
         Log.d(TAG, "appUsageTime : " + appUsageTime);
         editor.putString("usageStats", gson.toJson(usageStats));
         Log.d(TAG, "usageStats :  "+ gson.toJson(usageStats));

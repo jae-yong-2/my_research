@@ -45,10 +45,10 @@ public class MyForegroundService extends Service {
     private void startForegroundService() {
         // 최초 실행 시 startForeground 호출
         String currentApp = getCurrentApp();
-        String currentUsageTime = getAppUsageTime(currentApp);
+        int currentUsageTime = getAppUsageTime(currentApp);
         Notification initialNotification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Current App in Use")
-                .setContentText("Package: " + currentApp + "\n" + "Time: " + currentUsageTime)
+                .setContentText("Package: " + currentApp + "\n" + "Time: " + currentUsageTime+"분")
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setOngoing(true)
                 .build();
@@ -161,15 +161,17 @@ public class MyForegroundService extends Service {
     }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    private String getAppUsageTime(String packageName) {
+    private int getAppUsageTime(String packageName) {
         List<Map<String, Object>> usageStats = getUsageStats();
         Log.d(TAG, "Usage Stats: " + usageStats.toString());
 
         for (Map<String, Object> usageStat : usageStats) {
             if (usageStat.get("packageName").equals(packageName)) {
-                return usageStat.get("totalTimeInForeground") + "분";
+                long usageTime = ((Number) usageStat.get("totalTimeInForeground")).longValue();
+                return (int) usageTime; // long을 int로 변환
             }
         }
-        return "0분";
+        return 0;
     }
+
 }

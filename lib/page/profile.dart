@@ -21,7 +21,6 @@ class _ProfileState extends State<Profile> {
   List<Map<String, dynamic>> _top10Apps = [];
   List<Map<String, dynamic>> _selectedApps = [];
   Duration? _selectedDuration;
-  Map<String, int> _appUsageTimes = {};
   String _currentAppName = "";
   int _currentAppUsageTime = 0;
 
@@ -47,6 +46,7 @@ class _ProfileState extends State<Profile> {
         _selectedApps = (json.decode(selectedAppsJson) as List<dynamic>)
             .map((app) => Map<String, dynamic>.from(app))
             .toList();
+        _removeDuplicateApps();
       });
     }
   }
@@ -96,17 +96,18 @@ class _ProfileState extends State<Profile> {
 
   void _toggleAppSelection(Map<String, dynamic> app) {
     setState(() {
-      final existingApp = _selectedApps.firstWhere(
-            (selectedApp) => selectedApp['packageName'] == app['packageName'],
-        orElse: () => {},
-      );
-
-      if (existingApp.isNotEmpty) {
-        _selectedApps.remove(existingApp);
-      } else {
-        _selectedApps.add(app);
-      }
+      _selectedApps.removeWhere((selectedApp) => selectedApp['appName'] == app['appName']); // 중복된 앱 이름 제거
+      _selectedApps.add(app);
+      _removeDuplicateApps();
     });
+  }
+
+  void _removeDuplicateApps() {
+    final uniqueApps = <String, Map<String, dynamic>>{};
+    for (var app in _selectedApps) {
+      uniqueApps[app['appName']] = app;
+    }
+    _selectedApps = uniqueApps.values.toList();
   }
 
   Future<void> _selectDuration(BuildContext context) async {
@@ -182,15 +183,13 @@ class _ProfileState extends State<Profile> {
                 itemCount: _top10Apps.length,
                 itemBuilder: (context, index) {
                   final app = _top10Apps[index];
-                  final totalTimeInForeground = int.tryParse(app['totalTimeInForeground'].toString()) ?? 0;
                   final appName = app['appName'] ?? 'Unknown';
                   final packageName = app['packageName'] ?? 'Unknown';
                   final isSelected = _selectedApps.any((selectedApp) => selectedApp['packageName'] == packageName);
 
                   return ListTile(
                     title: Text(appName),
-                    subtitle: Text(
-                        'Usage: ${(totalTimeInForeground / 1000 / 60).toStringAsFixed(1)} mins'),
+                    subtitle: Text('Package: $packageName'),
                     trailing: Checkbox(
                       value: isSelected,
                       onChanged: (bool? value) {
@@ -208,11 +207,11 @@ class _ProfileState extends State<Profile> {
                 itemCount: _selectedApps.length,
                 itemBuilder: (context, index) {
                   final app = _selectedApps[index];
+                  final appName = app['appName'];
                   final packageName = app['packageName'];
-                  final usageTime = _appUsageTimes[packageName] ?? 0;
                   return ListTile(
-                    title: Text(app['appName']),
-                    subtitle: Text('Usage Time: ${(usageTime / 1000 / 60).toStringAsFixed(1)} mins'),
+                    title: Text(appName),
+                    subtitle: Text('Package: $packageName'),
                   );
                 },
               ),

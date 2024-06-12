@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -97,9 +98,9 @@ class UsageAppService {
     final prefs = await NativeSharedPreferences.getInstance();
     return prefs.getString('currentAppName') ?? 'Unknown';
   }
-  Future<String> getAppUsageTime() async {
+  Future<int> getAppUsageTime() async {
     final prefs = await NativeSharedPreferences.getInstance();
-    return prefs.getString('appUsageTime') ?? '0분';
+    return prefs.getInt('appUsageTime') ?? 0;
   }
 
   Future<List<Map<String, dynamic>>> getUsageStats() async {

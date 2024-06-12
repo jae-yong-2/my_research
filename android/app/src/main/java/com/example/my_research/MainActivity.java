@@ -23,8 +23,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.engine.FlutterEngine;
@@ -145,7 +147,6 @@ public class MainActivity extends FlutterActivity {
 
         return usageStats;
     }
-
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private List<Map<String, Object>> getTop10Apps() {
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
@@ -157,11 +158,17 @@ public class MainActivity extends FlutterActivity {
         List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime);
         List<Map<String, Object>> usageStats = new ArrayList<>();
         PackageManager pm = getPackageManager();
+        Set<String> seenPackages = new HashSet<>();
 
         for (UsageStats usageStat : stats) {
             if (usageStat.getTotalTimeInForeground() > 0) {
-                Map<String, Object> usageMap = new HashMap<>();
                 String packageName = usageStat.getPackageName();
+                if (seenPackages.contains(packageName)) {
+                    continue; // Skip duplicates
+                }
+                seenPackages.add(packageName);
+
+                Map<String, Object> usageMap = new HashMap<>();
                 usageMap.put("packageName", packageName);
                 usageMap.put("totalTimeInForeground", usageStat.getTotalTimeInForeground() / 1000 / 60); // Convert milliseconds to minutes
                 try {
@@ -185,6 +192,7 @@ public class MainActivity extends FlutterActivity {
 
         return usageStats.subList(0, Math.min(10, usageStats.size()));
     }
+
 
     private String getCurrentApp() {
         ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
