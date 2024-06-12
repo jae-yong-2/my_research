@@ -163,19 +163,6 @@ class _ProfileState extends State<Profile> {
             ),
             if (_selectedDuration != null)
               Text('선택된 시간: ${_selectedDuration!.inHours}시간 ${_selectedDuration!.inMinutes % 60}분'),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _saveSelectedAppsAndDuration,
-              child: Text('저장하기'),
-            ),
-            ElevatedButton(
-              onPressed: _currentUsageTest,
-              child: Text('현재 앱 테스트'),
-            ),
-            SizedBox(height: 20),
-            Text('Current App: $_currentAppName'),
-            Text('Usage Time: ${(_currentAppUsageTime / 1000 / 60).toStringAsFixed(1)} mins'),
-            SizedBox(height: 20),
             Expanded(
               child: _top10Apps.isEmpty
                   ? Center(child: CircularProgressIndicator())
@@ -200,7 +187,6 @@ class _ProfileState extends State<Profile> {
                 },
               ),
             ),
-            SizedBox(height: 20),
             Text('Selected Apps:'),
             Expanded(
               child: ListView.builder(
@@ -214,6 +200,20 @@ class _ProfileState extends State<Profile> {
                     subtitle: Text('Package: $packageName'),
                   );
                 },
+              ),
+            ),
+            ElevatedButton(
+              onPressed: _saveSelectedAppsAndDuration,
+              child: Text('저장하기'),
+            ),
+            SizedBox(
+              width: 200,
+              child: ElevatedButton(
+                onPressed: _currentUsageTest,
+                child: Text(
+                  '현재 앱 테스트',
+                  style: TextStyle(fontSize: 12),
+                ),
               ),
             ),
           ],
