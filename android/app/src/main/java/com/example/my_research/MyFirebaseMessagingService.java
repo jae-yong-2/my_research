@@ -1,5 +1,7 @@
 package com.example.my_research;
 
+import android.app.PendingIntent;
+
 import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -51,6 +53,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         String appName = "Unknown";
 
         // Check if the app is running
+
         if (remoteMessage.getData().size() > 0) {
             Log.d(TAG, "Message data payload: " + remoteMessage.getData());
 
@@ -82,30 +85,15 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             }
         }
         if (remoteMessage.getData().size() > 0) {
-            Log.d(TAG, "Data Message Body: " + remoteMessage.getData().get("body"));
-            sendNotification(appName, appUsageTime);
+
+                sendNotification(appName, appUsageTime);
         } else {
             Log.d(TAG, "No notification payload and no data payload");
         }
 
     }
     //앱 백그라운드에서 완전히 종료되면 강제 실행
-    private boolean isAppRunning() {
-        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
-        if (appProcesses != null) {
-            final String packageName = getPackageName();
-            for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
-                if (appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
-                        && appProcess.processName.equals(packageName)) {
-                    System.out.println("시스템 작동 중");
-                    return true;
-                }
-            }
-        }
-        System.out.println("시스템 미작동 중");
-        return false;
-    }
+
 
 
     private void sendNotification(String currentApp, int currentUsageTime) {
@@ -116,14 +104,46 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Firebase Message Channel", NotificationManager.IMPORTANCE_HIGH);
             notificationManager.createNotificationChannel(channel);
         }
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Current App in Use")
-                .setContentText("Package: " + currentApp + "\n" + "Time: " + currentUsageTime/60+"시간"+currentUsageTime%60+"분")
+                .setContentText("Package: " + currentApp + "\n" + "Time: " + currentUsageTime/60 + "시간 " + currentUsageTime%60 + "분")
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setOngoing(true)
+                .setContentIntent(pendingIntent) // 알림 클릭 시 실행될 인텐트 설정
+                .setAutoCancel(true) // 알림 클릭 시 자동으로 삭제되도록 설정
                 .build();
+
         // 알림을 업데이트합니다.
         notificationManager.notify(1, notification);
+    }
+
+
+
+    private void sendOpenNotification() {
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Firebase Message Channel", NotificationManager.IMPORTANCE_HIGH);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Open App")
+                .setContentText("Tap to open the app.")
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .build();
+
+        int notificationId = (int) System.currentTimeMillis();
+        notificationManager.notify(notificationId, notification);
     }
 
     private String logCurrentAppName(String currentAppPackageName) {
@@ -206,7 +226,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private int getAppUsageTime(String packageName) {
         List<Map<String, Object>> usageStats = getUsageStats();
-        Log.d(TAG, "Usage Stats: " + usageStats.toString());
+//        Log.d(TAG, "Usage Stats: " + usageStats.toString());
 
         for (Map<String, Object> usageStat : usageStats) {
             if (usageStat.get("packageName").equals(packageName)) {
@@ -222,21 +242,21 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         SharedPreferences prefs = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         Gson gson = new Gson();
-        Log.d(TAG, "----------------------------------------------------------");
         editor.putString("currentApp", currentApp);
         editor.putString("currentAppName", appName);
         editor.putInt("appUsageTime", appUsageTime);
         editor.putString("usageStats", gson.toJson(usageStats));
 
         editor.apply();
-        Log.d(TAG, "--------------------save android data---------------------");
 
+        Log.d(TAG, "----------------------------------------------------------");
         // 추가된 확인 로그
         Log.d(TAG, "Saved currentApp: " + prefs.getString("currentApp", "N/A"));
         Log.d(TAG, "Saved currentAppName: " + prefs.getString("currentAppName", "N/A"));
         Log.d(TAG, "Saved appUsageTime: " + prefs.getInt("appUsageTime", -1));
         Log.d(TAG, "Saved usageStats: " + prefs.getString("usageStats", "N/A"));
 
+        Log.d(TAG, "--------------------save android data---------------------");
     }
     private void sendToFlutter(String currentApp, List<Map<String, Object>> usageStats, int appUsageTime, String appName) {
         Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -249,8 +269,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 data.put("currentAppName", appName);
                 data.put("appUsageTime", appUsageTime);
                 data.put("usageStats", usageStats);
+                Log.d(TAG, "-----------------------------------------");
+                Log.d(TAG, "Sending : "+ data);
                 methodChannel.invokeMethod("usageStats", data);
             }
         });
     }
+
 }

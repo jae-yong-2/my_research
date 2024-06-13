@@ -256,6 +256,7 @@ private static final String FOREGROUND_SERVICE_CHANNEL = "com.example.app/foregr
     }
 
     private void startForegroundService() {
+
         Intent serviceIntent = new Intent(this, MyForegroundService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(serviceIntent);

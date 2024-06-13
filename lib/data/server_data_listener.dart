@@ -45,6 +45,7 @@ class ServerDataListener {
     return usageStatsList.cast<Map<String, dynamic>>();
   }
 
+
   //ChatGPT API사용
   final _openAI = OpenAI.instance.build(
     token: API_KEY,
@@ -281,9 +282,23 @@ class ServerDataListener {
     String time = formatter.format(now);
     print("Handling a background message: ${message.data}");
     var state = message.data["isRecord"];
-    var duration = const Duration(milliseconds: 1500);
-
+    var duration = const Duration(milliseconds: 1000);
+//--------------------------------------------------------------------------
     if (state == "update") {
+      print("FCM update");
+      await Future.delayed(duration); // 1.5초 지연
+
+        // List<AppUsageInfo> infoList =
+        // await AppUsage().getAppUsage(startDate, endDate);
+        //
+        // print("---------packge data---------");
+        // for (var info in infoList) {
+        //   print(info.toString());
+        // }
+        //   print("---------packge data---------");
+        // } on AppUsageException catch (exception) {
+        //   print(exception);
+        // }
 
       if (true) {
         return;

@@ -121,8 +121,8 @@ void main() async{
   platform.setMethodCallHandler((MethodCall call) async {
     if (call.method == "usageStats") {
       final Map<String, dynamic> data = Map<String, dynamic>.from(call.arguments);
-      print(data);
-      print("------------------------receive data--------------------------------");
+      print("-------------------------------------");
+      print("receive data : $data");
     }
   });
   runApp(MyApp());

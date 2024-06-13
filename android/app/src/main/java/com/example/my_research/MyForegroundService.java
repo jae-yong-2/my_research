@@ -23,6 +23,8 @@ import android.app.usage.UsageStats;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
+
+import android.app.PendingIntent;
 import java.util.Calendar;
 
 // FriendlyNameMapper import 추가
@@ -73,6 +75,7 @@ public class MyForegroundService extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
+        sendSwipeNotification();
         Intent broadcastIntent = new Intent(this, ServiceRestartReceiver.class);
         sendBroadcast(broadcastIntent);
     }
@@ -174,4 +177,29 @@ public class MyForegroundService extends Service {
         return 0;
     }
 
+    private void sendSwipeNotification() {
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Swipe Notification Channel", NotificationManager.IMPORTANCE_HIGH);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("App Closed")
+                .setContentText("The app was swiped away from the Overview screen.")
+                .setSmallIcon(R.drawable.gpt) // 적절한 아이콘 리소스 사용
+                .setPriority(NotificationCompat.PRIORITY_HIGH) // 높은 우선순위 설정
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .build();
+
+        // 각 알림에 고유한 ID 사용
+        int notificationId = (int) System.currentTimeMillis();
+        notificationManager.notify(notificationId, notification);
+    }
 }
