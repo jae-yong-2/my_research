@@ -24,6 +24,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
+import android.app.AlarmManager;
+
 import android.app.PendingIntent;
 import java.util.Calendar;
 
@@ -76,6 +78,7 @@ public class MyForegroundService extends Service {
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
         sendSwipeNotification();
+        startRepeatingNotification();
         Intent broadcastIntent = new Intent(this, ServiceRestartReceiver.class);
         sendBroadcast(broadcastIntent);
     }
@@ -176,8 +179,7 @@ public class MyForegroundService extends Service {
         }
         return 0;
     }
-
-    private void sendSwipeNotification() {
+    public void sendSwipeNotification() {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -201,5 +203,24 @@ public class MyForegroundService extends Service {
         // 각 알림에 고유한 ID 사용
         int notificationId = (int) System.currentTimeMillis();
         notificationManager.notify(notificationId, notification);
+    }
+
+    private void startRepeatingNotification() {
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, NotificationReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        long interval = 60000; // 1분 간격
+        long triggerAtMillis = System.currentTimeMillis() + interval;
+
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, triggerAtMillis, interval, pendingIntent);
+    }
+
+    public static void cancelRepeatingNotification(Context context) {
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(context, NotificationReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        alarmManager.cancel(pendingIntent);
     }
 }
