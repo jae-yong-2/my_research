@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ffi';
 
+import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -58,7 +59,7 @@ class UsageAppService {
       return 0;
     }
   }
-  Future<void> currentUsageTest() async {
+  Future<void> currentUsageTest(String packageName, int usageAllTime, int timer) async {
     final String? selectedDurationJson = await DataStore()
         .getSharedPreferencesString(KeyValue().SELECTEDDURATION);
     if (selectedDurationJson != null) {
@@ -67,23 +68,22 @@ class UsageAppService {
       var selectedDuration = Duration(
           hours: selectedDurationMap['hours'],
           minutes: selectedDurationMap['minutes']);
-
-      final currentApp = await getFlutterCurrentApp();
-      final usageTime = await getFlutterAppUsageTime(currentApp);
-
-      final int savedHours = selectedDuration?.inHours ?? 0;
       final int savedMinutes = selectedDuration?.inMinutes ?? 0;
-      final int savedDurationInMinutes = savedHours * 60 + savedMinutes;
-      final int usageTimeInMinutes = (usageTime / 1000 / 60).toInt();
+      final int savedDurationInMinutes = savedMinutes;
+      print("----------------------------------");
+      print(savedMinutes);
+      print(usageAllTime);
+      print(savedDurationInMinutes);
+      print("----------------------------------");
 
-      if (usageTimeInMinutes > savedDurationInMinutes) {
+      if (timer > savedDurationInMinutes) {
         Fluttertoast.showToast(
-          msg: "현재 앱 사용시간이 설정된 시간을 초과했습니다!",
+          msg: "현재 앱 사용시간이 설정된 시간을 초과했습니다! $timer $savedDurationInMinutes",
           gravity: ToastGravity.CENTER,
         );
       } else {
         Fluttertoast.showToast(
-          msg: "현재 앱 사용시간이 설정된 시간을 초과하지 않았습니다.",
+          msg: "현재 앱 사용시간이 설정된 시간을 초과하지 않았습니다. $timer $savedDurationInMinutes",
           gravity: ToastGravity.CENTER,
         );
       }

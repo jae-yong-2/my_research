@@ -21,8 +21,8 @@ import '../module/healthKit.dart';
 import '../module/local_notification.dart';
 import '../package/const_key.dart';
 import '../page/chat/chat_message.dart';
-
 class ServerDataListener {
+
   Future<String> getCurrentApp() async {
     final prefs = await NativeSharedPreferences.getInstance();
     return prefs.getString('currentApp') ?? 'Unknown';
@@ -261,16 +261,47 @@ class ServerDataListener {
   }
 
   //FCM을 통해서 받은 데이터를 휴대폰에서 처리하는 함수.
-  Future<void> FCMactivce(RemoteMessage message) async {
+  Future<void> FCMactivce(Map<String, dynamic> data) async {
     // 네이티브 코드 호출
+    print("Flutter FCM");
+    String? oldCurrentApp = await DataStore().getSharedPreferencesString(KeyValue().CURRENTAPP);
+    String? oldCurrentAppName = await DataStore().getSharedPreferencesString(KeyValue().CURRENTAPPNAME);
+    int? oldAppUsageTime = await DataStore().getSharedPreferencesInt(KeyValue().APPUSAGETIME);
+    int? timer;
 
+    String currentApp = data['currentApp'];
+    await DataStore().saveSharedPreferencesString(KeyValue().CURRENTAPP, currentApp);
+    String currentAppName = data['currentAppName'];
+    await DataStore().saveSharedPreferencesString(KeyValue().CURRENTAPPNAME, currentAppName);
+    int appUsageTime = data['appUsageTime'];
+    await DataStore().saveSharedPreferencesInt(KeyValue().APPUSAGETIME, appUsageTime);
+
+
+    if(oldCurrentApp == currentAppName){
+      timer = await DataStore().getSharedPreferencesInt(KeyValue().TIMER);
+      await DataStore().saveSharedPreferencesInt(KeyValue().TIMER, (timer!+1));
+      print("----------------------timer : $timer");
+    }else{
+      await DataStore().saveSharedPreferencesInt(KeyValue().TIMER, 0);
+    }
+
+    List<dynamic> usageStats = data['usageStats'];
+
+    print("--------------received data--------------");
+    print("Current App: $currentApp");
+    print("Current App Name: $currentAppName");
+    print("App Usage Time: $appUsageTime minutes");
+
+    for (var stat in usageStats) {
+      print("Package Name: ${stat['packageName']}, Total Time in Foreground: ${stat['totalTimeInForeground']} m");
+    }
+    print("----------------------------------------");
     // final stepCounterService = PedometerAPI();
     // stepCounterService.refreshSteps();
     // var step = await DataStore().getSharedPreferencesInt(
     //     Category().TOTALSTEP_KEY);
     // HealthKit healthHelper = HealthKit();
     // int step = await healthHelper.getSteps();
-    print("FCM");
     // var step=0;
     String? gptContent = "key가 없거나 오류가 났습니다.";
     String? agentContent = "key가 없거나 오류가 났습니다.";
@@ -280,13 +311,12 @@ class ServerDataListener {
         .millisecondsSinceEpoch;
     var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
     String time = formatter.format(now);
-    print("Handling a background message: ${message.data}");
-    var state = message.data["isRecord"];
+    // print("Handling a background message: ${message.data}");
+    // var state = message.data["isRecord"];
     var duration = const Duration(milliseconds: 1000);
+    UsageAppService().currentUsageTest(currentAppName,appUsageTime,timer!);
 //--------------------------------------------------------------------------
-    if (state == "update") {
-      print("FCM update");
-      await Future.delayed(duration); // 1.5초 지연
+//     if (state == "update") {
 
         // List<AppUsageInfo> infoList =
         // await AppUsage().getAppUsage(startDate, endDate);
@@ -300,56 +330,56 @@ class ServerDataListener {
         //   print(exception);
         // }
 
-      if (true) {
-        return;
-        sendAlarm(
-            message.data["title"], message.data["content"], time, millitime,
-            "2",KeyValue().AGENT);
-        //GPT가 생성한 내용을 서버에 전달
-        makeGPTContent(
-            gptContent, message.data["content"], message.data["isRecord"]);
-
-        Future.delayed(Duration(seconds: 10), () async {
-          var millitime = DateTime
-              .now()
-              .millisecondsSinceEpoch;
-          var now = DateTime.now();
-          var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-          String time = formatter.format(now);
-          print("User replied: $agentContent");
-          String? gptContent = await ServerDataListener().sendGPT(
-              message.data["content"], message.data["isRecord"]);
-          ServerDataListener().sendAlarm(
-              "Agent가 메세지를 보냈습니다.", gptContent!, time, millitime, "3",KeyValue().GPT);
-        });
-      }else{
-        // recordStepHistory(time, step);
-
-        String text = await makeAgentContent(agentContent, message.data["content"], "makeIamWalking",time);
-
-        sendAlarm(
-            "Agent에게 답장했습니다.", text, time, millitime,
-            "2",KeyValue().AGENT);
-        //GPT가 생성한 내용을 서버에 전달
-        makeGPTContent(
-            gptContent, text, message.data["isRecord"]);
-
-        Future.delayed(Duration(seconds: 10), () async {
-          var millitime = DateTime
-              .now()
-              .millisecondsSinceEpoch;
-          var now = DateTime.now();
-          var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-          String time = formatter.format(now);
-          print("User replied: $agentContent");
-          String? gptContent = await ServerDataListener().sendGPT(
-              message.data["content"], message.data["isRecord"]);
-          ServerDataListener().sendAlarm(
-              "Agent가 메세지를 보냈습니다", gptContent!, time, millitime, "3",KeyValue().GPT);
-        });
-
-      }
-    }
+    //   if (true) {
+    //     return;
+    //     sendAlarm(
+    //         message.data["title"], message.data["content"], time, millitime,
+    //         "2",KeyValue().AGENT);
+    //     //GPT가 생성한 내용을 서버에 전달
+    //     makeGPTContent(
+    //         gptContent, message.data["content"], message.data["isRecord"]);
+    //
+    //     Future.delayed(Duration(seconds: 10), () async {
+    //       var millitime = DateTime
+    //           .now()
+    //           .millisecondsSinceEpoch;
+    //       var now = DateTime.now();
+    //       var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    //       String time = formatter.format(now);
+    //       print("User replied: $agentContent");
+    //       String? gptContent = await ServerDataListener().sendGPT(
+    //           message.data["content"], message.data["isRecord"]);
+    //       ServerDataListener().sendAlarm(
+    //           "Agent가 메세지를 보냈습니다.", gptContent!, time, millitime, "3",KeyValue().GPT);
+    //     });
+    //   }else{
+    //     // recordStepHistory(time, step);
+    //
+    //     String text = await makeAgentContent(agentContent, message.data["content"], "makeIamWalking",time);
+    //
+    //     sendAlarm(
+    //         "Agent에게 답장했습니다.", text, time, millitime,
+    //         "2",KeyValue().AGENT);
+    //     //GPT가 생성한 내용을 서버에 전달
+    //     makeGPTContent(
+    //         gptContent, text, message.data["isRecord"]);
+    //
+    //     Future.delayed(Duration(seconds: 10), () async {
+    //       var millitime = DateTime
+    //           .now()
+    //           .millisecondsSinceEpoch;
+    //       var now = DateTime.now();
+    //       var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    //       String time = formatter.format(now);
+    //       print("User replied: $agentContent");
+    //       String? gptContent = await ServerDataListener().sendGPT(
+    //           message.data["content"], message.data["isRecord"]);
+    //       ServerDataListener().sendAlarm(
+    //           "Agent가 메세지를 보냈습니다", gptContent!, time, millitime, "3",KeyValue().GPT);
+    //     });
+    //
+    //   }
+    // }
 
 
 //--------------------------------------------------------------------------

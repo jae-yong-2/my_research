@@ -25,11 +25,13 @@ class KeyValue{
   String CURRENT_BODY_ISSUE = "cureent_body_issue";
   String HABIT_STATE= "habitStatus";
   String REPLY='reply';
-  String newStep = "newStep";
-  String oldStep = "oldStep";
+  String CURRENTAPP = "current_app";
+  String CURRENTAPPNAME = "current_app_name";
   String ISFEEDBACK = "isfeedbackenable";
   String SELECTEDAPP = "selectedApps";
+  String APPUSAGETIME = "appusagetime";
   String SELECTEDDURATION = "selectedduration";
+  String TIMER = "timer";
 
   String replyIntent1="바로 일어나서 편의점 다녀오면서 n분정도 산책 갔다올게요";
   String replyIntent2="하던 일만 마저 끝내고 n분 뒤쯤에 편의점으로 n분 정도 산책 갔다올게요";

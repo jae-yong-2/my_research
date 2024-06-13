@@ -72,8 +72,8 @@ class _ProfileState extends State<Profile> {
 
     final String selectedAppsJson = json.encode(_selectedApps);
     final String selectedDurationJson = json.encode({
-      'hours': _selectedDuration!.inHours,
-      'minutes': _selectedDuration!.inMinutes % 60,
+      'hours': (_selectedDuration!.inHours),
+      'minutes': (_selectedDuration!.inMinutes) % 60,
     });
 
     await _dataStore.saveSharedPreferencesString(KeyValue().SELECTEDAPP, selectedAppsJson);
@@ -85,6 +85,8 @@ class _ProfileState extends State<Profile> {
     };
 
     _dataStore.saveData(KeyValue().ID, KeyValue().SELECTEDAPP, firebaseData).then((_) {
+      Fluttertoast.showToast(msg: selectedDurationJson, gravity: ToastGravity.CENTER);
+
       Fluttertoast.showToast(msg: "저장되었습니다.", gravity: ToastGravity.CENTER);
     }).catchError((error) {
       Fluttertoast.showToast(msg: "저장 실패: $error", gravity: ToastGravity.CENTER);
@@ -123,32 +125,32 @@ class _ProfileState extends State<Profile> {
     }
   }
 
-  Future<void> _currentUsageTest() async {
-    final currentApp = await _usageAppService.getFlutterCurrentApp();
-    final usageTime = await _usageAppService.getFlutterAppUsageTime(currentApp);
-
-    setState(() {
-      _currentAppName = currentApp;
-      _currentAppUsageTime = usageTime;
-    });
-
-    final int savedHours = _selectedDuration?.inHours ?? 0;
-    final int savedMinutes = _selectedDuration?.inMinutes ?? 0;
-    final int savedDurationInMinutes = savedHours * 60 + savedMinutes;
-    final int usageTimeInMinutes = (usageTime / 1000 / 60).toInt();
-
-    if (usageTimeInMinutes > savedDurationInMinutes) {
-      Fluttertoast.showToast(
-        msg: "현재 앱 사용시간이 설정된 시간을 초과했습니다!",
-        gravity: ToastGravity.CENTER,
-      );
-    } else {
-      Fluttertoast.showToast(
-        msg: "현재 앱 사용시간이 설정된 시간을 초과하지 않았습니다.",
-        gravity: ToastGravity.CENTER,
-      );
-    }
-  }
+  // Future<void> _currentUsageTest() async {
+  //   final currentApp = await _usageAppService.getFlutterCurrentApp();
+  //   final usageTime = await _usageAppService.getFlutterAppUsageTime(currentApp);
+  //
+  //   setState(() {
+  //     _currentAppName = currentApp;
+  //     _currentAppUsageTime = usageTime;
+  //   });
+  //
+  //   final int savedHours = _selectedDuration?.inHours ?? 0;
+  //   final int savedMinutes = _selectedDuration?.inMinutes ?? 0;
+  //   final int savedDurationInMinutes = savedHours * 60 + savedMinutes;
+  //   final int usageTimeInMinutes = (usageTime / 1000 / 60).toInt();
+  //
+  //   if (usageTimeInMinutes > savedDurationInMinutes) {
+  //     Fluttertoast.showToast(
+  //       msg: "현재 앱 사용시간이 설정된 시간을 초과했습니다!",
+  //       gravity: ToastGravity.CENTER,
+  //     );
+  //   } else {
+  //     Fluttertoast.showToast(
+  //       msg: "현재 앱 사용시간이 설정된 시간을 초과하지 않았습니다.",
+  //       gravity: ToastGravity.CENTER,
+  //     );
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -206,16 +208,16 @@ class _ProfileState extends State<Profile> {
               onPressed: _saveSelectedAppsAndDuration,
               child: Text('저장하기'),
             ),
-            SizedBox(
-              width: 200,
-              child: ElevatedButton(
-                onPressed: _currentUsageTest,
-                child: Text(
-                  '현재 앱 테스트',
-                  style: TextStyle(fontSize: 12),
-                ),
-              ),
-            ),
+            // SizedBox(
+            //   width: 200,
+            //   child: ElevatedButton(
+            //     onPressed: _currentUsageTest,
+            //     child: Text(
+            //       '현재 앱 테스트',
+            //       style: TextStyle(fontSize: 12),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),

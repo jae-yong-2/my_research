@@ -78,7 +78,6 @@ public class MyForegroundService extends Service {
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
         sendSwipeNotification();
-        startRepeatingNotification();
         Intent broadcastIntent = new Intent(this, ServiceRestartReceiver.class);
         sendBroadcast(broadcastIntent);
     }
@@ -192,29 +191,19 @@ public class MyForegroundService extends Service {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("App Closed")
-                .setContentText("The app was swiped away from the Overview screen.")
-                .setSmallIcon(R.drawable.gpt) // 적절한 아이콘 리소스 사용
+                .setContentTitle("앱이 종료되었습니다.")
+                .setContentText("알람을 눌러 앱을 실행시켜주시기 바랍니다.")
+                .setSmallIcon(R.drawable.warning) // 적절한 아이콘 리소스 사용
                 .setPriority(NotificationCompat.PRIORITY_HIGH) // 높은 우선순위 설정
                 .setContentIntent(pendingIntent)
-                .setAutoCancel(true)
+                .setAutoCancel(false)
+                .setOngoing(true) // 영구 알림 설정
                 .build();
 
-        // 각 알림에 고유한 ID 사용
-        int notificationId = (int) System.currentTimeMillis();
-        notificationManager.notify(notificationId, notification);
+// 각 알림에 고유한 ID 사용
+        notificationManager.notify(0, notification);
     }
 
-    private void startRepeatingNotification() {
-        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(this, NotificationReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-
-        long interval = 60000; // 1분 간격
-        long triggerAtMillis = System.currentTimeMillis() + interval;
-
-        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, triggerAtMillis, interval, pendingIntent);
-    }
 
     public static void cancelRepeatingNotification(Context context) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);

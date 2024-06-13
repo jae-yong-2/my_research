@@ -179,13 +179,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     Map<String, Object> usageMap = new HashMap<>();
                     usageMap.put("packageName", packageName);
                     usageMap.put("totalTimeInForeground", totalTimeInForeground);
-                    try {
-                        ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
-                        String appName = pm.getApplicationLabel(appInfo).toString();
-                        usageMap.put("appName", appName);
-                    } catch (PackageManager.NameNotFoundException e) {
-                        usageMap.put("appName", FriendlyNameMapper.getFriendlyName(packageName));
-                    }
+//                    try {
+//                        ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
+//                        String appName = pm.getApplicationLabel(appInfo).toString();
+//                        usageMap.put("appName", appName);
+//                    } catch (PackageManager.NameNotFoundException e) {
+//                        usageMap.put("appName", FriendlyNameMapper.getFriendlyName(packageName));
+//                    }
                     usageStatsMap.put(packageName, usageMap);
                 }
             }
@@ -271,7 +271,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 data.put("usageStats", usageStats);
                 Log.d(TAG, "-----------------------------------------");
                 Log.d(TAG, "Sending : "+ data);
-                methodChannel.invokeMethod("usageStats", data);
+                String jsonData = new Gson().toJson(data);
+
+                methodChannel.invokeMethod("usageStats", jsonData);
             }
         });
     }

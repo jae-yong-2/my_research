@@ -13,7 +13,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 import android.os.Bundle;
-
+import android.app.NotificationManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
@@ -252,11 +252,13 @@ private static final String FOREGROUND_SERVICE_CHANNEL = "com.example.app/foregr
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancel(0);
         startForegroundService();
     }
 
     private void startForegroundService() {
-
         Intent serviceIntent = new Intent(this, MyForegroundService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(serviceIntent);
