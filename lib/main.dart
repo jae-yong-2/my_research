@@ -27,6 +27,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // If you're going to use other Firebase services in the background, such as Firestore,
   // make sure you call `initializeApp` before using other Firebase services.
+
   ServerDataListener().FCMactivce(message);
 }
 
@@ -115,6 +116,15 @@ void main() async{
   await _requestPermission();
   await _saveInitialData();
   startForegroundService();
+  // MethodChannel을 설정합니다.
+  const platform = MethodChannel('com.example.my_research/fcm');
+  platform.setMethodCallHandler((MethodCall call) async {
+    if (call.method == "usageStats") {
+      final Map<String, dynamic> data = Map<String, dynamic>.from(call.arguments);
+      print(data);
+      print("------------------------receive data--------------------------------");
+    }
+  });
   runApp(MyApp());
 }
 

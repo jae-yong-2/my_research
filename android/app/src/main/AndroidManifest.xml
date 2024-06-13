@@ -84,6 +84,14 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <receiver android:name=".MyBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.example.my_research.START_ACTIVITY"/>
+            </intent-filter>
+        </receiver>
     </application>
     <!-- Check whether Health Connect is installed or not -->
     <queries>

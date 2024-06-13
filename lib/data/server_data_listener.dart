@@ -284,20 +284,6 @@ class ServerDataListener {
     var duration = const Duration(milliseconds: 1500);
 
     if (state == "update") {
-      await Future.delayed(duration); // 1.5초 지연
-
-      final currentApp = await getCurrentApp();
-      final currentAppName = await getCurrentAppName();
-      final usageTimeString = await getAppUsageTime();
-      final usageStatsString = await getUsageStats();
-
-      print('=============flutter shared preference==============');
-      print('Current App: $currentApp');
-      print('Current App Name: $currentAppName');
-      print('Usage Time: $usageTimeString');
-      print('Usage Stats: $usageStatsString');
-      print('====================================================');
-
 
       if (true) {
         return;

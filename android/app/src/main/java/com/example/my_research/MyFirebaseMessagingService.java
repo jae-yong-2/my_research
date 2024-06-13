@@ -1,10 +1,11 @@
 package com.example.my_research;
 
+import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import androidx.core.app.NotificationCompat;
-
+import android.content.Intent;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
@@ -27,10 +28,19 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import android.os.Handler;
+import android.os.Looper;
+
+
+import io.flutter.embedding.engine.FlutterEngineCache;
+import io.flutter.embedding.engine.FlutterEngine;
+import io.flutter.embedding.engine.dart.DartExecutor;
+import io.flutter.plugin.common.MethodChannel;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private static final String TAG = "MyFirebaseMsgService";
     private static final String CHANNEL_ID = "ForegroundServiceChannel";
+    private static final String CHANNEL = "com.example.my_research/fcm";
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
@@ -40,6 +50,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         int appUsageTime = 0;
         String appName = "Unknown";
 
+        // Check if the app is running
         if (remoteMessage.getData().size() > 0) {
             Log.d(TAG, "Message data payload: " + remoteMessage.getData());
 
@@ -57,7 +68,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     // Log.d(TAG, "App Usage Time for " + packageName + ": " + appUsageTime);
 
                     // 결과를 SharedPreferences에 저장
-                    saveResultsToSharedPreferences(currentApp, usageStats, appUsageTime, appName);
+//                    saveResultsToSharedPreferences(currentApp, usageStats, appUsageTime, appName);
+                    // 데이터를 Flutter로 전달
+                    // 데이터를 Flutter로 전달
+                    sendToFlutter(currentApp, usageStats, appUsageTime, appName);
+
+
                 } catch (Exception e) {
                     Log.e(TAG, "Error processing usage stats", e);
                 }
@@ -71,7 +87,26 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         } else {
             Log.d(TAG, "No notification payload and no data payload");
         }
+
     }
+    //앱 백그라운드에서 완전히 종료되면 강제 실행
+    private boolean isAppRunning() {
+        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
+        if (appProcesses != null) {
+            final String packageName = getPackageName();
+            for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
+                if (appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+                        && appProcess.processName.equals(packageName)) {
+                    System.out.println("시스템 작동 중");
+                    return true;
+                }
+            }
+        }
+        System.out.println("시스템 미작동 중");
+        return false;
+    }
+
 
     private void sendNotification(String currentApp, int currentUsageTime) {
 
@@ -201,6 +236,21 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Log.d(TAG, "Saved currentAppName: " + prefs.getString("currentAppName", "N/A"));
         Log.d(TAG, "Saved appUsageTime: " + prefs.getInt("appUsageTime", -1));
         Log.d(TAG, "Saved usageStats: " + prefs.getString("usageStats", "N/A"));
-    }
 
+    }
+    private void sendToFlutter(String currentApp, List<Map<String, Object>> usageStats, int appUsageTime, String appName) {
+        Handler mainHandler = new Handler(Looper.getMainLooper());
+        mainHandler.post(() -> {
+            FlutterEngine flutterEngine = FlutterEngineCache.getInstance().get("my_engine_id");
+            if (flutterEngine != null) {
+                MethodChannel methodChannel = new MethodChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), CHANNEL);
+                Map<String, Object> data = new HashMap<>();
+                data.put("currentApp", currentApp);
+                data.put("currentAppName", appName);
+                data.put("appUsageTime", appUsageTime);
+                data.put("usageStats", usageStats);
+                methodChannel.invokeMethod("usageStats", data);
+            }
+        });
+    }
 }
