@@ -117,39 +117,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 .build();
 
         // 알림을 업데이트합니다.
-        notificationManager.notify(1, notification);
+        notificationManager.notify(11, notification);
     }
 
 
 
-    private void sendOpenNotification() {
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Firebase Message Channel", NotificationManager.IMPORTANCE_HIGH);
-            notificationManager.createNotificationChannel(channel);
-        }
-
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
-
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Open App")
-                .setContentText("Tap to open the app.")
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true)
-                .build();
-
-        int notificationId = (int) System.currentTimeMillis();
-        notificationManager.notify(notificationId, notification);
-    }
-
-    private String logCurrentAppName(String currentAppPackageName) {
-        String appName = FriendlyNameMapper.getFriendlyName(currentAppPackageName);
-        return appName;
-    }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private List<Map<String, Object>> getUsageStats() {

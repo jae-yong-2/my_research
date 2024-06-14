@@ -1,26 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ffi';
-import 'dart:io';
-import 'dart:math';
 
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
-import 'package:chat_gpt_sdk/src/model/chat_complete/response/message.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:my_research/data/keystring.dart';
 import 'package:my_research/data/data_store.dart';
-import 'package:my_research/module/pedometerAPI.dart';
 import 'package:my_research/module/usageAppservice.dart';
 import 'package:native_shared_preferences/native_shared_preferences.dart';
 
-import '../module/healthKit.dart';
 import '../module/local_notification.dart';
 import '../package/const_key.dart';
-import '../page/chat/chat_message.dart';
 class ServerDataListener {
 
   Future<String> getCurrentApp() async {
@@ -269,20 +258,28 @@ class ServerDataListener {
     int? oldAppUsageTime = await DataStore().getSharedPreferencesInt(KeyValue().APPUSAGETIME);
     int? timer;
 
-    String currentApp = data['currentApp'];
-    await DataStore().saveSharedPreferencesString(KeyValue().CURRENTAPP, currentApp);
-    String currentAppName = data['currentAppName'];
-    await DataStore().saveSharedPreferencesString(KeyValue().CURRENTAPPNAME, currentAppName);
-    int appUsageTime = data['appUsageTime'];
-    await DataStore().saveSharedPreferencesInt(KeyValue().APPUSAGETIME, appUsageTime);
+    String? currentApp = data['currentApp'];
+    if (currentApp != null) {
+      await DataStore().saveSharedPreferencesString(KeyValue().CURRENTAPP, currentApp);
+    } else {
+      print("currentApp가 null입니다");
+      return;
+    }
 
+    String? currentAppName = data['currentAppName'];
+    if (currentAppName != null) {
+      await DataStore().saveSharedPreferencesString(KeyValue().CURRENTAPPNAME, currentAppName);
+    } else {
+      print("currentAppName이 null입니다");
+      return;
+    }
 
-    if(oldCurrentApp == currentAppName){
-      timer = await DataStore().getSharedPreferencesInt(KeyValue().TIMER);
-      await DataStore().saveSharedPreferencesInt(KeyValue().TIMER, (timer!+1));
-      print("----------------------timer : $timer");
-    }else{
-      await DataStore().saveSharedPreferencesInt(KeyValue().TIMER, 0);
+    int? appUsageTime = data['appUsageTime'];
+    if (appUsageTime != null) {
+      await DataStore().saveSharedPreferencesInt(KeyValue().APPUSAGETIME, appUsageTime);
+    } else {
+      print("appUsageTime이 null입니다");
+      return;
     }
 
     List<dynamic> usageStats = data['usageStats'];
@@ -296,6 +293,14 @@ class ServerDataListener {
       print("Package Name: ${stat['packageName']}, Total Time in Foreground: ${stat['totalTimeInForeground']} m");
     }
     print("----------------------------------------");
+
+    if (oldCurrentApp == currentApp) {
+      timer = await DataStore().getSharedPreferencesInt(KeyValue().TIMER) ?? 0;
+      await DataStore().saveSharedPreferencesInt(KeyValue().TIMER, (timer + 1));
+      print("----------------------timer : $timer");
+    } else {
+      await DataStore().saveSharedPreferencesInt(KeyValue().TIMER, 0);
+    }
     // final stepCounterService = PedometerAPI();
     // stepCounterService.refreshSteps();
     // var step = await DataStore().getSharedPreferencesInt(
@@ -314,6 +319,7 @@ class ServerDataListener {
     // print("Handling a background message: ${message.data}");
     // var state = message.data["isRecord"];
     var duration = const Duration(milliseconds: 1000);
+    print(timer);
     UsageAppService().currentUsageTest(currentAppName,appUsageTime,timer!);
 //--------------------------------------------------------------------------
 //     if (state == "update") {

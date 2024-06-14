@@ -1,23 +1,15 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:intl/intl.dart';
-import 'package:my_research/data/keystring.dart';
-import 'package:my_research/module/healthKit.dart';
 import 'package:my_research/module/local_notification.dart';
-import 'package:my_research/module/pedometerAPI.dart';
 import 'package:my_research/package/firebase_options.dart';
 import 'package:my_research/page/page_navigation.dart';
 import 'package:my_research/data/server_data_listener.dart';
-import 'package:my_research/page/profile.dart';
-import 'package:permission_handler/permission_handler.dart';
+
 import 'data/data_store.dart';
+import 'data/keystring.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 const platform = MethodChannel('com.example.app/foreground_service');
@@ -29,6 +21,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // ServerDataListener().FCMactivce(message);
 }
 Future<void> startForegroundService() async {
+  await DataStore().saveSharedPreferencesInt(KeyValue().TIMER, 0);
   try {
     await platform.invokeMethod('startForegroundService');
 

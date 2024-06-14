@@ -56,7 +56,7 @@ public class MyForegroundService extends Service {
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setOngoing(true)
                 .build();
-        startForeground(1, initialNotification);
+        startForeground(11, initialNotification);
 
         // 알림 업데이트를 위한 Runnable 정의
     }
@@ -201,7 +201,7 @@ public class MyForegroundService extends Service {
                 .build();
 
 // 각 알림에 고유한 ID 사용
-        notificationManager.notify(0, notification);
+        notificationManager.notify(10, notification);
     }
 
 
