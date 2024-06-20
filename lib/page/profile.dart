@@ -98,8 +98,14 @@ class _ProfileState extends State<Profile> {
 
   void _toggleAppSelection(Map<String, dynamic> app) {
     setState(() {
-      _selectedApps.removeWhere((selectedApp) => selectedApp['appName'] == app['appName']); // 중복된 앱 이름 제거
-      _selectedApps.add(app);
+      final existingIndex = _selectedApps.indexWhere((selectedApp) => selectedApp['appName'] == app['appName']);
+      if (existingIndex >= 0) {
+        // 이미 선택된 앱이면 목록에서 제거
+        _selectedApps.removeAt(existingIndex);
+      } else {
+        // 선택되지 않은 앱이면 목록에 추가
+        _selectedApps.add(app);
+      }
       _removeDuplicateApps();
     });
   }
@@ -124,33 +130,6 @@ class _ProfileState extends State<Profile> {
       });
     }
   }
-
-  // Future<void> _currentUsageTest() async {
-  //   final currentApp = await _usageAppService.getFlutterCurrentApp();
-  //   final usageTime = await _usageAppService.getFlutterAppUsageTime(currentApp);
-  //
-  //   setState(() {
-  //     _currentAppName = currentApp;
-  //     _currentAppUsageTime = usageTime;
-  //   });
-  //
-  //   final int savedHours = _selectedDuration?.inHours ?? 0;
-  //   final int savedMinutes = _selectedDuration?.inMinutes ?? 0;
-  //   final int savedDurationInMinutes = savedHours * 60 + savedMinutes;
-  //   final int usageTimeInMinutes = (usageTime / 1000 / 60).toInt();
-  //
-  //   if (usageTimeInMinutes > savedDurationInMinutes) {
-  //     Fluttertoast.showToast(
-  //       msg: "현재 앱 사용시간이 설정된 시간을 초과했습니다!",
-  //       gravity: ToastGravity.CENTER,
-  //     );
-  //   } else {
-  //     Fluttertoast.showToast(
-  //       msg: "현재 앱 사용시간이 설정된 시간을 초과하지 않았습니다.",
-  //       gravity: ToastGravity.CENTER,
-  //     );
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -208,16 +187,6 @@ class _ProfileState extends State<Profile> {
               onPressed: _saveSelectedAppsAndDuration,
               child: Text('저장하기'),
             ),
-            // SizedBox(
-            //   width: 200,
-            //   child: ElevatedButton(
-            //     onPressed: _currentUsageTest,
-            //     child: Text(
-            //       '현재 앱 테스트',
-            //       style: TextStyle(fontSize: 12),
-            //     ),
-            //   ),
-            // ),
           ],
         ),
       ),
