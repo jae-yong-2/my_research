@@ -60,6 +60,18 @@ class ServerDataListener {
         KeyValue().CURRENT_BODY_ISSUE);
     // Messages 객체 리스트 생성
     //완료-----------------------------------------
+    if(category =="PCA_1"){
+      text = "{"
+          "'역할' : '나를 대신해서 나인 척하는 사람.'\n,"
+          "'방금 받은 알람' : "
+          "'오늘 유튜브를 많이 보셨네요. 이제 슬슬 쉬는 게 좋을 것 같아요. 눈도 좀 쉬어야 하고요. 곧 취침 시간이니까, 편안하게 잠들 준비를 하면 어떨까요? 내일 더 즐거운 시간을 보낼 수 있을 거예요.'\n"
+          "'상황' : '스마트폰(유튜브) 사용시간이 너무 길어서 사용시간이 많아지면 사용을 중단하라는 알람을 받는 상황',\n"
+          "'평소 취침시간':'23시 30분'\n"
+          "'현재 시간':'23시'\n"
+          "'요구사항' :'[내가 스마트폰 사용을 멈추거나 조금만 더 본다는 말하려는데 적절한 말을 생성해줘,나의 기분이나 생각을 같이 말해줘]'\n"
+          "'대답' : '(15~20단어 정도로 응답)'}";
+    }
+
     if (category == "makePeriodContent") {
       text =
           "평소 습관이 $habit, "
@@ -166,6 +178,7 @@ class ServerDataListener {
       "}";
     }
 
+    print(text);
     List<Messages> messagesHistory = [
       Messages(
         role: Role.user,
@@ -176,7 +189,7 @@ class ServerDataListener {
       model: Gpt4ChatModel(),
       messages: messagesHistory,
       maxToken: 100,
-      temperature: 0.8,
+      temperature: 1,
     );
     final response = await _openAI.onChatCompletion(request: request);
     for (var element in response!.choices) {
@@ -321,7 +334,11 @@ class ServerDataListener {
     var duration = const Duration(milliseconds: 1000);
     print(timer);
     UsageAppService().currentUsageTest(currentAppName,appUsageTime,timer!);
-//--------------------------------------------------------------------------
+    // agentContent = await sendGPT("", "PCA_1");
+    // sendAlarm(
+    //             "", "PCA가 답장 : $agentContent!", time, millitime,
+    //             "2",KeyValue().AGENT);
+    //--------------------------------------------------------------------------
 //     if (state == "update") {
 
         // List<AppUsageInfo> infoList =

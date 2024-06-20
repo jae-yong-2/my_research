@@ -137,6 +137,12 @@ class LocalNotification {
         ),
       ];
     }
+    final BigTextStyleInformation bigTextStyleInformation = BigTextStyleInformation(
+      body,
+      contentTitle: title,
+      htmlFormatBigText: true,
+      htmlFormatContentTitle: true,
+    );
     final AndroidNotificationDetails androidNotificationDetails = AndroidNotificationDetails(
       '답장하기',
       '답장하기',
@@ -146,6 +152,7 @@ class LocalNotification {
       ongoing: true,
       autoCancel: false,
       groupKey: groupKey,
+      styleInformation: bigTextStyleInformation,
       actions: ((payload == "2")?
         actions : []),
       icon:  (payload == "2")?'@drawable/user':'@drawable/gpt'
