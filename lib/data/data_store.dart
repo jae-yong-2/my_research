@@ -12,8 +12,32 @@ class DataStore {
   Future<void> saveData( String id, String category, Map<String, dynamic> userData) async {
     await databaseRef.child("$id/$category").set(userData ?? "0");
   }
+  Future<void> saveIntData( String id, String category, int userData) async {
+    await databaseRef.child("$id/$category").set(userData ?? "0");
+  }
   Future<void> saveDataProfile( String id, String category, Map<String, dynamic> userData) async {
     await databaseRef.child("$id/$category").push().set(userData);
+  }
+
+  Future<Map<String, dynamic>?> getData(String id, String category) async {
+    DataSnapshot snapshot = await databaseRef.child("$id/$category").get();
+    if (snapshot.exists) {
+      // 데이터가 존재하면, Map 형태로 변환하여 반환
+      return Map<String, dynamic>.from(snapshot.value as Map);
+    } else {
+      // 데이터가 존재하지 않으면, null을 반환
+      return null;
+    }
+  }
+  Future<Map<String, dynamic>?> getIntData(String id, String category) async {
+    DataSnapshot snapshot = await databaseRef.child("$id/$category").get();
+    if (snapshot.exists) {
+      // 데이터가 존재하면, Map 형태로 변환하여 반환
+      return Map<String, dynamic>.from(snapshot.value as Map);
+    } else {
+      // 데이터가 존재하지 않으면, null을 반환
+      return null;
+    }
   }
 
   Future<void> deleteData(String id, String category) async {

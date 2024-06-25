@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:intl/intl.dart';
@@ -11,29 +12,6 @@ import 'package:native_shared_preferences/native_shared_preferences.dart';
 import '../module/local_notification.dart';
 import '../package/const_key.dart';
 class ServerDataListener {
-
-  Future<String> getCurrentApp() async {
-    final prefs = await NativeSharedPreferences.getInstance();
-    return prefs.getString('currentApp') ?? 'Unknown';
-  }
-
-  Future<String> getCurrentAppName() async {
-    final prefs = await NativeSharedPreferences.getInstance();
-    return prefs.getString('currentAppName') ?? 'Unknown';
-  }
-
-  Future<int> getAppUsageTime() async {
-    final prefs = await NativeSharedPreferences.getInstance();
-    return prefs.getInt('appUsageTime') ?? 0;
-  }
-
-  Future<List<Map<String, dynamic>>> getUsageStats() async {
-    final prefs = await NativeSharedPreferences.getInstance();
-    String usageStatsString = prefs.getString('usageStats') ?? '[]';
-    List<dynamic> usageStatsList = jsonDecode(usageStatsString);
-    return usageStatsList.cast<Map<String, dynamic>>();
-  }
-
 
   //ChatGPT API사용
   final _openAI = OpenAI.instance.build(
@@ -54,131 +32,48 @@ class ServerDataListener {
 
 //GPT에게 원하는 내용 생성
   Future<String?> sendGPT(text, category) async {
-    var habit = await DataStore().getSharedPreferencesString(
-        KeyValue().HABIT_STATE);
-    var bodyissue = await DataStore().getSharedPreferencesString(
-        KeyValue().CURRENT_BODY_ISSUE);
     // Messages 객체 리스트 생성
+    String? sleepTime = await DataStore().getSharedPreferencesString(KeyValue().SLEEPTIME);
+    if (sleepTime != null) {
+      final Map<String, dynamic> sleepTimeMap = json.decode(sleepTime);
+      int hours = sleepTimeMap['hours'];
+      int minutes = sleepTimeMap['minutes'];
+      sleepTime =  '$hours시 $minutes분';
+    }else {
+      sleepTime = '시간 정보 없음';
+    }
     //완료-----------------------------------------
+    if(category =="GPT_1"){
+      text = '''
+      {
+        "역할" : "나의 유튜브 사용을 줄이려는 사람",
+        "상황" : "스마트폰(유튜브) 사용시간이 너무 길어서 사용시간이 많아지면 사용을 중단하라는 알람을 줘야하는 상황",
+        "평소 취침시간": "$sleepTime",
+        "현재 시간": "23시",
+        "요구사항": "[상대방이 스마트폰(유튜브)사용을 너무 많이 했다고 중단해야한다고 전해줘, 상대방이 기분이 상하지 않도록 너의 의견을 전달해줘,15~20단어 정도로 응답]"
+      }
+        ''';
+    }
     if(category =="PCA_1"){
-      text = "{"
-          "'역할' : '나를 대신해서 나인 척하는 사람.'\n,"
-          "'방금 받은 알람' : "
-          "'오늘 유튜브를 많이 보셨네요. 이제 슬슬 쉬는 게 좋을 것 같아요. 눈도 좀 쉬어야 하고요. 곧 취침 시간이니까, 편안하게 잠들 준비를 하면 어떨까요? 내일 더 즐거운 시간을 보낼 수 있을 거예요.'\n"
-          "'상황' : '스마트폰(유튜브) 사용시간이 너무 길어서 사용시간이 많아지면 사용을 중단하라는 알람을 받는 상황',\n"
-          "'평소 취침시간':'23시 30분'\n"
-          "'현재 시간':'23시'\n"
-          "'요구사항' :'[내가 스마트폰 사용을 멈추거나 조금만 더 본다는 말하려는데 적절한 말을 생성해줘,나의 기분이나 생각을 같이 말해줘]'\n"
-          "'대답' : '(15~20단어 정도로 응답)'}";
+      final Random random = Random();
+      // 0 또는 1을 랜덤으로 출력하는 변수
+      int randomValue = random.nextInt(2);
+      String condition;
+      if(randomValue==0){
+        condition = '당장 멈추겠다고 말하는 거야';
+      }else{
+        condition = '조금만 더 본다는 거야';
+      }
+      text = '''
+      {
+        "역할": "나를 대신해서 나인 척하는 사람.",
+        "방금 받은 알람": "$text",
+        "평소 취침시간": "$sleepTime",
+        "현재 시간": "23시",
+        "요구사항": "[나는 '방금 받은 알람'에 답장하고 싶어, 내용은 스마트폰(유튜브) 사용을 $condition, 나의 기분이나 생각을 같이 말해줘, 15~20단어 정도로 응답]"
+      }
+      ''';
     }
-
-    if (category == "makePeriodContent") {
-      text =
-          "평소 습관이 $habit, "
-          "신체 특이사항이 $bodyissue 인 "
-          "저에게 1시간동안 움직임이 없었다고 잠시동안 걸어라고 "
-          "긍정적으로 권유해주는 글을 35자 정도의 존댓말로 자연스러운 문장 딱 1개만! "
-          "생성해줘요.";
-    }
-
-    if (category == "makeIamWalking") {
-      text =
-      "{"
-          "'역할' : '나를 대신해서 나인 내가 움직였다고 전달하는 사람',"
-          "'1분전 받은 알람' :  '$text\n',"
-          "'상황' : '알람을 받고 1분이내에 걸었습니다.','평소 습관이 $habit, 신체 특이사항이 $bodyissue 이다',"
-          "'요구사항' :"
-            "["
-              "'상대방이 운동하라고 권유했을 때, 대답을 나인 척하며 알람을 받고 운동(걸음, 산책 등)을 했다는 대답을 한다.',"
-              "'학습 데이터는 상대방과 나와의 대화 몇가지 예시이며, 예시에 나의 대답에서 나타나는 내 말투와 어투를 분석하여 이와 동일한 말투와 (반말, 존댓말)의 문장을 1개 생성한다',"
-              "'학습데이터에 있는 내 말투가 아니면 상대방이 어색해 할 것 이므로 주의 요망!!!!',"
-              "'20글자 정도로 생성',"
-            "],"
-          "'학습데이터' :"
-            "[ "
-              "'example 1)"
-              "상대방의 권유 : 잠시마나 일어나셔서 걸어보시는 건 어떠세요? 무릎에도 좋고, 자세 교정에도 도움이 될 거에요."
-              "나의 대답 : ${KeyValue().replyComplete1}',"
-              "'example 2)"
-              "상대방의 권유 : 오래 앉아 계셨으니, 잠시 허리를 펴며 걸어보시는 건 어떠세요?."
-              "나의 대답 : ${KeyValue().replyComplete2}',"
-              // "'example 3)"
-              // "상대방의 권유 : 1시간이 지났어요. 잠시 무릎 통증을 잊고 걸어보는 건 어떨까요?"
-              // "나의 대답 : ${KeyValue().replyComplete3}'"
-            "],"
-          "'대답' : ''"
-      "}";
-    }
-
-    if (category == "notWalkingReason") {
-        // 단순 이유가 아닌 의지 표현
-      text =
-      "{"
-          "'GPT 역할' : '나를 대신해서 나인 척 내 목표를 상대방에게 전달하는 사람',"
-          "'1분전 상대방에게 받은 알람' :  '$text\n',"
-          "'상황' : '알람을 받고 아무런 움직임이 없었습니다.',"
-          "'요구사항' :"
-          "["
-              "'운동을 할 것이라는 대답을 나인 척하며 대답한다',"
-              "'생성하는 대답은 언제, 얼마동안, 어떻게 행동할지 최대한 구체적인 나의 말투로 생성한다.',"
-              "'학습데이터는 상대방과 나와의 대화 몇가지 예시로, 나의 대답에서 나타나는 내 말투와 어투를 분석하여 이와 동일한 말투와 (반말, 존댓말)의 문장 1개!를 생성한다',"
-              "'내 대답의 말투가 아니면 상대방이 어색해 할 것 이므로 주의!',"
-              "'25글자 정도로 생성',"
-          "],"
-          "'학습데이터' :"
-          "[ "
-              "'example 1 )"
-              "상대방의 권유 : 잠시마나 일어나셔서 걸어보시는 건 어떠세요? 무릎에도 좋고, 자세 교정에도 도움이 될 거에요."
-              "나의 대답 : ${KeyValue().replyIntent1}',"
-              "'example 2)"
-              "상대방의 권유 : 오래 앉아 계셨으니, 잠시 허리를 펴며 걸어보시는 건 어떠세요?."
-              "나의 대답 : ${KeyValue().replyIntent2}',"
-              "'example 3)"
-              "상대방의 권유 : 1시간이 지났어요. 잠시 무릎 통증을 잊고 걸어보는 건 어떨까요?"
-              "나의 대답 : ${KeyValue().replyIntent3}'"
-          "],"
-          "'대답' : '(평소 습관이 $habit, 신체 특이사항이 $bodyissue 인 나에게 맞는 낮은 n 수치를 생성해줘)'"
-      "}";
-      //GPT가 운동을 하는 것에 대한 목적을 생성할 수 있도록 해보자.
-      //카카오
-    }
-    //안움직였지만 다음에 움직여라고 GPT가 하는 말
-    if (category == "RecommendWalkingContent") {
-      text =
-          "방금 전 응답 : $text,"
-          "방금 전 응답을 확인했다는 글을 15자 정도의 존댓말 문장 딱 1개만!"
-          "추천해주세요.";
-    }
-    if(category=="reply"){
-      text =
-      "{"
-          "'GPT 역할' : '처음 생성된 목표가 만족스럽지 못해서 수정했으면 함.',"
-          "'처음 생성된 문장' : ${await DataStore().getSharedPreferencesString("${KeyValue().CONVERSATION}1")}"
-          "'이전에 받은 메세지' : '$text',"
-          "'상황' : '설정된 목표가 마음에 들지 않습니다.',"
-          "'요구사항' :"
-            "["
-              "'학습데이터는 말투만 따라하기 위한 데이터이므로 내용은 무시하고 말투만 따라하여 생성한다.',"
-              "'생성될 문장의 내용은 처음 생성된 문장을 요청 사항에 맞게 수정해서 생성한다.',"
-              "'25글자 정도로 생성',"
-            "],"
-          "'학습데이터' :"
-            "[ "
-              "'example 1 )"
-              "상대방의 권유 : 잠시마나 일어나셔서 걸어보시는 건 어떠세요? 무릎에도 좋고, 자세 교정에도 도움이 될 거에요."
-              "나의 대답 : ${KeyValue().replyIntent1}',"
-              "'example 2)"
-              "상대방의 권유 : 오래 앉아 계셨으니, 잠시 허리를 펴며 걸어보시는 건 어떠세요?."
-              "나의 대답 : ${KeyValue().replyIntent2}',"
-              "'example 3)"
-              "상대방의 권유 : 1시간이 지났어요. 잠시 무릎 통증을 잊고 걸어보는 건 어떨까요?"
-              "나의 대답 : ${KeyValue().replyIntent3}'"
-            "],"
-          "'대답' : '(평소 습관이 $habit, 신체 특이사항이 $bodyissue 인 나에게 맞는 수치를 생성해줘)',"
-      "}";
-    }
-
-    print(text);
     List<Messages> messagesHistory = [
       Messages(
         role: Role.user,
@@ -189,39 +84,35 @@ class ServerDataListener {
       model: Gpt4ChatModel(),
       messages: messagesHistory,
       maxToken: 100,
-      temperature: 1,
+      temperature: 0.9,
     );
     final response = await _openAI.onChatCompletion(request: request);
     for (var element in response!.choices) {
       final message = element.message;
       if (message != null) {
         try {
-          final messageContent = message.content.replaceAll("'", '"');
-          final decodedMessage = jsonDecode(messageContent);
-          if (decodedMessage.containsKey("대답")) {
-            // '대답' 키가 있으면 해당 값만 반환합니다.
-            return decodedMessage["대답"];
-          }else if(decodedMessage.containsKey('대답')){
-            return decodedMessage['대답'];
-          }
-          else{
-            return message.content;
-          }
-        }
-        catch (e){
-          // '대답' 키가 없으면 전체 메시지를 반환합니다.
+          // 응답 메시지 출력
+          String messageContent = message.content.replaceAll('"', '');
+          print("Received message: $messageContent");
+
+          return messageContent;
+
+        } catch (e) {
+          // JSON 파싱 오류 발생 시 전체 메시지를 반환합니다.
+          print("Error decoding message: $e");
           return message.content;
         }
       }
     }
     return null;
+
   }
 
   Future<void> sendAlarm(String title, String content, var time, var millitime,
       String payload, String who) async {
     LocalNotification.showOngoingNotification(
-      title: title,
-      body: content,
+      title: "",
+      body: "$title : $content",
       payload: payload,
     );
     //히스토리에 저장
@@ -230,38 +121,12 @@ class ServerDataListener {
       KeyValue().CONTENT: content,
       KeyValue().TIMESTAMP: time,
       KeyValue().MILLITIMESTAMP: millitime,
-
     });
   }
-  Future<void> makeGPTContent(var gptContent, String content, String isRecord) async {
-    gptContent = await sendGPT(content, isRecord);
-
-    await DataStore().saveData(
-        KeyValue().ID, KeyValue().CONVERSATION,
-        {
-          KeyValue().WHO: KeyValue().GPT,
-          KeyValue().CONTENT: gptContent,
-        }
-    );
-    return gptContent;
+  bool containsPackageName(List<dynamic> jsonData, String packageName) {
+    // jsonData 리스트를 순회하면서 packageName이 일치하는 항목이 있는지 확인
+    return jsonData.any((element) => element['packageName'] == packageName);
   }
-  Future<String> makeAgentContent(var agentContent, String content, String isRecord, var time) async {
-    agentContent = await sendGPT(content, isRecord);
-
-    await DataStore().saveData(
-        KeyValue().ID, KeyValue().CONVERSATION,
-        {
-          KeyValue().WHO: KeyValue().AGENT,
-          KeyValue().CONTENT: agentContent,
-        }
-    );
-    await DataStore().saveSharedPreferencesString(
-        "${KeyValue().CONVERSATION}1", agentContent!);
-    await DataStore().saveSharedPreferencesString(
-        "${KeyValue().TIMESTAMP}1", time);
-    return agentContent;
-  }
-
   //FCM을 통해서 받은 데이터를 휴대폰에서 처리하는 함수.
   Future<void> FCMactivce(Map<String, dynamic> data) async {
     // 네이티브 코드 호출
@@ -270,6 +135,13 @@ class ServerDataListener {
     String? oldCurrentAppName = await DataStore().getSharedPreferencesString(KeyValue().CURRENTAPPNAME);
     int? oldAppUsageTime = await DataStore().getSharedPreferencesInt(KeyValue().APPUSAGETIME);
     int? timer;
+
+    var now = DateTime.now();
+    var millitime = DateTime
+        .now()
+        .millisecondsSinceEpoch;
+    var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    String time = formatter.format(now);
 
     String? currentApp = data['currentApp'];
     if (currentApp != null) {
@@ -301,115 +173,75 @@ class ServerDataListener {
     print("Current App: $currentApp");
     print("Current App Name: $currentAppName");
     print("App Usage Time: $appUsageTime minutes");
+    print("App Usage State: $usageStats");
+    print("-----------------------------------------");
 
-    for (var stat in usageStats) {
-      print("Package Name: ${stat['packageName']}, Total Time in Foreground: ${stat['totalTimeInForeground']} m");
+    now = DateTime.now();
+    formatter = DateFormat('yyyy-MM-dd');
+    time = formatter.format(now);
+    
+    String formattedTime = DateFormat('HH:mm').format(now);
+
+    if ((formattedTime.compareTo("11:30") >= 0 && formattedTime.compareTo("23:59") <= 0) || formattedTime == "00:00") {
+      await DataStore().saveData(KeyValue().ID, KeyValue().APPUSAGETIME,
+          {'usageStats' :usageStats});
+    } else {
+    
     }
-    print("----------------------------------------");
 
-    if (oldCurrentApp == currentApp) {
-      timer = await DataStore().getSharedPreferencesInt(KeyValue().TIMER) ?? 0;
-      await DataStore().saveSharedPreferencesInt(KeyValue().TIMER, (timer + 1));
+    String? selectedApp = await DataStore().getSharedPreferencesString(KeyValue().SELECTEDAPP);
+    List<dynamic> jsonData = jsonDecode(selectedApp!);
+    bool hasPackage = containsPackageName(jsonData, currentApp);
+
+    if (oldCurrentApp == currentApp && hasPackage) {
+      try {
+        // KeyValue().ID가 '0'을 제대로 반환하는지 확인
+        // $currentAppName이 'YouTube'를 제대로 반환하는지 확인
+        Map<String, dynamic>? data = await DataStore().getData(KeyValue().ID,"timer/$currentAppName/$time");
+        timer = data?["time"]+1;
+        if (data != null) {
+          timer = timer!<appUsageTime?appUsageTime:timer;
+          await DataStore().saveData(KeyValue().ID,"timer/$currentAppName/$time",{"time": timer});
+        } else {
+          print("No data found at the path: ${KeyValue().ID}/timer/$currentAppName/$time");
+        }
+        if(data == null){
+          await DataStore().saveData(KeyValue().ID,"timer/$currentAppName/$time",{"time":appUsageTime});
+        }
+      }catch(error){
+        await DataStore().saveData(KeyValue().ID,"timer/$currentAppName/$time",{"time":appUsageTime});
+        print(error);
+      }
       print("----------------------timer : $timer");
     } else {
       await DataStore().saveSharedPreferencesInt(KeyValue().TIMER, 0);
     }
-    // final stepCounterService = PedometerAPI();
-    // stepCounterService.refreshSteps();
-    // var step = await DataStore().getSharedPreferencesInt(
-    //     Category().TOTALSTEP_KEY);
-    // HealthKit healthHelper = HealthKit();
-    // int step = await healthHelper.getSteps();
-    // var step=0;
+
     String? gptContent = "key가 없거나 오류가 났습니다.";
     String? agentContent = "key가 없거나 오류가 났습니다.";
-    var now = DateTime.now();
-    var millitime = DateTime
-        .now()
-        .millisecondsSinceEpoch;
-    var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-    String time = formatter.format(now);
-    // print("Handling a background message: ${message.data}");
-    // var state = message.data["isRecord"];
+    now = DateTime.now();
+    formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    time = formatter.format(now);
     var duration = const Duration(milliseconds: 1000);
-    print(timer);
-    UsageAppService().currentUsageTest(currentAppName,appUsageTime,timer!);
-    // agentContent = await sendGPT("", "PCA_1");
-    // sendAlarm(
-    //             "", "PCA가 답장 : $agentContent!", time, millitime,
-    //             "2",KeyValue().AGENT);
-    //--------------------------------------------------------------------------
-//     if (state == "update") {
-
-        // List<AppUsageInfo> infoList =
-        // await AppUsage().getAppUsage(startDate, endDate);
-        //
-        // print("---------packge data---------");
-        // for (var info in infoList) {
-        //   print(info.toString());
-        // }
-        //   print("---------packge data---------");
-        // } on AppUsageException catch (exception) {
-        //   print(exception);
-        // }
-
-    //   if (true) {
-    //     return;
-    //     sendAlarm(
-    //         message.data["title"], message.data["content"], time, millitime,
-    //         "2",KeyValue().AGENT);
-    //     //GPT가 생성한 내용을 서버에 전달
-    //     makeGPTContent(
-    //         gptContent, message.data["content"], message.data["isRecord"]);
-    //
-    //     Future.delayed(Duration(seconds: 10), () async {
-    //       var millitime = DateTime
-    //           .now()
-    //           .millisecondsSinceEpoch;
-    //       var now = DateTime.now();
-    //       var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-    //       String time = formatter.format(now);
-    //       print("User replied: $agentContent");
-    //       String? gptContent = await ServerDataListener().sendGPT(
-    //           message.data["content"], message.data["isRecord"]);
-    //       ServerDataListener().sendAlarm(
-    //           "Agent가 메세지를 보냈습니다.", gptContent!, time, millitime, "3",KeyValue().GPT);
-    //     });
-    //   }else{
-    //     // recordStepHistory(time, step);
-    //
-    //     String text = await makeAgentContent(agentContent, message.data["content"], "makeIamWalking",time);
-    //
-    //     sendAlarm(
-    //         "Agent에게 답장했습니다.", text, time, millitime,
-    //         "2",KeyValue().AGENT);
-    //     //GPT가 생성한 내용을 서버에 전달
-    //     makeGPTContent(
-    //         gptContent, text, message.data["isRecord"]);
-    //
-    //     Future.delayed(Duration(seconds: 10), () async {
-    //       var millitime = DateTime
-    //           .now()
-    //           .millisecondsSinceEpoch;
-    //       var now = DateTime.now();
-    //       var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-    //       String time = formatter.format(now);
-    //       print("User replied: $agentContent");
-    //       String? gptContent = await ServerDataListener().sendGPT(
-    //           message.data["content"], message.data["isRecord"]);
-    //       ServerDataListener().sendAlarm(
-    //           "Agent가 메세지를 보냈습니다", gptContent!, time, millitime, "3",KeyValue().GPT);
-    //     });
-    //
-    //   }
+    // try {
+    //   UsageAppService().currentUsageTest(currentAppName, appUsageTime, timer!);
+    // }catch(error){
+    //   UsageAppService().currentUsageTest(currentAppName, appUsageTime, 0);
     // }
-
-
-//--------------------------------------------------------------------------
-
-    //GPT가 생성한 내용을 서버에 전달
-    //내가 다음에 할 의사 표현을 하는 문구 생성                                 "GPTanswer"
-    //움직였을때 무브
+    // gptContent = await sendGPT("", "GPT_1");
+    // sendAlarm(
+    //     "Agent : ", gptContent!, time, millitime,
+    //     "1",KeyValue().GPT);
+    //
+    // now = DateTime.now();
+    // millitime = DateTime
+    //     .now()
+    //     .millisecondsSinceEpoch;
+    // formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    // time = formatter.format(now);
+    //
+    // agentContent = await sendGPT(gptContent, "PCA_1");
+    // sendAlarm("나 : ", agentContent!, time, millitime, "2",KeyValue().AGENT);
 
   }
 }

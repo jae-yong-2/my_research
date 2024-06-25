@@ -21,6 +21,7 @@ class _ProfileState extends State<Profile> {
   List<Map<String, dynamic>> _top10Apps = [];
   List<Map<String, dynamic>> _selectedApps = [];
   Duration? _selectedDuration;
+  Duration? _sleepTime;
   String _currentAppName = "";
   int _currentAppUsageTime = 0;
 
@@ -30,6 +31,7 @@ class _ProfileState extends State<Profile> {
     _loadSelectedApps();
     _getTop10Apps();
     _loadSelectedDuration();
+    _loadSleepTime();
   }
 
   Future<void> _getTop10Apps() async {
@@ -64,9 +66,22 @@ class _ProfileState extends State<Profile> {
     }
   }
 
+  Future<void> _loadSleepTime() async {
+    final String? sleepTimeJson = await _dataStore.getSharedPreferencesString(KeyValue().SLEEPTIME);
+    if (sleepTimeJson != null) {
+      final Map<String, dynamic> sleepTimeMap = json.decode(sleepTimeJson);
+      setState(() {
+        _sleepTime = Duration(
+          hours: sleepTimeMap['hours'],
+          minutes: sleepTimeMap['minutes'],
+        );
+      });
+    }
+  }
+
   Future<void> _saveSelectedAppsAndDuration() async {
-    if (_selectedApps.isEmpty || _selectedDuration == null) {
-      Fluttertoast.showToast(msg: "앱과 시간을 모두 선택해주세요.", gravity: ToastGravity.CENTER);
+    if (_selectedApps.isEmpty || _selectedDuration == null || _sleepTime == null) {
+      Fluttertoast.showToast(msg: "앱, 사용 시간, 그리고 취침 시간을 모두 선택해주세요.", gravity: ToastGravity.CENTER);
       return;
     }
 
@@ -75,18 +90,24 @@ class _ProfileState extends State<Profile> {
       'hours': (_selectedDuration!.inHours),
       'minutes': (_selectedDuration!.inMinutes) % 60,
     });
+    final String sleepTimeJson = json.encode({
+      'hours': (_sleepTime!.inHours),
+      'minutes': (_sleepTime!.inMinutes) % 60,
+    });
 
     await _dataStore.saveSharedPreferencesString(KeyValue().SELECTEDAPP, selectedAppsJson);
     await _dataStore.saveSharedPreferencesString(KeyValue().SELECTEDDURATION, selectedDurationJson);
+    await _dataStore.saveSharedPreferencesString(KeyValue().SLEEPTIME, sleepTimeJson);
 
     Map<String, dynamic> firebaseData = {
       KeyValue().SELECTEDAPP: _selectedApps,
       KeyValue().SELECTEDDURATION: {'hours': _selectedDuration!.inHours, 'minutes': _selectedDuration!.inMinutes % 60},
+      KeyValue().SLEEPTIME: {'hours': _sleepTime!.inHours, 'minutes': _sleepTime!.inMinutes % 60},
     };
 
     _dataStore.saveData(KeyValue().ID, KeyValue().SELECTEDAPP, firebaseData).then((_) {
       Fluttertoast.showToast(msg: selectedDurationJson, gravity: ToastGravity.CENTER);
-
+      Fluttertoast.showToast(msg: sleepTimeJson, gravity: ToastGravity.CENTER);
       Fluttertoast.showToast(msg: "저장되었습니다.", gravity: ToastGravity.CENTER);
     }).catchError((error) {
       Fluttertoast.showToast(msg: "저장 실패: $error", gravity: ToastGravity.CENTER);
@@ -94,6 +115,7 @@ class _ProfileState extends State<Profile> {
 
     print(selectedAppsJson);
     print(selectedDurationJson);
+    print(sleepTimeJson);
   }
 
   void _toggleAppSelection(Map<String, dynamic> app) {
@@ -131,6 +153,19 @@ class _ProfileState extends State<Profile> {
     }
   }
 
+  Future<void> _selectSleepTime(BuildContext context) async {
+    final Duration? picked = await showDialog<Duration>(
+      context: context,
+      builder: (context) => DurationPickerDialog(initialDuration: _sleepTime ?? Duration(hours: 8, minutes: 0)),
+    );
+
+    if (picked != null && picked != _sleepTime) {
+      setState(() {
+        _sleepTime = picked;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -144,6 +179,12 @@ class _ProfileState extends State<Profile> {
             ),
             if (_selectedDuration != null)
               Text('선택된 시간: ${_selectedDuration!.inHours}시간 ${_selectedDuration!.inMinutes % 60}분'),
+            ElevatedButton(
+              onPressed: () => _selectSleepTime(context),
+              child: Text('취침 시간 선택하기'),
+            ),
+            if (_sleepTime != null)
+              Text('선택된 취침 시간: ${_sleepTime!.inHours}시간 ${_sleepTime!.inMinutes % 60}분'),
             Expanded(
               child: _top10Apps.isEmpty
                   ? Center(child: CircularProgressIndicator())

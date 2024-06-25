@@ -93,7 +93,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
     // 앱이 다시 활성화되었을 때 원하는 작업을 수행합니다.
     if ((state == AppLifecycleState.resumed)) {
       // 여기에 백그라운드에서 다시 활성화될 때 실행할 작업을 추가합니다.
-      chatPageAccessCount();
+      // chatPageAccessCount();
       print('앱이 다시 활성화되었습니다.');
     }
   }
