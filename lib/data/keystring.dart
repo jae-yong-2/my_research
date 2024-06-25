@@ -23,7 +23,7 @@ class KeyValue{
   String CHAT_PAGE_ACCESS_COUNT="chatPageAccessCount";
   String OPEN_STATE="openState";
   String CURRENT_BODY_ISSUE = "current_body_issue";
-  String HABIT_STATE= "habitStatus";
+  String ALARM_CHECKER= "alarm_checker";
   String REPLY='reply';
   String CURRENTAPP = "current_app";
   String CURRENTAPPNAME = "current_app_name";

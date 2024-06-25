@@ -214,6 +214,7 @@ class ServerDataListener {
         print(error);
       }
       print("----------------------timer : $timer");
+      timer ??= 0;
     } else {
       await DataStore().saveSharedPreferencesInt(KeyValue().TIMER, 0);
     }
@@ -235,28 +236,32 @@ class ServerDataListener {
               hours: selectedDurationMap['hours'],
               minutes: selectedDurationMap['minutes']);
           final int savedMinutes = selectedDuration.inMinutes;
-          final int savedDurationInMinutes = savedMinutes;
-          print("----------------------------------");
-          print("savedMinutes: $savedMinutes");
-          print("usageAllTime: $appUsageTime");
-          print("savedDurationInMinutes: $savedDurationInMinutes");
-          print("----------------------------------");
+          bool? checker = await DataStore().getSharedPreferencesBool(KeyValue().ALARM_CHECKER);
+          checker ??= false;
+          if((savedMinutes+5 >=timer!)  && (timer >= savedMinutes)  && !checker!) {
 
-          if (timer!+5 > savedDurationInMinutes) {
-            Fluttertoast.showToast(
-              msg: "현재 앱 사용시간이 설정된 시간 5분 넘게 초과했습니다! $timer $savedDurationInMinutes",
-              gravity: ToastGravity.CENTER,
-            );
-          } else if(timer! > savedDurationInMinutes){
-            Fluttertoast.showToast(
-              msg: "현재 앱 사용시간이 설정된 시간을 초과했습니다. $timer $savedDurationInMinutes",
-              gravity: ToastGravity.CENTER,
-            );
+            // gptContent = await sendGPT("", "GPT_1");
+            // sendAlarm(
+            //     "Agent : ", gptContent!, time, millitime,
+            //     "1",KeyValue().GPT);
+            //
+            // now = DateTime.now();
+            // millitime = DateTime
+            //     .now()
+            //     .millisecondsSinceEpoch;
+            // formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+            // time = formatter.format(now);
+            //
+            // agentContent = await sendGPT(gptContent, "PCA_1");
+            // sendAlarm("나 : ", agentContent!, time, millitime, "2",KeyValue().AGENT);
+            print("현재 앱 사용시간이 설정된 시간을 초과했습니다. $timer $savedMinutes");
+            await DataStore().saveSharedPreferencesBool(KeyValue().ALARM_CHECKER,true);
+
+          } else if (timer > (savedMinutes + 5) && checker!) {
+            print("현재 앱 사용시간이 설정된 시간 5분 넘게 초과했습니다! $timer $savedMinutes");
+            await DataStore().saveSharedPreferencesBool(KeyValue().ALARM_CHECKER,false);
           } else{
-            Fluttertoast.showToast(
-              msg: "현재 앱 사용시간이 설정된 시간을 초과하지 않았습니다. $timer $savedDurationInMinutes",
-              gravity: ToastGravity.CENTER,
-            );
+            print("아무런 작동을 하지 않습니다.");
           }
         } else {
           print("selectedDurationMap에 'hours' 또는 'minutes' 키가 없습니다.");
@@ -270,20 +275,6 @@ class ServerDataListener {
 
 
 
-    // gptContent = await sendGPT("", "GPT_1");
-    // sendAlarm(
-    //     "Agent : ", gptContent!, time, millitime,
-    //     "1",KeyValue().GPT);
-    //
-    // now = DateTime.now();
-    // millitime = DateTime
-    //     .now()
-    //     .millisecondsSinceEpoch;
-    // formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-    // time = formatter.format(now);
-    //
-    // agentContent = await sendGPT(gptContent, "PCA_1");
-    // sendAlarm("나 : ", agentContent!, time, millitime, "2",KeyValue().AGENT);
 
   }
 }
