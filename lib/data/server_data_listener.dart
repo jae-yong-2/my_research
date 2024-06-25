@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:my_research/data/keystring.dart';
 import 'package:my_research/data/data_store.dart';
@@ -182,8 +183,8 @@ class ServerDataListener {
     
     String formattedTime = DateFormat('HH:mm').format(now);
 
-    if ((formattedTime.compareTo("11:30") >= 0 && formattedTime.compareTo("23:59") <= 0) || formattedTime == "00:00") {
-      await DataStore().saveData(KeyValue().ID, KeyValue().APPUSAGETIME,
+    if ((formattedTime.compareTo("12:30") >= 0 && formattedTime.compareTo("23:59") <= 0) || formattedTime == "00:00") {
+      await DataStore().saveData(KeyValue().ID, "${KeyValue().APPUSAGETIME}/$time",
           {'usageStats' :usageStats});
     } else {
     
@@ -223,11 +224,52 @@ class ServerDataListener {
     formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
     time = formatter.format(now);
     var duration = const Duration(milliseconds: 1000);
-    // try {
-    //   UsageAppService().currentUsageTest(currentAppName, appUsageTime, timer!);
-    // }catch(error){
-    //   UsageAppService().currentUsageTest(currentAppName, appUsageTime, 0);
-    // }
+    final String? selectedDurationJson = await DataStore()
+        .getSharedPreferencesString(KeyValue().SELECTEDDURATION);
+
+    if (selectedDurationJson != null) {
+      try {
+        final Map<String, dynamic> selectedDurationMap = json.decode(selectedDurationJson);
+        if (selectedDurationMap.containsKey('hours') && selectedDurationMap.containsKey('minutes')) {
+          var selectedDuration = Duration(
+              hours: selectedDurationMap['hours'],
+              minutes: selectedDurationMap['minutes']);
+          final int savedMinutes = selectedDuration.inMinutes;
+          final int savedDurationInMinutes = savedMinutes;
+          print("----------------------------------");
+          print("savedMinutes: $savedMinutes");
+          print("usageAllTime: $appUsageTime");
+          print("savedDurationInMinutes: $savedDurationInMinutes");
+          print("----------------------------------");
+
+          if (timer!+5 > savedDurationInMinutes) {
+            Fluttertoast.showToast(
+              msg: "현재 앱 사용시간이 설정된 시간 5분 넘게 초과했습니다! $timer $savedDurationInMinutes",
+              gravity: ToastGravity.CENTER,
+            );
+          } else if(timer! > savedDurationInMinutes){
+            Fluttertoast.showToast(
+              msg: "현재 앱 사용시간이 설정된 시간을 초과했습니다. $timer $savedDurationInMinutes",
+              gravity: ToastGravity.CENTER,
+            );
+          } else{
+            Fluttertoast.showToast(
+              msg: "현재 앱 사용시간이 설정된 시간을 초과하지 않았습니다. $timer $savedDurationInMinutes",
+              gravity: ToastGravity.CENTER,
+            );
+          }
+        } else {
+          print("selectedDurationMap에 'hours' 또는 'minutes' 키가 없습니다.");
+        }
+      } catch (e) {
+        print("JSON 파싱 중 오류 발생: $e");
+      }
+    } else {
+      print("selectedDurationJson이 null입니다.");
+    }
+
+
+
     // gptContent = await sendGPT("", "GPT_1");
     // sendAlarm(
     //     "Agent : ", gptContent!, time, millitime,
