@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
@@ -160,9 +161,9 @@ class ServerDataListener {
       return;
     }
 
-    int? appUsageTime = data['appUsageTime'];
-    if (appUsageTime != null) {
-      await DataStore().saveSharedPreferencesInt(KeyValue().APPUSAGETIME, appUsageTime);
+    int? currentAppUsageTime = data['appUsageTime'];
+    if (currentAppUsageTime != null) {
+      await DataStore().saveSharedPreferencesInt(KeyValue().APPUSAGETIME, currentAppUsageTime);
     } else {
       print("appUsageTime이 null입니다");
       return;
@@ -173,7 +174,7 @@ class ServerDataListener {
     print("--------------received data--------------");
     print("Current App: $currentApp");
     print("Current App Name: $currentAppName");
-    print("App Usage Time: $appUsageTime minutes");
+    print("App Usage Time: $currentAppUsageTime minutes");
     print("App Usage State: $usageStats");
     print("-----------------------------------------");
 
@@ -183,34 +184,37 @@ class ServerDataListener {
     
     String formattedTime = DateFormat('HH:mm').format(now);
 
-    if ((formattedTime.compareTo("12:30") >= 0 && formattedTime.compareTo("23:59") <= 0) || formattedTime == "00:00") {
+    //하루가 끝나기 전에 스마트폰의 사용 시간을 전체적으로 저장한다.
+    if ((formattedTime.compareTo("22:30") >= 0 && formattedTime.compareTo("23:59") <= 0) || formattedTime == "00:00") {
       await DataStore().saveData(KeyValue().ID, "${KeyValue().APPUSAGETIME}/$time",
           {'usageStats' :usageStats});
-    } else {
-    
     }
 
     String? selectedApp = await DataStore().getSharedPreferencesString(KeyValue().SELECTEDAPP);
     List<dynamic> jsonData = jsonDecode(selectedApp!);
+    //현재 실행 중인 앱이 선택된 앱 중에 포함이 될때 true 반환
     bool hasPackage = containsPackageName(jsonData, currentApp);
 
+    //선택된 앱( 유튜브 or 다른 앱 )이 현재 실행 중인 앱이고, 계속 실행 중이었으면 알고리즘 실행
     if (oldCurrentApp == currentApp && hasPackage) {
+
       try {
-        // KeyValue().ID가 '0'을 제대로 반환하는지 확인
-        // $currentAppName이 'YouTube'를 제대로 반환하는지 확인
+        //현재 앱이 계속 실행중이었으면 시간(1분에 한번씩) +1하여 timer에 저장함.
         Map<String, dynamic>? data = await DataStore().getData(KeyValue().ID,"timer/$currentAppName/$time");
         timer = data?["time"]+1;
+
+        //timer를 업데이트함.
         if (data != null) {
-          timer = timer!<appUsageTime?appUsageTime:timer;
+          timer = timer!<currentAppUsageTime?currentAppUsageTime:timer;
           await DataStore().saveData(KeyValue().ID,"timer/$currentAppName/$time",{"time": timer});
         } else {
           print("No data found at the path: ${KeyValue().ID}/timer/$currentAppName/$time");
         }
         if(data == null){
-          await DataStore().saveData(KeyValue().ID,"timer/$currentAppName/$time",{"time":appUsageTime});
+          await DataStore().saveData(KeyValue().ID,"timer/$currentAppName/$time",{"time":currentAppUsageTime});
         }
       }catch(error){
-        await DataStore().saveData(KeyValue().ID,"timer/$currentAppName/$time",{"time":appUsageTime});
+        await DataStore().saveData(KeyValue().ID,"timer/$currentAppName/$time",{"time":currentAppUsageTime});
         print(error);
       }
       print("----------------------timer : $timer");
@@ -224,7 +228,7 @@ class ServerDataListener {
     now = DateTime.now();
     formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
     time = formatter.format(now);
-    var duration = const Duration(milliseconds: 1000);
+    var duration = const Duration(milliseconds: 5000);
     final String? selectedDurationJson = await DataStore()
         .getSharedPreferencesString(KeyValue().SELECTEDDURATION);
 
@@ -238,27 +242,103 @@ class ServerDataListener {
           final int savedMinutes = selectedDuration.inMinutes;
           bool? checker = await DataStore().getSharedPreferencesBool(KeyValue().ALARM_CHECKER);
           checker ??= false;
-          if((savedMinutes+5 >=timer!)  && (timer >= savedMinutes)  && !checker!) {
-
+          print('checker : $checker');
+          print('oldCurrentApp : $oldCurrentApp');
+          print('currentApp : $currentApp');
+          if(oldCurrentApp != currentApp &&checker) {
+            now = DateTime.now();
+            millitime = DateTime
+                .now()
+                .millisecondsSinceEpoch;
+            formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+            time = formatter.format(now);
             // gptContent = await sendGPT("", "GPT_1");
-            // sendAlarm(
-            //     "Agent : ", gptContent!, time, millitime,
-            //     "1",KeyValue().GPT);
-            //
-            // now = DateTime.now();
-            // millitime = DateTime
-            //     .now()
-            //     .millisecondsSinceEpoch;
-            // formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-            // time = formatter.format(now);
-            //
+            gptContent = "GPT2 사용 종료하셨군요!";
+            sendAlarm(
+                "Agent : ", gptContent!, time, millitime,
+                "1",KeyValue().GPT);
+
+
+            sleep(duration);
+            //PCA의 응답
+            now = DateTime.now();
+            millitime = DateTime
+                .now()
+                .millisecondsSinceEpoch;
+            formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+            time = formatter.format(now);
+
             // agentContent = await sendGPT(gptContent, "PCA_1");
-            // sendAlarm("나 : ", agentContent!, time, millitime, "2",KeyValue().AGENT);
+            agentContent = "넹 껐어요";
+            sendAlarm("나", agentContent!, time, millitime, "2",KeyValue().AGENT);
+
+
+            await DataStore().saveSharedPreferencesBool(KeyValue().ALARM_CHECKER,false);
+          }
+          if((savedMinutes+5 >timer!)  && (timer >= savedMinutes)  && !checker) {
+
+            //사용을 종료하라는 agent의 메세지
+            now = DateTime.now();
+            millitime = DateTime
+                .now()
+                .millisecondsSinceEpoch;
+            formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+            time = formatter.format(now);
+            // gptContent = await sendGPT("", "GPT_1");
+            gptContent = "끄쇼";
+            sendAlarm(
+                "Agent", gptContent!, time, millitime,
+                "1",KeyValue().GPT);
+
+            sleep(duration);
+            //PCA의 응답
+            now = DateTime.now();
+            millitime = DateTime
+                .now()
+                .millisecondsSinceEpoch;
+            formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+            time = formatter.format(now);
+
+            // agentContent = await sendGPT(gptContent, "PCA_1");
+            agentContent = "끌겨";
+            sendAlarm("나", agentContent!, time, millitime, "2",KeyValue().AGENT);
+
+
             print("현재 앱 사용시간이 설정된 시간을 초과했습니다. $timer $savedMinutes");
             await DataStore().saveSharedPreferencesBool(KeyValue().ALARM_CHECKER,true);
 
-          } else if (timer > (savedMinutes + 5) && checker!) {
-            print("현재 앱 사용시간이 설정된 시간 5분 넘게 초과했습니다! $timer $savedMinutes");
+          } else if (timer >= (savedMinutes + 5) && checker!) {
+
+            if( oldCurrentApp == currentApp && hasPackage){
+              now = DateTime.now();
+              millitime = DateTime
+                  .now()
+                  .millisecondsSinceEpoch;
+              formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+              time = formatter.format(now);
+              // gptContent = await sendGPT("", "GPT_1");
+              gptContent = "GPT2 사용 종료 하세요!";
+              sendAlarm(
+                  "Agent : ", gptContent!, time, millitime,
+                  "1",KeyValue().GPT);
+
+
+              sleep(duration);
+              //PCA의 응답
+              now = DateTime.now();
+              millitime = DateTime
+                  .now()
+                  .millisecondsSinceEpoch;
+              formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+              time = formatter.format(now);
+
+              // agentContent = await sendGPT(gptContent, "PCA_1");
+              agentContent = "아예~";
+              sendAlarm("나", agentContent!, time, millitime, "2",KeyValue().AGENT);
+
+
+
+            }
             await DataStore().saveSharedPreferencesBool(KeyValue().ALARM_CHECKER,false);
           } else{
             print("아무런 작동을 하지 않습니다.");
@@ -272,9 +352,5 @@ class ServerDataListener {
     } else {
       print("selectedDurationJson이 null입니다.");
     }
-
-
-
-
   }
 }
