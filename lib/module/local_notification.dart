@@ -33,42 +33,42 @@ void notificationTapBackground(NotificationResponse response) async {
         });
 
         //수정 요청으로 수정된 내용 생성
-        String? agentContent = await ServerDataListener().sendGPT(response.input, KeyValue().REPLY);
-        print('---------------$agentContent');
-
-        //수정 된 내용 서버에 캐시 저장
-        // await DataStore().saveData(
-        //     KeyValue().ID, KeyValue().CONVERSATION,
-        //     {
-        //       KeyValue().WHO: KeyValue().AGENT,
-        //       KeyValue().CONTENT: agentContent,
-        //     }
-        // );
-        //수정된 내용 스마트폰(feedback 용)으로 저장
-        Future.delayed(Duration(seconds: 10), () async {
-          await DataStore().saveSharedPreferencesString(
-              "${KeyValue().CONVERSATION}1", agentContent!);
-          await DataStore().saveSharedPreferencesString(
-              "${KeyValue().TIMESTAMP}1", time);
-          //알람과 동시에 서버에 수정된 내용 저장
-          ServerDataListener().sendAlarm(
-              "Agent에게 답장했습니다.", agentContent, time, millitime, "2",KeyValue().AGENT);
-
-        });
-
-        Future.delayed(Duration(seconds: 15), () async {
-
-          var millitime = DateTime
-              .now()
-              .millisecondsSinceEpoch;
-          var now = DateTime.now();
-          var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-          String time = formatter.format(now);
-          print("User replied: ${response.input}");
-          String? gptContent = await ServerDataListener().sendGPT(agentContent, 'RecommendWalkingContent');
-          ServerDataListener().sendAlarm("Agent가 메세지를 보냈습니다.", gptContent!, time, millitime, "3",KeyValue().GPT);
-
-        });
+        // String? agentContent = await ServerDataListener().sendGPT(response.input, KeyValue().REPLY);
+        // print('---------------$agentContent');
+        //
+        // //수정 된 내용 서버에 캐시 저장
+        // // await DataStore().saveData(
+        // //     KeyValue().ID, KeyValue().CONVERSATION,
+        // //     {
+        // //       KeyValue().WHO: KeyValue().AGENT,
+        // //       KeyValue().CONTENT: agentContent,
+        // //     }
+        // // );
+        // //수정된 내용 스마트폰(feedback 용)으로 저장
+        // Future.delayed(Duration(seconds: 10), () async {
+        //   await DataStore().saveSharedPreferencesString(
+        //       "${KeyValue().CONVERSATION}1", agentContent!);
+        //   await DataStore().saveSharedPreferencesString(
+        //       "${KeyValue().TIMESTAMP}1", time);
+        //   //알람과 동시에 서버에 수정된 내용 저장
+        //   ServerDataListener().sendAlarm(
+        //       "Agent에게 답장했습니다.", agentContent, time, millitime, "2",KeyValue().AGENT);
+        //
+        // });
+        //
+        // Future.delayed(Duration(seconds: 15), () async {
+        //
+        //   var millitime = DateTime
+        //       .now()
+        //       .millisecondsSinceEpoch;
+        //   var now = DateTime.now();
+        //   var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+        //   String time = formatter.format(now);
+        //   print("User replied: ${response.input}");
+        //   String? gptContent = await ServerDataListener().sendGPT(agentContent, 'RecommendWalkingContent');
+        //   ServerDataListener().sendAlarm("Agent가 메세지를 보냈습니다.", gptContent!, time, millitime, "3",KeyValue().GPT);
+        //
+        // });
 
 
 

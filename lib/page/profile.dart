@@ -8,6 +8,8 @@ import 'package:my_research/data/data_store.dart';
 import '../module/durationPickerDialog.dart';
 import '../module/usageAppservice.dart';
 
+//TODO 각 어플에 대한 시간도 설정해야함.
+
 class Profile extends StatefulWidget {
   const Profile({Key? key}) : super(key: key);
 
