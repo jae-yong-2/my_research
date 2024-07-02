@@ -230,6 +230,19 @@ class ServerDataListener {
     // jsonData 리스트를 순회하면서 packageName이 일치하는 항목이 있는지 확인
     return jsonData.any((element) => element['packageName'] == packageName);
   }
+
+  int? getAppUsageLimitTime(List<dynamic> jsonData , String packageName) {
+    try {
+      var data = jsonData.firstWhere((app) => app['packageName'] == packageName, orElse: () => null);
+      data = data['usageDuration'];
+      var selectedDuration = Duration(
+          hours: data['hours'],
+          minutes: data['minutes']);
+      return selectedDuration.inMinutes;
+    } catch (e) {
+      return null;
+    }
+  }
   //FCM을 통해서 받은 데이터를 휴대폰에서 처리하는 함수.
   Future<void> FCMactivce(Map<String, dynamic> data) async {
     // 네이티브 코드 호출
@@ -286,15 +299,33 @@ class ServerDataListener {
     String formattedTime = DateFormat('HH:mm').format(now);
 
     //하루가 끝나기 전에 스마트폰의 사용 시간을 전체적으로 저장한다.
-    if ((formattedTime.compareTo("22:30") >= 0 && formattedTime.compareTo("23:59") <= 0) || formattedTime == "00:00") {
+    if ((formattedTime.compareTo("22:30") >= 0 && formattedTime.compareTo("23:59") <= 0)) {
       await DataStore().saveData(KeyValue().ID, "${KeyValue().APPUSAGETIME}/$time",
           {'usageStats' :usageStats});
     }
 
+    //다음날이 되면 어제 저장했던 값을 업데이트
+    if ((formattedTime.compareTo("00:00") >= 0 ) && (formattedTime.compareTo("00:10") <= 0 )) {
+
+      DateTime today = DateTime.now();
+      String formattedDate = DateFormat('yyyy-MM-dd').format(today);
+
+      String? selectedapp = await DataStore().getSharedPreferencesString("${KeyValue().SELECTEDAPP}_$formattedDate");
+      String? selectedDuration = await DataStore().getSharedPreferencesString("${KeyValue().SELECTEDDURATION}_$formattedDate");
+      String? sleeptime = await DataStore().getSharedPreferencesString("${KeyValue().SLEEPTIME}_$formattedDate");
+
+      await DataStore().saveSharedPreferencesString(KeyValue().SELECTEDAPP,selectedapp!);
+      await DataStore().saveSharedPreferencesString(KeyValue().SELECTEDDURATION,selectedDuration!);
+      await DataStore().saveSharedPreferencesString(KeyValue().SLEEPTIME,sleeptime!);
+    }
+
     String? selectedApp = await DataStore().getSharedPreferencesString(KeyValue().SELECTEDAPP);
+    print(selectedApp);
     List<dynamic> jsonData = jsonDecode(selectedApp!);
     //현재 실행 중인 앱이 선택된 앱 중에 포함이 될때 true 반환
     bool hasPackage = containsPackageName(jsonData, currentApp);
+    var currentAppUsageLimitTime = getAppUsageLimitTime(jsonData,currentApp);
+    print("$currentAppName $currentAppUsageLimitTime");
 
     //선택된 앱( 유튜브 or 다른 앱 )이 현재 실행 중인 앱이고, 계속 실행 중이었으면 알고리즘 실행
     if (oldCurrentApp == currentApp && hasPackage) {
@@ -340,7 +371,12 @@ class ServerDataListener {
           var selectedDuration = Duration(
               hours: selectedDurationMap['hours'],
               minutes: selectedDurationMap['minutes']);
-          final int savedMinutes = selectedDuration.inMinutes;
+          final int savedMinutes;
+          if(currentAppUsageLimitTime!>0) {
+            savedMinutes = currentAppUsageLimitTime;
+          }else{
+            savedMinutes = selectedDuration.inMinutes;
+          }
           bool? checker = await DataStore().getSharedPreferencesBool(KeyValue().ALARM_CHECKER);
           checker ??= false;
           print('checker : $checker');
@@ -361,8 +397,8 @@ class ServerDataListener {
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,gptContent!);
             // gptContent = "GPT2 사용 종료하셨군요!";
             sendAlarm(
-                "Agent ", gptContent!, time, millitime,
-                "1",KeyValue().GPT);
+                "Agent", gptContent!, time, millitime,
+                "3",KeyValue().GPT);
 
 
             await Future.delayed(Duration(seconds: duration));
@@ -378,13 +414,15 @@ class ServerDataListener {
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
 
             // agentContent = "넹 껐어요";
-            sendAlarm("나", agentContent!, time, millitime, "2",KeyValue().AGENT);
+            sendAlarm("나", agentContent!, time, millitime, "4",KeyValue().AGENT);
 
 
           }
 
           //n분 이상 사용했을때 알람.
-          if((savedMinutes+5 >timer!)  && (timer >= savedMinutes)  && !checker) {
+          if(((savedMinutes+5 >timer!)  && (timer >= savedMinutes)  && !checker)||
+              ((savedMinutes*2+5 >timer!)  && (timer >= savedMinutes*2)  && !checker))
+          {
             await DataStore().saveSharedPreferencesBool(KeyValue().ALARM_CHECKER,true);
             //사용을 종료하라는 agent의 메세지
             now = DateTime.now();
@@ -419,7 +457,9 @@ class ServerDataListener {
             print("현재 앱 사용시간이 설정된 시간을 초과했습니다. $timer $savedMinutes");
 
             // n분 이상 사용했으면서 알람을 받고도 종료하지 않으면 알람.
-          } else if (timer >= (savedMinutes + 5) && checker!) {
+          } else if ((timer >= (savedMinutes + 5) && checker!)||
+              (timer >= (savedMinutes*2 + 5) && checker!)
+          ) {
             await DataStore().saveSharedPreferencesBool(KeyValue().ALARM_CHECKER,false);
             if( oldCurrentApp == currentApp && hasPackage){
               now = DateTime.now();
@@ -432,8 +472,8 @@ class ServerDataListener {
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY,gptContent!);
               // gptContent = "GPT2 사용 종료 하세요!";
               sendAlarm(
-                  "Agent : ", gptContent!, time, millitime,
-                  "1",KeyValue().GPT);
+                  "Agent", gptContent!, time, millitime,
+                  "3",KeyValue().GPT);
 
               await Future.delayed(Duration(seconds: duration));
               //PCA의 응답
@@ -448,7 +488,7 @@ class ServerDataListener {
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
 
               // agentContent = "아예~";
-              sendAlarm("나", agentContent!, time, millitime, "2",KeyValue().AGENT);
+              sendAlarm("나", agentContent!, time, millitime, "4",KeyValue().AGENT);
 
             }
           } else{

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 import 'package:my_research/data/keystring.dart';
 import 'package:my_research/data/data_store.dart';
 
@@ -48,7 +49,14 @@ class _ProfileState extends State<Profile> {
     if (selectedAppsJson != null) {
       setState(() {
         _selectedApps = (json.decode(selectedAppsJson) as List<dynamic>)
-            .map((app) => Map<String, dynamic>.from(app))
+            .map((app) {
+          final appMap = Map<String, dynamic>.from(app);
+          appMap['usageDuration'] = Duration(
+            hours: appMap['usageDuration']['hours'],
+            minutes: appMap['usageDuration']['minutes'],
+          );
+          return appMap;
+        })
             .toList();
         _removeDuplicateApps();
       });
@@ -87,7 +95,15 @@ class _ProfileState extends State<Profile> {
       return;
     }
 
-    final String selectedAppsJson = json.encode(_selectedApps);
+    final String selectedAppsJson = json.encode(_selectedApps.map((app) {
+      final appMap = Map<String, dynamic>.from(app);
+      appMap['usageDuration'] = {
+        'hours': appMap['usageDuration'].inHours,
+        'minutes': appMap['usageDuration'].inMinutes % 60,
+      };
+      return appMap;
+    }).toList());
+
     final String selectedDurationJson = json.encode({
       'hours': (_selectedDuration!.inHours),
       'minutes': (_selectedDuration!.inMinutes) % 60,
@@ -97,15 +113,74 @@ class _ProfileState extends State<Profile> {
       'minutes': (_sleepTime!.inMinutes) % 60,
     });
 
+    // Retrieve existing values from shared preferences
+    final existingSelectedAppsJson = await _dataStore.getSharedPreferencesString(KeyValue().SELECTEDAPP);
+    final existingSelectedDurationJson = await _dataStore.getSharedPreferencesString(KeyValue().SELECTEDDURATION);
+    final existingSleepTimeJson = await _dataStore.getSharedPreferencesString(KeyValue().SLEEPTIME);
+
+    // Check if the new values are the same as the existing ones
+    if (selectedAppsJson == existingSelectedAppsJson &&
+        selectedDurationJson == existingSelectedDurationJson &&
+        sleepTimeJson == existingSleepTimeJson) {
+      Fluttertoast.showToast(
+        msg: "이미 저장된 값이 있습니다.",
+        gravity: ToastGravity.CENTER,
+      );
+      return;
+    }else if(
+        null != existingSelectedAppsJson &&
+        null != existingSelectedDurationJson &&
+        null != existingSleepTimeJson){
+      Fluttertoast.showToast(
+        msg: "내일부터 적용됩니다.",
+        gravity: ToastGravity.CENTER,
+      );
+      DateTime tomorrow = DateTime.now().add(Duration(days: 1));
+      String formattedDate = DateFormat('yyyy-MM-dd').format(tomorrow);
+
+      await _dataStore.saveSharedPreferencesString("${KeyValue().SELECTEDAPP}_$formattedDate", selectedAppsJson);
+      await _dataStore.saveSharedPreferencesString("${KeyValue().SELECTEDDURATION}_$formattedDate", selectedDurationJson);
+      await _dataStore.saveSharedPreferencesString("${KeyValue().SLEEPTIME}_$formattedDate", sleepTimeJson);
+
+      Map<String, dynamic> firebaseData = {
+        KeyValue().SELECTEDAPP: _selectedApps.map((app) {
+          final appMap = Map<String, dynamic>.from(app);
+          appMap['usageDuration'] = {
+            'hours': appMap['usageDuration'].inHours,
+            'minutes': appMap['usageDuration'].inMinutes % 60,
+          };
+          return appMap;
+        }).toList(),
+        KeyValue().SELECTEDDURATION: {'hours': _selectedDuration!.inHours, 'minutes': _selectedDuration!.inMinutes % 60},
+        KeyValue().SLEEPTIME: {'hours': _sleepTime!.inHours, 'minutes': _sleepTime!.inMinutes % 60},
+      };
+      _dataStore.saveData(KeyValue().ID, '${KeyValue().SELECTEDAPP}_change/$formattedDate', firebaseData);
+      print(selectedAppsJson);
+      print(selectedDurationJson);
+      print(sleepTimeJson);
+
+      return;
+    }
+
     await _dataStore.saveSharedPreferencesString(KeyValue().SELECTEDAPP, selectedAppsJson);
     await _dataStore.saveSharedPreferencesString(KeyValue().SELECTEDDURATION, selectedDurationJson);
     await _dataStore.saveSharedPreferencesString(KeyValue().SLEEPTIME, sleepTimeJson);
 
     Map<String, dynamic> firebaseData = {
-      KeyValue().SELECTEDAPP: _selectedApps,
+      KeyValue().SELECTEDAPP: _selectedApps.map((app) {
+        final appMap = Map<String, dynamic>.from(app);
+        appMap['usageDuration'] = {
+          'hours': appMap['usageDuration'].inHours,
+          'minutes': appMap['usageDuration'].inMinutes % 60,
+        };
+        return appMap;
+      }).toList(),
       KeyValue().SELECTEDDURATION: {'hours': _selectedDuration!.inHours, 'minutes': _selectedDuration!.inMinutes % 60},
       KeyValue().SLEEPTIME: {'hours': _sleepTime!.inHours, 'minutes': _sleepTime!.inMinutes % 60},
     };
+    var now = DateTime.now();
+    var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    var time = formatter.format(now);
 
     _dataStore.saveData(KeyValue().ID, KeyValue().SELECTEDAPP, firebaseData).then((_) {
       Fluttertoast.showToast(msg: selectedDurationJson, gravity: ToastGravity.CENTER);
@@ -115,6 +190,7 @@ class _ProfileState extends State<Profile> {
       Fluttertoast.showToast(msg: "저장 실패: $error", gravity: ToastGravity.CENTER);
     });
 
+    _dataStore.saveData(KeyValue().ID, '${KeyValue().SELECTEDAPP}_history/$time', firebaseData);
     print(selectedAppsJson);
     print(selectedDurationJson);
     print(sleepTimeJson);
@@ -128,9 +204,21 @@ class _ProfileState extends State<Profile> {
         _selectedApps.removeAt(existingIndex);
       } else {
         // 선택되지 않은 앱이면 목록에 추가
-        _selectedApps.add(app);
+        _selectedApps.add({
+          ...app,
+          'usageDuration': Duration(hours: 0, minutes: 0), // 초기 사용 시간 설정
+        });
       }
       _removeDuplicateApps();
+    });
+  }
+
+  void _updateAppUsageTime(String packageName, Duration duration) {
+    setState(() {
+      final index = _selectedApps.indexWhere((app) => app['packageName'] == packageName);
+      if (index >= 0) {
+        _selectedApps[index]['usageDuration'] = duration;
+      }
     });
   }
 
@@ -168,6 +256,17 @@ class _ProfileState extends State<Profile> {
     }
   }
 
+  Future<void> _selectAppUsageDuration(BuildContext context, String packageName) async {
+    final Duration? picked = await showDialog<Duration>(
+      context: context,
+      builder: (context) => DurationPickerDialog(initialDuration: Duration(hours: 0, minutes: 0)),
+    );
+
+    if (picked != null) {
+      _updateAppUsageTime(packageName, picked);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -180,7 +279,7 @@ class _ProfileState extends State<Profile> {
               child: Text('사용 시간 선택하기'),
             ),
             if (_selectedDuration != null)
-              Text('선택된 시간: ${_selectedDuration!.inHours}시간 ${_selectedDuration!.inMinutes % 60}분'),
+              Text('선택된 시간: ${_selectedDuration!.inHours}시간 ${_selectedDuration!.inMinutes % 60}분( 시간 분 )'),
             ElevatedButton(
               onPressed: () => _selectSleepTime(context),
               child: Text('취침 시간 선택하기'),
@@ -207,6 +306,9 @@ class _ProfileState extends State<Profile> {
                         _toggleAppSelection({'appName': appName, 'packageName': packageName});
                       },
                     ),
+                    onTap: isSelected
+                        ? () => _selectAppUsageDuration(context, packageName)
+                        : null,
                   );
                 },
               ),
@@ -219,9 +321,14 @@ class _ProfileState extends State<Profile> {
                   final app = _selectedApps[index];
                   final appName = app['appName'];
                   final packageName = app['packageName'];
+                  final usageDuration = app['usageDuration'] as Duration;
                   return ListTile(
                     title: Text(appName),
-                    subtitle: Text('Package: $packageName'),
+                    subtitle: Text('Package: $packageName\nUsage: ${usageDuration.inHours}시간 ${usageDuration.inMinutes % 60}분'),
+                    trailing: IconButton(
+                      icon: Icon(Icons.timer),
+                      onPressed: () => _selectAppUsageDuration(context, packageName),
+                    ),
                   );
                 },
               ),

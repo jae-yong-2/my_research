@@ -155,7 +155,7 @@ class LocalNotification {
       styleInformation: bigTextStyleInformation,
       actions: ((payload == "2")?
         actions : []),
-      icon:  (payload == "2")?'@drawable/user':'@drawable/gpt'
+      icon:  (payload == "2" || payload == "4")?'@drawable/user':'@drawable/gpt'
 
     );
     // 답장을 위한 RemoteInput 생성
