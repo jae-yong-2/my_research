@@ -121,8 +121,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
 
-
-
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private List<Map<String, Object>> getUsageStats() {
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
@@ -139,7 +137,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         PackageManager pm = getPackageManager();
 
         for (UsageStats usageStat : stats) {
-            if (usageStat.getTotalTimeInForeground() > 0) {
+            long usageStartTime = usageStat.getFirstTimeStamp();
+            long usageEndTime = usageStat.getLastTimeStamp();
+
+            // Check if the usage data falls within today
+            if (usageEndTime > startTime && usageStat.getTotalTimeInForeground() > 0) {
                 String packageName = usageStat.getPackageName();
                 long totalTimeInForeground = usageStat.getTotalTimeInForeground() / 1000 / 60; // Convert milliseconds to minutes
 
@@ -151,19 +153,20 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     Map<String, Object> usageMap = new HashMap<>();
                     usageMap.put("packageName", packageName);
                     usageMap.put("totalTimeInForeground", totalTimeInForeground);
-//                    try {
-//                        ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
-//                        String appName = pm.getApplicationLabel(appInfo).toString();
-//                        usageMap.put("appName", appName);
-//                    } catch (PackageManager.NameNotFoundException e) {
-//                        usageMap.put("appName", FriendlyNameMapper.getFriendlyName(packageName));
-//                    }
+                    try {
+                        ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
+                        String appName = pm.getApplicationLabel(appInfo).toString();
+                        usageMap.put("appName", appName);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        usageMap.put("appName", FriendlyNameMapper.getFriendlyName(packageName));
+                    }
                     usageStatsMap.put(packageName, usageMap);
                 }
             }
         }
         return new ArrayList<>(usageStatsMap.values());
     }
+
 
     private String getCurrentAppName(String packageName) {
         PackageManager pm = getPackageManager();
