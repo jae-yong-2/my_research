@@ -121,6 +121,51 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
 
+//    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+//    private List<Map<String, Object>> getUsageStats() {
+//        UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
+//        Calendar calendar = Calendar.getInstance();
+//        long endTime = calendar.getTimeInMillis();
+//        calendar.set(Calendar.HOUR_OF_DAY, 0);
+//        calendar.set(Calendar.MINUTE, 0);
+//        calendar.set(Calendar.SECOND, 0);
+//        calendar.set(Calendar.MILLISECOND, 0);
+//        long startTime = calendar.getTimeInMillis();
+//
+//        List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_BEST, startTime, endTime);
+//        Map<String, Map<String, Object>> usageStatsMap = new HashMap<>();
+//        PackageManager pm = getPackageManager();
+//
+//        for (UsageStats usageStat : stats) {
+//            long usageStartTime = usageStat.getFirstTimeStamp();
+//            long usageEndTime = usageStat.getLastTimeStamp();
+//
+//            // Check if the usage data falls within today
+//            if (usageEndTime > startTime && usageStat.getTotalTimeInForeground() > 0) {
+//                String packageName = usageStat.getPackageName();
+//                long totalTimeInForeground = usageStat.getTotalTimeInForeground() / 1000 / 60; // Convert milliseconds to minutes
+//
+//                if (usageStatsMap.containsKey(packageName)) {
+//                    Map<String, Object> usageMap = usageStatsMap.get(packageName);
+//                    long existingTime = (long) usageMap.get("totalTimeInForeground");
+//                    usageMap.put("totalTimeInForeground", existingTime + totalTimeInForeground);
+//                } else {
+//                    Map<String, Object> usageMap = new HashMap<>();
+//                    usageMap.put("packageName", packageName);
+//                    usageMap.put("totalTimeInForeground", totalTimeInForeground);
+//                    try {
+//                        ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
+//                        String appName = pm.getApplicationLabel(appInfo).toString();
+//                        usageMap.put("appName", appName);
+//                    } catch (PackageManager.NameNotFoundException e) {
+//                        usageMap.put("appName", FriendlyNameMapper.getFriendlyName(packageName));
+//                    }
+//                    usageStatsMap.put(packageName, usageMap);
+//                }
+//            }
+//        }
+//        return new ArrayList<>(usageStatsMap.values());
+//    }
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private List<Map<String, Object>> getUsageStats() {
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
@@ -132,39 +177,49 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         calendar.set(Calendar.MILLISECOND, 0);
         long startTime = calendar.getTimeInMillis();
 
-        List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime);
-        Map<String, Map<String, Object>> usageStatsMap = new HashMap<>();
+        UsageEvents usageEvents = usageStatsManager.queryEvents(startTime, endTime);
+        UsageEvents.Event event = new UsageEvents.Event();
+        Map<String, Long> usageMap = new HashMap<>();
+        Map<String, Long> lastForegroundTimes = new HashMap<>();
         PackageManager pm = getPackageManager();
 
-        for (UsageStats usageStat : stats) {
-            long usageStartTime = usageStat.getFirstTimeStamp();
-            long usageEndTime = usageStat.getLastTimeStamp();
+        while (usageEvents.hasNextEvent()) {
+            usageEvents.getNextEvent(event);
 
-            // Check if the usage data falls within today
-            if (usageEndTime > startTime && usageStat.getTotalTimeInForeground() > 0) {
-                String packageName = usageStat.getPackageName();
-                long totalTimeInForeground = usageStat.getTotalTimeInForeground() / 1000 / 60; // Convert milliseconds to minutes
+            String packageName = event.getPackageName();
+            if (event.getEventType() == UsageEvents.Event.MOVE_TO_FOREGROUND) {
+                lastForegroundTimes.put(packageName, event.getTimeStamp());
+            } else if (event.getEventType() == UsageEvents.Event.MOVE_TO_BACKGROUND) {
+                if (lastForegroundTimes.containsKey(packageName)) {
+                    long startTimeInForeground = lastForegroundTimes.get(packageName);
+                    long timeInForeground = event.getTimeStamp() - startTimeInForeground;
 
-                if (usageStatsMap.containsKey(packageName)) {
-                    Map<String, Object> usageMap = usageStatsMap.get(packageName);
-                    long existingTime = (long) usageMap.get("totalTimeInForeground");
-                    usageMap.put("totalTimeInForeground", existingTime + totalTimeInForeground);
-                } else {
-                    Map<String, Object> usageMap = new HashMap<>();
-                    usageMap.put("packageName", packageName);
-                    usageMap.put("totalTimeInForeground", totalTimeInForeground);
-                    try {
-                        ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
-                        String appName = pm.getApplicationLabel(appInfo).toString();
-                        usageMap.put("appName", appName);
-                    } catch (PackageManager.NameNotFoundException e) {
-                        usageMap.put("appName", FriendlyNameMapper.getFriendlyName(packageName));
-                    }
-                    usageStatsMap.put(packageName, usageMap);
+                    usageMap.put(packageName, usageMap.getOrDefault(packageName, 0L) + timeInForeground);
+                    lastForegroundTimes.remove(packageName);
                 }
             }
         }
-        return new ArrayList<>(usageStatsMap.values());
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map.Entry<String, Long> entry : usageMap.entrySet()) {
+            String packageName = entry.getKey();
+            long totalTimeInForeground = entry.getValue() / 1000 / 60; // Convert milliseconds to minutes
+
+            Map<String, Object> usageStats = new HashMap<>();
+            usageStats.put("packageName", packageName);
+            usageStats.put("totalTimeInForeground", totalTimeInForeground);
+
+            try {
+                ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
+                String appName = pm.getApplicationLabel(appInfo).toString();
+                usageStats.put("appName", appName);
+            } catch (PackageManager.NameNotFoundException e) {
+                usageStats.put("appName", packageName);
+            }
+
+            result.add(usageStats);
+        }
+        return result;
     }
 
 

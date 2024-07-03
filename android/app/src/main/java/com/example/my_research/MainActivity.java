@@ -123,23 +123,28 @@ public class MainActivity extends FlutterActivity {
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
         Calendar calendar = Calendar.getInstance();
         long endTime = calendar.getTimeInMillis();
-        // Set the start time to today's midnight
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         long startTime = calendar.getTimeInMillis();
 
-        List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime);
-        List<Map<String, Object>> usageStats = new ArrayList<>();
+        List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_BEST, startTime, endTime);
+        List<Map<String, Object>> usageStatsList = new ArrayList<>();
         PackageManager pm = getPackageManager();
 
         for (UsageStats usageStat : stats) {
-            if (usageStat.getTotalTimeInForeground() > 0) {
-                Map<String, Object> usageMap = new HashMap<>();
+            long usageEndTime = usageStat.getLastTimeStamp();
+
+            // Check if the usage data falls within today
+            if (usageEndTime > startTime && usageStat.getTotalTimeInForeground() > 0) {
                 String packageName = usageStat.getPackageName();
+                long totalTimeInForegroundMillis = usageStat.getTotalTimeInForeground();
+                long totalTimeInForegroundMinutes = totalTimeInForegroundMillis / 1000 / 60; // Convert milliseconds to minutes
+
+                Map<String, Object> usageMap = new HashMap<>();
                 usageMap.put("packageName", packageName);
-                usageMap.put("totalTimeInForeground", usageStat.getTotalTimeInForeground() / 1000 / 60); // Convert milliseconds to minutes
+                usageMap.put("totalTimeInForeground", totalTimeInForegroundMinutes);
                 try {
                     ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
                     String appName = pm.getApplicationLabel(appInfo).toString();
@@ -147,12 +152,12 @@ public class MainActivity extends FlutterActivity {
                 } catch (PackageManager.NameNotFoundException e) {
                     usageMap.put("appName", FriendlyNameMapper.getFriendlyName(packageName));
                 }
-                usageStats.add(usageMap);
+                usageStatsList.add(usageMap);
             }
         }
-
-        return usageStats;
+        return usageStatsList;
     }
+
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private List<Map<String, Object>> getTop10Apps() {
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
