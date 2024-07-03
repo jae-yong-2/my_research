@@ -6,7 +6,6 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:my_research/data/data_store.dart';
 import 'package:pedometer/pedometer.dart';
-import 'package:native_shared_preferences/native_shared_preferences.dart';
 
 import '../data/keystring.dart';
 
@@ -175,79 +174,9 @@ class _BackgroundServiceState extends State<FeedbackPage> {
             },
           ),
           SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () async {
-              final usageStats = await _getUsageStats();
-              setState(() {
-                _usageStats = usageStats;
-                print(_usageStats);
-              });
-            },
-            child: Text("Get Usage Stats"),
-          ),
-          SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () async {
-              final currentApp = await _getCurrentApp();
-              setState(() {
-                _currentApp = currentApp;
-              });
-              Fluttertoast.showToast(msg: "Current App: $_currentApp");
-              print('Current App: $_currentApp');
-            },
-            child: Text("Get Current App"),
-          ),
-          SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () async {
-              final top10Apps = await _getTop10Apps();
-              setState(() {
-                _top10Apps = top10Apps;
-                print(_top10Apps);
-              });
-            },
-            child: Text("Get Top 10 Apps"),
-          ),
-          SizedBox(height: 20),
-          Center(),
-          Expanded(
-            child: _top10Apps.isEmpty
-                ? Center(child: Text("데이터 없음"))
-                : ListView.builder(
-              itemCount: _top10Apps.length,
-              itemBuilder: (context, index) {
-                final usageStat = _top10Apps[index];
-                final totalTimeInForeground = int.tryParse(usageStat['totalTimeInForeground'].toString()) ?? 0;
-                return ListTile(
-                  title: Text(usageStat['packageName'] ?? 'Unknown'),
-                  subtitle: Text(
-                      'appname: ${usageStat['appName']}'
-                          '\n'
-                          'Usage: ${(totalTimeInForeground).toStringAsFixed(1)} mins'),
-                );
-              },
-            ),
-          ),
         ],
       ),
     ),
   );
 
-  Future<List<Map<String, dynamic>>> _getUsageStats() async {
-    final prefs = await NativeSharedPreferences.getInstance();
-    String usageStatsString = prefs.getString('usageStats') ?? '[]';
-    List<dynamic> usageStatsList = jsonDecode(usageStatsString);
-    return usageStatsList.cast<Map<String, dynamic>>();
-  }
-
-  Future<String> _getCurrentApp() async {
-    final prefs = await NativeSharedPreferences.getInstance();
-    return prefs.getString('currentApp') ?? 'Unknown';
-  }
-
-  Future<List<Map<String, dynamic>>> _getTop10Apps() async {
-    List<Map<String, dynamic>> usageStats = await _getUsageStats();
-    usageStats.sort((a, b) => (b['totalTimeInForeground'] as int).compareTo(a['totalTimeInForeground'] as int));
-    return usageStats.take(10).toList();
-  }
 }

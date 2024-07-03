@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:my_research/data/data_store.dart';
-import 'package:native_shared_preferences/native_shared_preferences.dart';
 
 import '../data/keystring.dart';
 
@@ -100,24 +99,4 @@ class UsageAppService {
     }
   }
 
-  Future<String> getCurrentApp() async {
-    final prefs = await NativeSharedPreferences.getInstance();
-    return prefs.getString('currentApp') ?? 'Unknown';
-  }
-
-  Future<String> getCurrentAppName() async {
-    final prefs = await NativeSharedPreferences.getInstance();
-    return prefs.getString('currentAppName') ?? 'Unknown';
-  }
-  Future<int> getAppUsageTime() async {
-    final prefs = await NativeSharedPreferences.getInstance();
-    return prefs.getInt('appUsageTime') ?? 0;
-  }
-
-  Future<List<Map<String, dynamic>>> getUsageStats() async {
-    final prefs = await NativeSharedPreferences.getInstance();
-    String usageStatsString = prefs.getString('usageStats') ?? '[]';
-    List<dynamic> usageStatsList = jsonDecode(usageStatsString);
-    return usageStatsList.cast<Map<String, dynamic>>();
-  }
 }

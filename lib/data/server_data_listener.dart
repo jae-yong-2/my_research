@@ -9,7 +9,6 @@ import 'package:intl/intl.dart';
 import 'package:my_research/data/keystring.dart';
 import 'package:my_research/data/data_store.dart';
 import 'package:my_research/module/usageAppservice.dart';
-import 'package:native_shared_preferences/native_shared_preferences.dart';
 
 import '../module/local_notification.dart';
 import '../package/const_key.dart';

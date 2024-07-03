@@ -213,26 +213,26 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
 
-    private void saveResultsToSharedPreferences(String currentApp, List<Map<String, Object>> usageStats, int appUsageTime, String appName) {
-        SharedPreferences prefs = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        Gson gson = new Gson();
-        editor.putString("currentApp", currentApp);
-        editor.putString("currentAppName", appName);
-        editor.putInt("appUsageTime", appUsageTime);
-        editor.putString("usageStats", gson.toJson(usageStats));
-
-        editor.apply();
-
-        Log.d(TAG, "----------------------------------------------------------");
-        // 추가된 확인 로그
-        Log.d(TAG, "Saved currentApp: " + prefs.getString("currentApp", "N/A"));
-        Log.d(TAG, "Saved currentAppName: " + prefs.getString("currentAppName", "N/A"));
-        Log.d(TAG, "Saved appUsageTime: " + prefs.getInt("appUsageTime", -1));
-        Log.d(TAG, "Saved usageStats: " + prefs.getString("usageStats", "N/A"));
-
-        Log.d(TAG, "--------------------save android data---------------------");
-    }
+//    private void saveResultsToSharedPreferences(String currentApp, List<Map<String, Object>> usageStats, int appUsageTime, String appName) {
+//        SharedPreferences prefs = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+//        SharedPreferences.Editor editor = prefs.edit();
+//        Gson gson = new Gson();
+//        editor.putString("currentApp", currentApp);
+//        editor.putString("currentAppName", appName);
+//        editor.putInt("appUsageTime", appUsageTime);
+//        editor.putString("usageStats", gson.toJson(usageStats));
+//
+//        editor.apply();
+//
+//        Log.d(TAG, "----------------------------------------------------------");
+//        // 추가된 확인 로그
+//        Log.d(TAG, "Saved currentApp: " + prefs.getString("currentApp", "N/A"));
+//        Log.d(TAG, "Saved currentAppName: " + prefs.getString("currentAppName", "N/A"));
+//        Log.d(TAG, "Saved appUsageTime: " + prefs.getInt("appUsageTime", -1));
+//        Log.d(TAG, "Saved usageStats: " + prefs.getString("usageStats", "N/A"));
+//
+//        Log.d(TAG, "--------------------save android data---------------------");
+//    }
     private void sendToFlutter(String currentApp, List<Map<String, Object>> usageStats, int appUsageTime, String appName) {
         Handler mainHandler = new Handler(Looper.getMainLooper());
         mainHandler.post(() -> {
