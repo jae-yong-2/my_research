@@ -14,7 +14,7 @@ import '../module/local_notification.dart';
 import '../package/const_key.dart';
 class ServerDataListener {
 
-  //ChatGPT API사용
+  //ChatGPT API사용:
   final _openAI = OpenAI.instance.build(
     token: API_KEY,
     baseOption: HttpSetup(
@@ -32,7 +32,7 @@ class ServerDataListener {
   );
 
 //GPT에게 원하는 내용 생성
-  Future<String?> sendGPT(category, currentApp, currentAppUsageTime) async {
+  Future<String?> sendGPT(category, currentApp, currentAppUsageTime, index ) async {
     // Messages 객체 리스트 생성
     String? text = "오류";
     String? sleepTime = await DataStore().getSharedPreferencesString(KeyValue().SLEEPTIME);
@@ -71,14 +71,27 @@ class ServerDataListener {
     if(category =="PCAFirstResponse"){
       final Random random = Random();
       final nonStopReason = [
-        "지인들의 일상생활을 실시간으로 더 보고싶다는",
-        "내 일상생활을 실시간으로 더 공유하고 싶다는",
-        "지금 알고리즘이 좋은 정보들을 잘 알려주고 있다는",
+        [
+          "지인들의 일상생활을 실시간으로 더 보고싶다는",
+          "내 일상생활을 실시간으로 더 공유하고 싶다는",
+          "지금 알고리즘이 좋은 정보들을 잘 알려주고 있다는",
+        ],
+        [
+         "알고리즘에 의해 노출되는 추천영상으로 더 큰 재미를 찾기 위해 계속 영상을 시청하게 됨",
+          "대체할 수 있는 흥미로운 플랫폼이 없음",
+          "프리미엄 서비스를 사용하는 입장에서 앱을 사용 안하면 돈 아까운 느낌이 듦",
+        ]
       ];
       final stopReason = [
-        "일상의 기록을 위함인지 과시를 위함인지 생각",
-        "불필요하고 단발적인 컨텐츠에 시간을 쏟지말자 생각",
-        "화면속 이미 지나간일들의 기록보다 현재의 세상을 보자고 생각",
+        [
+          "일상의 기록을 위함인지 과시를 위함인지 생각",
+          "불필요하고 단발적인 컨텐츠에 시간을 쏟지말자 생각",
+          "화면속 이미 지나간일들의 기록보다 현재의 세상을 보자고 생각",
+        ],
+        [
+          "자기전에는 최소한의 영상시청으로 늦은 시간에 잠들지 않게 함",
+          "업무중 휴식시간에는 앱 사용을 줄여 일에 대한 집중력을 떨어지지 않게 함"
+        ],
       ];
       // 0 또는 1을 랜덤으로 출력하는 변수
       int purposeRandomValue = random.nextInt(2);
@@ -88,9 +101,9 @@ class ServerDataListener {
       //Todo 각 어플에 대한 reason, purpose 를 작성.
 
       if(purposeRandomValue==0){
-        purpose = '${stopReason[stopReasonRandomValue]} 이유로 $currentApp 사용을 "지금 사용을 멈추겠다"고 말하는 거야';
+        purpose = '${stopReason[index][stopReasonRandomValue]} 이유로 $currentApp 사용을 "지금 사용을 멈추겠다"고 말하는 거야';
       }else{
-        purpose = '${nonStopReason[nonStopReasonRandomValue]}한 이유로 $currentApp 사용"조금만 더 사용"한다고 말하는 거야';
+        purpose = '${nonStopReason[index][nonStopReasonRandomValue]}한 이유로 $currentApp 사용"조금만 더 사용"한다고 말하는 거야';
       }
       text = '''
       {
@@ -133,7 +146,7 @@ class ServerDataListener {
         "목표 최대 스마트폰($currentApp) 사용시간": "$appUsageLimitTime",
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
-          ["방금 받은 알람을 확인했다고 5단어 정도로 말하려면 뭐라고 말해야해? 한글 문장으로만 생성해줘.]"
+          ["방금 받은 알람을 확인했어. 알겠다고 확인하는 말을 전달해줘. 5~10단어 정도로 한글 문장으로만 생성해줘.]"
        }
         ''';
     }
@@ -168,7 +181,7 @@ class ServerDataListener {
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            방금 받은 알람을 받고 확인했다고 5단어 정도로 할말을 추천해줘. 한글 문장으로만 출력해
+            방금 받은 알람을 받고 확인했다고 5단어 정도로 할말을 추천해줘. 문장생성
           ]"
       }
         ''';
@@ -242,6 +255,18 @@ class ServerDataListener {
       return null;
     }
   }
+
+  int getIndexForPackageName(List<dynamic> appUsageData, String packageName) {
+    for (int i = 0; i < appUsageData.length; i++) {
+      if (appUsageData[i]['packageName'] == packageName) {
+        return i;
+      }
+    }
+    // 패키지를 찾지 못한 경우 -1 반환
+    return -1;
+  }
+
+
   //FCM을 통해서 받은 데이터를 휴대폰에서 처리하는 함수.
   Future<void> FCMactivce(Map<String, dynamic> data) async {
     // 네이티브 코드 호출
@@ -250,6 +275,9 @@ class ServerDataListener {
     String? oldCurrentAppName = await DataStore().getSharedPreferencesString(KeyValue().CURRENTAPPNAME);
     int? oldAppUsageTime = await DataStore().getSharedPreferencesInt(KeyValue().APPUSAGETIME);
     int? timer;
+
+    print("get selected app : ${await DataStore().getSharedPreferencesString(KeyValue().SELECTEDAPP)}");
+
 
     var now = DateTime.now();
     var millitime = DateTime
@@ -320,10 +348,11 @@ class ServerDataListener {
 
     String? selectedApp = await DataStore().getSharedPreferencesString(KeyValue().SELECTEDAPP);
     print(selectedApp);
-    List<dynamic> jsonData = jsonDecode(selectedApp!);
+    List<dynamic> selectedAppJson = jsonDecode(selectedApp!);
+    print("selected app : $selectedAppJson");
     //현재 실행 중인 앱이 선택된 앱 중에 포함이 될때 true 반환
-    bool hasPackage = containsPackageName(jsonData, currentApp);
-    var currentAppUsageLimitTime = getAppUsageLimitTime(jsonData,currentApp);
+    bool hasPackage = containsPackageName(selectedAppJson, currentApp);
+    var currentAppUsageLimitTime = getAppUsageLimitTime(selectedAppJson,currentApp);
     print("$currentAppName $currentAppUsageLimitTime");
 
     //선택된 앱( 유튜브 or 다른 앱 )이 현재 실행 중인 앱이고, 계속 실행 중이었으면 알고리즘 실행
@@ -378,9 +407,12 @@ class ServerDataListener {
           }
           bool? checker = await DataStore().getSharedPreferencesBool(KeyValue().ALARM_CHECKER);
           checker ??= false;
-          print('checker : $checker');
           print('oldCurrentApp : $oldCurrentApp');
           print('currentApp : $currentApp');
+
+          //현재 실행중인 앱이 사용을 중지하고 싶은 앱리스트의 몇번째 앱리스트인지 출력해줌.
+          int index = getIndexForPackageName(selectedAppJson,currentApp);
+
 
           //알람을 받고 사용을 종료했을때 대답
           if(oldCurrentApp != currentApp &&checker) {
@@ -392,7 +424,7 @@ class ServerDataListener {
                 .millisecondsSinceEpoch;
             formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
             time = formatter.format(now);
-            gptContent = await sendGPT("GPTAcceptResponse",oldCurrentAppName,timer);
+            gptContent = await sendGPT("GPTAcceptResponse",oldCurrentAppName,timer,index);
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,gptContent!);
             // gptContent = "GPT2 사용 종료하셨군요!";
             sendAlarm(
@@ -409,7 +441,7 @@ class ServerDataListener {
             formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
             time = formatter.format(now);
 
-            agentContent = await sendGPT("PCAAcceptResponse",oldCurrentAppName,timer);
+            agentContent = await sendGPT("PCAAcceptResponse",oldCurrentAppName,timer,index);
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
 
             // agentContent = "넹 껐어요";
@@ -430,7 +462,7 @@ class ServerDataListener {
                 .millisecondsSinceEpoch;
             formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
             time = formatter.format(now);
-            gptContent = await sendGPT("GPTFirstResponse",currentAppName,timer);
+            gptContent = await sendGPT("GPTFirstResponse",currentAppName,timer,index);
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,gptContent!);
 
             // gptContent = "$currentAppName 끄쇼";
@@ -447,7 +479,7 @@ class ServerDataListener {
             formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
             time = formatter.format(now);
 
-            agentContent = await sendGPT("PCAFirstResponse",currentAppName,timer);
+            agentContent = await sendGPT("PCAFirstResponse",currentAppName,timer,index);
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
             // agentContent = "끌겨";
             sendAlarm("나", agentContent!, time, millitime, "2",KeyValue().AGENT);
@@ -467,7 +499,7 @@ class ServerDataListener {
                   .millisecondsSinceEpoch;
               formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
               time = formatter.format(now);
-              gptContent = await sendGPT("GPTRejectResponse",currentAppName,timer);
+              gptContent = await sendGPT("GPTRejectResponse",currentAppName,timer,index);
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY,gptContent!);
               // gptContent = "GPT2 사용 종료 하세요!";
               sendAlarm(
@@ -483,7 +515,7 @@ class ServerDataListener {
               formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
               time = formatter.format(now);
 
-              agentContent = await sendGPT("PCARejectResponse",currentAppName,timer);
+              agentContent = await sendGPT("PCARejectResponse",currentAppName,timer,index);
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
 
               // agentContent = "아예~";

@@ -299,7 +299,7 @@ class _ProfileState extends State<Profile> {
 
                   return ListTile(
                     title: Text(appName),
-                    subtitle: Text('Package: $packageName'),
+                    subtitle: Text('$packageName'),
                     trailing: Checkbox(
                       value: isSelected,
                       onChanged: (bool? value) {
@@ -324,7 +324,7 @@ class _ProfileState extends State<Profile> {
                   final usageDuration = app['usageDuration'] as Duration;
                   return ListTile(
                     title: Text(appName),
-                    subtitle: Text('Package: $packageName\nUsage: ${usageDuration.inHours}시간 ${usageDuration.inMinutes % 60}분'),
+                    subtitle: Text('$packageName\n사용: ${usageDuration.inHours}시간 ${usageDuration.inMinutes % 60}분'),
                     trailing: IconButton(
                       icon: Icon(Icons.timer),
                       onPressed: () => _selectAppUsageDuration(context, packageName),
