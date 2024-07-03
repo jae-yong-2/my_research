@@ -110,7 +110,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Current App in Use")
-                .setContentText("Package: " + currentApp + "\n" + "Time: " + currentUsageTime/60 + "시간 " + currentUsageTime%60 + "분")
+                .setContentText("Package: " + currentApp)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(pendingIntent) // 알림 클릭 시 실행될 인텐트 설정
                 .setAutoCancel(true) // 알림 클릭 시 자동으로 삭제되도록 설정
@@ -166,6 +166,15 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 //        }
 //        return new ArrayList<>(usageStatsMap.values());
 //    }
+    private static final List<String> EXCLUDED_PACKAGES = List.of(
+            "com.google.android.packageinstaller",
+            "com.samsung.android.mtp",
+            "com.android.vending",
+            "com.google.android.gms",
+            "com.sec.android.app.launcher",
+            "com.android.settings",
+            "com.google.android.permissioncontroller"
+    );
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private List<Map<String, Object>> getUsageStats() {
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
@@ -204,7 +213,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         for (Map.Entry<String, Long> entry : usageMap.entrySet()) {
             String packageName = entry.getKey();
             long totalTimeInForeground = entry.getValue() / 1000 / 60; // Convert milliseconds to minutes
-
+            if (EXCLUDED_PACKAGES.contains(packageName)) {
+                continue; // Exclude the package
+            }
             Map<String, Object> usageStats = new HashMap<>();
             usageStats.put("packageName", packageName);
             usageStats.put("totalTimeInForeground", totalTimeInForeground);
