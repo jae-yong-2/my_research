@@ -353,7 +353,6 @@ class ServerDataListener {
     bool hasPackage = containsPackageName(selectedAppJson, currentApp);
     var currentAppUsageLimitTime = getAppUsageLimitTime(selectedAppJson,currentApp);
     print("$currentAppName $currentAppUsageLimitTime");
-    print(0);
     //선택된 앱( 유튜브 or 다른 앱 )이 현재 실행 중인 앱이고, 계속 실행 중이었으면 알고리즘 실행
     if (oldCurrentApp == currentApp && hasPackage) {
 
@@ -423,7 +422,6 @@ class ServerDataListener {
           //현재 실행중인 앱이 사용을 중지하고 싶은 앱리스트의 몇번째 앱리스트인지 출력해줌.
           int index = getIndexForPackageName(selectedAppJson,currentApp);
 
-          print(1);
           //알람을 받고 사용을 종료했을때 대답
           if(oldCurrentApp != currentApp &&checker) {
             print("알람을 보고 앱을 종료했습니다.");
@@ -462,7 +460,6 @@ class ServerDataListener {
 
 
           }
-          print(6);
 
           if((firstchecker && (savedMinutes+5 < timer!)) || (firstchecker && (2*savedMinutes+5 < timer!))){
             await DataStore().saveSharedPreferencesBool("first_${KeyValue().ALARM_CHECKER}",false);
@@ -502,9 +499,12 @@ class ServerDataListener {
             time = formatter.format(now);
 
             // agentContent = await sendGPT("PCAFirstResponse",currentAppName,timer,savedMinutes, index);
-            agentContent="test";
+            agentContent="의도 목적";
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
-            await DataStore().saveSharedPreferencesString(KeyValue().ISFEEDBACK,agentContent!);
+
+            await DataStore().saveSharedPreferencesString("${KeyValue().ISFEEDBACK}_agentContent",agentContent);
+            await DataStore().saveSharedPreferencesString("${KeyValue().ISFEEDBACK}_time",time);
+            await DataStore().saveSharedPreferencesInt("${KeyValue().ISFEEDBACK}_millitime",millitime);
             // agentContent = "끌겨";
             sendAlarm("나", agentContent!, time, millitime, "2",KeyValue().AGENT);
 

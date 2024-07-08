@@ -3,7 +3,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:my_research/data/keystring.dart';
 import 'package:my_research/data/server_data_listener.dart';
-
 import '../data/data_store.dart';
 import '../main.dart';
 import '../page/feedback.dart';
@@ -12,22 +11,40 @@ import '../page/feedback.dart';
 void notificationTapBackground(NotificationResponse response) async {
   try {
     if (response.notificationResponseType == NotificationResponseType.selectedNotificationAction) {
-      //TODO 의도가 맞을떄, 틀릴때 피드백 각각 받기
+      // TODO 의도가 맞을 때, 틀릴 때 피드백 각각 받기
 
-
-
+      String? content = await DataStore().getSharedPreferencesString("${KeyValue().ISFEEDBACK}_agentContent");
+      String? time = await DataStore().getSharedPreferencesString("${KeyValue().ISFEEDBACK}_time");
+      int? millitime = await DataStore().getSharedPreferencesInt("${KeyValue().ISFEEDBACK}_millitime");
 
       if (response.actionId == 'yes_action' || response.actionId == 'no_action') {
         // 예 또는 아니오 버튼이 눌렸을 때, 다시 "이유가 맞습니다" 또는 "이유가 다릅니다" 알림을 생성
-
         if(response.actionId == 'yes_action'){
-          //TODO 의도가 맞다는 피드백 보내기
+          await DataStore().saveSharedPreferencesBool("Purpose", true);
+          // TODO 의도가 맞다는 피드백 보내기
+          await DataStore().saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
+            KeyValue().CHAT_ID: KeyValue().AGENT,
+            KeyValue().CONTENT: content,
+            KeyValue().TIMESTAMP: time,
+            KeyValue().MILLITIMESTAMP: millitime,
+            "Purpose" : true,
+            "Reasone" : "null",
+          });
 
           print("yes");
         }
         if(response.actionId == 'no_action'){
-          //TODO 의도가 틀리다는 피드백 보내기
-
+          // TODO 의도가 틀리다는 피드백 보내기
+          await DataStore().saveSharedPreferencesBool("Purpose", false);
+          // TODO 의도가 맞다는 피드백 보내기
+          await DataStore().saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
+            KeyValue().CHAT_ID: KeyValue().AGENT,
+            KeyValue().CONTENT: content,
+            KeyValue().TIMESTAMP: time,
+            KeyValue().MILLITIMESTAMP: millitime,
+            "Purpose" : false,
+            "Reasone" : "null",
+          });
           print("no");
         }
 
@@ -38,50 +55,53 @@ void notificationTapBackground(NotificationResponse response) async {
           body: text,
           payload: '5',
         );
-      } else if (response.input != null) {
-        // 시간 초기화
-        var millitime = DateTime.now().millisecondsSinceEpoch;
-        var now = DateTime.now();
-        var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-        String time = formatter.format(now);
-        print("User replied: ${response.input}");
+      }
 
-        // 수정할 때 내용 저장
-        // await DataStore().saveData(KeyValue().ID, '${KeyValue().REPLY}/$time', {
-        //   KeyValue().CHAT_ID: KeyValue().AGENT,
-        //   KeyValue().CONTENT: response.input,
-        //   KeyValue().TIMESTAMP: time,
-        //   KeyValue().MILLITIMESTAMP: millitime,
-        // });
+      if (response.actionId == 'correct_reason' || response.actionId == 'incorrect_reason') {
+        // 이유가 맞는지 묻는 알림에 대한 응답 처리
+        print("User selected reason response: ${response.actionId}");
 
-        // 서버로 전송하는 함수 호출
+        bool? purpose = await DataStore().getSharedPreferencesBool("Purpose");
+
+        if(response.actionId == 'correct_reason'){
+          // TODO 이유가 맞다는 피드백 보내기
+          await DataStore().saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
+            KeyValue().CHAT_ID: KeyValue().AGENT,
+            KeyValue().CONTENT: content,
+            KeyValue().TIMESTAMP: time,
+            KeyValue().MILLITIMESTAMP: millitime,
+            "Purpose" : purpose,
+            "Reasone" : true,
+          });
+          print("yes");
+        }
+        if(response.actionId == 'incorrect_reason'){
+          // TODO 이유가 틀리다는 피드백 보내기
+          await DataStore().saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
+            KeyValue().CHAT_ID: KeyValue().AGENT,
+            KeyValue().CONTENT: content,
+            KeyValue().TIMESTAMP: time,
+            KeyValue().MILLITIMESTAMP: millitime,
+            "Purpose" : purpose,
+            "Reasone" : false,
+          });
+          print("no");
+        }
+
+        // TODO 이유가 맞고 틀릴 때, 각각에 대해서 알고리즘 처리
+
+        // 모든 알림 취소
+        await LocalNotification.cancelNotificationByPayload(1);
+        await LocalNotification.cancelNotificationByPayload(2);
+        await LocalNotification.cancelNotificationByPayload(5);
       } else {
         print("No input received.");
       }
 
       // 두 번째 피드백을 받았을 때 알림 취소
-      await LocalNotification.cancelNotificationByPayload(1);
-      await LocalNotification.cancelNotificationByPayload(2);
-    } else if (response.actionId == 'correct_reason' || response.actionId == 'incorrect_reason') {
-      // 이유가 맞는지 묻는 알림에 대한 응답 처리
-      print("User selected reason response: ${response.actionId}");
-
-      if(response.actionId == 'correct_reason'){
-        //TODO 이유가 맞다는 피드백 보내기
-        print("yes");
-      }
-      if(response.actionId == 'incorrect_reason'){
-        //TODO 이유가 틀리다는 피드백 보내기
-        print("no");
-      }
-
-
-      //TODO 이유가 맞고 틀릴때, 각각에 대해서 알고리즘 처리
-
-      // 모든 알림 취소
-      await LocalNotification.cancelAllNotifications();
     } else {
       // navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) => MyApp(isLaunchedByNotification: false,)));
+      // 앱으로 이동하지 않도록 이 부분을 비워둡니다.
     }
   } catch (e) {
     print("Error handling notification response: $e");
@@ -91,7 +111,6 @@ void notificationTapBackground(NotificationResponse response) async {
 
 class LocalNotification {
   static final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
 
   static Future<bool> init() async {
     const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
