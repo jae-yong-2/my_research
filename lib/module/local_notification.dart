@@ -11,80 +11,101 @@ import '../page/feedback.dart';
 void notificationTapBackground(NotificationResponse response) async {
   try {
     if (response.notificationResponseType == NotificationResponseType.selectedNotificationAction) {
+      // TODO 의도가 맞을 때, 틀릴 때 피드백 각각 받기
+
       String? content = await DataStore().getSharedPreferencesString("${KeyValue().ISFEEDBACK}_agentContent");
       String? time = await DataStore().getSharedPreferencesString("${KeyValue().ISFEEDBACK}_time");
       int? millitime = await DataStore().getSharedPreferencesInt("${KeyValue().ISFEEDBACK}_millitime");
 
       if (response.actionId == 'yes_action' || response.actionId == 'no_action') {
-        if (response.actionId == 'yes_action') {
+        // 예 또는 아니오 버튼이 눌렸을 때, 다시 "이유가 맞습니다" 또는 "이유가 다릅니다" 알림을 생성
+        if(response.actionId == 'yes_action'){
           await DataStore().saveSharedPreferencesBool("Purpose", true);
+          // TODO 의도가 맞다는 피드백 보내기
           await DataStore().saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
             KeyValue().CHAT_ID: KeyValue().AGENT,
             KeyValue().CONTENT: content,
             KeyValue().TIMESTAMP: time,
             KeyValue().MILLITIMESTAMP: millitime,
-            "Purpose": true,
-            "Reasone": "null",
+            "Purpose" : true,
+            "Reasone" : "null",
           });
-          print("click yes");
-        } else if (response.actionId == 'no_action') {
+
+          print("click yes action");
+        }
+        if(response.actionId == 'no_action'){
+          // TODO 의도가 틀리다는 피드백 보내기
           await DataStore().saveSharedPreferencesBool("Purpose", false);
+          // TODO 의도가 맞다는 피드백 보내기
           await DataStore().saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
             KeyValue().CHAT_ID: KeyValue().AGENT,
             KeyValue().CONTENT: content,
             KeyValue().TIMESTAMP: time,
             KeyValue().MILLITIMESTAMP: millitime,
-            "Purpose": false,
-            "Reasone": "null",
+            "Purpose" : false,
+            "Reasone" : "null",
           });
-          print("click no");
+          print("click no action ");
         }
 
         String? text = await DataStore().getSharedPreferencesString(KeyValue().ISFEEDBACK);
         text ??= "오류입니다. 아무 응답 후, 넘어가주세요.";
         await LocalNotification.showOngoingNotification(
-          title: '피드백을 해주세요.',
+          title: '이유는 어떤가요?',
           body: text,
-          payload: "6",
+          payload: '6',
         );
-      } else if (response.actionId == 'correct_reason' || response.actionId == 'incorrect_reason') {
+      }
+
+      if (response.actionId == 'correct_reason' || response.actionId == 'incorrect_reason') {
+        // 이유가 맞는지 묻는 알림에 대한 응답 처리
         print("User selected reason response: ${response.actionId}");
 
         bool? purpose = await DataStore().getSharedPreferencesBool("Purpose");
 
-        if (response.actionId == 'correct_reason') {
+        if(response.actionId == 'correct_reason'){
+          // TODO 이유가 맞다는 피드백 보내기
           await DataStore().saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
             KeyValue().CHAT_ID: KeyValue().AGENT,
             KeyValue().CONTENT: content,
             KeyValue().TIMESTAMP: time,
             KeyValue().MILLITIMESTAMP: millitime,
-            "Purpose": purpose,
-            "Reasone": true,
+            "Purpose" : purpose,
+            "Reasone" : true,
           });
-          print("click yes");
-        } else if (response.actionId == 'incorrect_reason') {
+          print("click reason yes");
+        }
+        if(response.actionId == 'incorrect_reason'){
+          // TODO 이유가 틀리다는 피드백 보내기
           await DataStore().saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
             KeyValue().CHAT_ID: KeyValue().AGENT,
             KeyValue().CONTENT: content,
             KeyValue().TIMESTAMP: time,
             KeyValue().MILLITIMESTAMP: millitime,
-            "Purpose": purpose,
-            "Reasone": false,
+            "Purpose" : purpose,
+            "Reasone" : false,
           });
-          print("click no");
+          print("click reason no");
         }
 
+        // TODO 이유가 맞고 틀릴 때, 각각에 대해서 알고리즘 처리
+
+        // 모든 알림 취소
         await LocalNotification.cancelNotificationByPayload(1);
         await LocalNotification.cancelNotificationByPayload(2);
         await LocalNotification.cancelNotificationByPayload(5);
       } else {
         print("No input received.");
       }
+
+      // 두 번째 피드백을 받았을 때 알림 취소
     } else {
+      // navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) => MyApp(isLaunchedByNotification: false,)));
       // 앱으로 이동하지 않도록 이 부분을 비워둡니다.
     }
   } catch (e) {
     print("Error handling notification response: $e");
+    // 에러 처리 로직
   }
 }
 
@@ -102,14 +123,12 @@ class LocalNotification {
     final InitializationSettings initializationSettings = InitializationSettings(
         android: initializationSettingsAndroid, iOS: initializationSettingsDarwin);
 
-    await _flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
-      onDidReceiveNotificationResponse: (NotificationResponse response) async {
-        // 비워두어서 앱이 실행되지 않도록 합니다.
-      },
+    await _flutterLocalNotificationsPlugin.initialize(initializationSettings,
+      onDidReceiveNotificationResponse: notificationTapBackground,
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
 
+    // 알람 클릭으로 앱이 시작되었는지 확인
     final details = await _flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
     bool isLaunchedByNotification = details?.didNotificationLaunchApp ?? false;
 
@@ -125,7 +144,7 @@ class LocalNotification {
     const String groupKey = 'com.yourcompany.messages';
     List<AndroidNotificationAction> actions = [];
 
-    if (payload == "5") {
+    if (payload == '5') {
       actions = [
         AndroidNotificationAction(
           "yes_action",
@@ -140,7 +159,7 @@ class LocalNotification {
           inputs: [],
         ),
       ];
-    } else if (payload == "6") {
+    } else if (payload == '6') {
       actions = [
         AndroidNotificationAction(
           "correct_reason",

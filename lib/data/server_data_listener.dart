@@ -445,7 +445,7 @@ class ServerDataListener {
 
 
           //알람을 받고 사용을 종료했을때 대답
-          if((oldCurrentApp != currentApp) &&checker) {
+          if((oldCurrentApp != currentApp) && checker && firstchecker) {
             print("알람을 보고 앱을 종료했습니다.");
             await DataStore().saveSharedPreferencesBool(KeyValue().ALARM_CHECKER,false);
 
@@ -456,7 +456,7 @@ class ServerDataListener {
             formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
             time = formatter.format(now);
             // gptContent = await sendGPT("GPTAcceptResponse",oldCurrentAppName,timer,savedMinutes,index);
-            gptContent = "test";
+            gptContent = "test3 알람보고 앱 종료함";
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,gptContent!);
             // gptContent = "GPT2 사용 종료하셨군요!";
             sendAlarm(
@@ -474,7 +474,7 @@ class ServerDataListener {
             time = formatter.format(now);
 
             // agentContent = await sendGPT("PCAAcceptResponse",oldCurrentAppName,timer,savedMinutes,index);
-            agentContent="test";
+            agentContent="test4 알람보고 앱 종료함";
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
 
             // agentContent = "넹 껐어요";
@@ -509,7 +509,7 @@ class ServerDataListener {
             formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
             time = formatter.format(now);
             // gptContent = await sendGPT("GPTFirstResponse",currentAppName,timer,savedMinutes, index);
-            gptContent = "test";
+            gptContent = "test1 알람옴";
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,gptContent!);
 
             // gptContent = "$currentAppName 끄쇼";
@@ -553,7 +553,7 @@ class ServerDataListener {
               formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
               time = formatter.format(now);
               // gptContent = await sendGPT("GPTRejectResponse",currentAppName,timer,savedMinutes, index);
-              gptContent="test";
+              gptContent="test3 알람보고 종료 안함";
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY,gptContent!);
               // gptContent = "GPT2 사용 종료 하세요!";
               sendAlarm(
@@ -570,7 +570,7 @@ class ServerDataListener {
               time = formatter.format(now);
 
               // agentContent = await sendGPT("PCARejectResponse",currentAppName,timer,savedMinutes,index);
-              agentContent="test";
+              agentContent="test4 알람보고 종료 안함";
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
 
               // agentContent = "아예~";

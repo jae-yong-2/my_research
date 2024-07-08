@@ -310,7 +310,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
   }
   Future<void> pressButton() async {
     result = "test";
-    sendAlarm("나", result!, "2",KeyValue().AGENT);
+    sendAlarm("나", result!, "5",KeyValue().AGENT);
   }
   @override
   WithForegroundTask build(BuildContext context) => WithForegroundTask(
