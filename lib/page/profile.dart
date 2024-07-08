@@ -137,11 +137,13 @@ class _ProfileState extends State<Profile> {
       );
       DateTime tomorrow = DateTime.now().add(Duration(days: 1));
       String formattedDate = DateFormat('yyyy-MM-dd').format(tomorrow);
-
+      print("Profile : $formattedDate");
       await _dataStore.saveSharedPreferencesString("${KeyValue().SELECTEDAPP}_$formattedDate", selectedAppsJson);
+      print("Profile : $selectedAppsJson");
       await _dataStore.saveSharedPreferencesString("${KeyValue().SELECTEDDURATION}_$formattedDate", selectedDurationJson);
+      print("Profile : $selectedDurationJson");
       await _dataStore.saveSharedPreferencesString("${KeyValue().SLEEPTIME}_$formattedDate", sleepTimeJson);
-
+      print("Profile : $sleepTimeJson");
       Map<String, dynamic> firebaseData = {
         KeyValue().SELECTEDAPP: _selectedApps.map((app) {
           final appMap = Map<String, dynamic>.from(app);
@@ -194,6 +196,7 @@ class _ProfileState extends State<Profile> {
     print(selectedAppsJson);
     print(selectedDurationJson);
     print(sleepTimeJson);
+
   }
 
   void _toggleAppSelection(Map<String, dynamic> app) {

@@ -32,11 +32,10 @@ class ServerDataListener {
   );
 
 //GPT에게 원하는 내용 생성
-  Future<String?> sendGPT(category, currentApp, currentAppUsageTime, index ) async {
+  Future<String?> sendGPT(category, currentApp, currentAppUsageTime,appUsageLimitTime, index ) async {
     // Messages 객체 리스트 생성
     String? text = "오류";
     String? sleepTime = await DataStore().getSharedPreferencesString(KeyValue().SLEEPTIME);
-    String? appUsageLimitTime = await DataStore().getSharedPreferencesString(KeyValue().SELECTEDDURATION);
     if (sleepTime != null) {
       final Map<String, dynamic> sleepTimeMap = json.decode(sleepTime);
       int hours = sleepTimeMap['hours'];
@@ -46,10 +45,10 @@ class ServerDataListener {
       sleepTime = '시간 정보 없음';
     }
 
-    final Map<String, dynamic> sleepTimeMap = json.decode(appUsageLimitTime!);
-    int hours = sleepTimeMap['hours'];
-    int minutes = sleepTimeMap['minutes'];
-    appUsageLimitTime =  '$hours시 $minutes분';
+    // final Map<String, dynamic> sleepTimeMap = json.decode(appUsageLimitTime!);
+    // int hours = sleepTimeMap['hours'];
+    // int minutes = sleepTimeMap['minutes'];
+    // appUsageLimitTime =  '$hours시 $minutes분';
 
     var now = DateTime.now();
     String currentTime = DateFormat('HH시 mm분').format(now);
@@ -61,9 +60,9 @@ class ServerDataListener {
         "상황" : "스마트폰($currentApp) 사용시간이 너무 길어서 사용시간이 많아져서 사용을 중단하라는 알람을 줘야하는 상황",  
         "평소 취침시간": "$sleepTime",
         "현재 시간": "$currentTime",
-        "목표한 최대 스마트폰($currentApp) 사용시간" : "$appUsageLimitTime",  
-        "현재 스마트폰($currentApp) 사용시간" : "$currentAppUsageTime",  
-        "요구사항": ["상대방이 스마트폰($currentApp)사용 시간이 '$appUsageLimitTime 이 됐다고 중단해야한다'고 전해줘, 상대방이 기분이 상하지 않도록 '사용시간을 말해주면서 전달'해줘,15~20단어 정도 한글로 문장생성"]
+        "목표한 최대 스마트폰($currentApp) 사용시간" : "${(appUsageLimitTime / 60)}시간 ${appUsageLimitTime % 60}분",  
+        "현재 스마트폰($currentApp) 사용시간" : "${currentAppUsageTime / 60}시간 ${currentAppUsageTime % 60}분",  
+        "요구사항": ["상대방이 스마트폰($currentApp)사용 시간이 '${appUsageLimitTime / 60}시간 ${appUsageLimitTime % 60}분이 됐다고 중단해야한다'고 전해줘, 상대방이 기분이 상하지 않도록 '사용시간을 말해주면서 전달'해줘,15~20단어 정도 한글로 문장생성"]
       }
         ''';
     }
@@ -123,14 +122,14 @@ class ServerDataListener {
       {
         "역할" : "나의 $currentApp 사용을 줄이려는 사람",
         "상황" : "스마트폰($currentApp) 사용시간이 너무 길어서 졌지만 사용을 종료한 상황",
-        "방금 받은 알람": "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}",
+        "방금 내가 한 말": "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}",
         "평소 취침시간": "$sleepTime",
         "현재 시간": "$currentTime",
         "목표 최대 스마트폰($currentApp) 사용시간": "$appUsageLimitTime",
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            방금 받은 알람을 받고 스마트폰($currentApp) 사용을 멈췄어. 잘 했다고 격려의 말을 전달해줘,20~30단어 정도로 한글로 응답
+            '방금 내가 한 말'을 기반으로 앱 사용을 그만뒀는데. 그 앱의 사용을 잘 중단했다고 격려의 말을 전달해줘,20~30단어 정도로 한글로 응답
           ]"
        }
         ''';
@@ -354,14 +353,18 @@ class ServerDataListener {
     bool hasPackage = containsPackageName(selectedAppJson, currentApp);
     var currentAppUsageLimitTime = getAppUsageLimitTime(selectedAppJson,currentApp);
     print("$currentAppName $currentAppUsageLimitTime");
-
+    print(0);
     //선택된 앱( 유튜브 or 다른 앱 )이 현재 실행 중인 앱이고, 계속 실행 중이었으면 알고리즘 실행
     if (oldCurrentApp == currentApp && hasPackage) {
 
       try {
         //현재 앱이 계속 실행중이었으면 시간(1분에 한번씩) +1하여 timer에 저장함.
         Map<String, dynamic>? data = await DataStore().getData(KeyValue().ID,"timer/$currentAppName/$time");
-        timer = data?["time"]+1;
+        if (data ==null){
+          timer = 1;
+        }else {
+          timer = data?["time"] + 1;
+        }
 
         //timer를 업데이트함.
         if (data != null) {
@@ -373,6 +376,7 @@ class ServerDataListener {
         if(data == null){
           await DataStore().saveData(KeyValue().ID,"timer/$currentAppName/$time",{"time":currentAppUsageTime});
         }
+
       }catch(error){
         await DataStore().saveData(KeyValue().ID,"timer/$currentAppName/$time",{"time":currentAppUsageTime});
         print(error);
@@ -394,28 +398,35 @@ class ServerDataListener {
 
     if (selectedDurationJson != null) {
       try {
+        print(selectedDurationJson);
         final Map<String, dynamic> selectedDurationMap = json.decode(selectedDurationJson);
         if (selectedDurationMap.containsKey('hours') && selectedDurationMap.containsKey('minutes')) {
           var selectedDuration = Duration(
               hours: selectedDurationMap['hours'],
               minutes: selectedDurationMap['minutes']);
           final int savedMinutes;
-          if(currentAppUsageLimitTime!>0) {
+          if(currentAppUsageLimitTime!=null &&currentAppUsageLimitTime>0) {
             savedMinutes = currentAppUsageLimitTime;
           }else{
             savedMinutes = selectedDuration.inMinutes;
           }
           bool? checker = await DataStore().getSharedPreferencesBool(KeyValue().ALARM_CHECKER);
+          bool? firstchecker = await DataStore().getSharedPreferencesBool("first_${KeyValue().ALARM_CHECKER}");
           checker ??= false;
-          print('oldCurrentApp : $oldCurrentApp');
+          firstchecker ??= false;
+          print('oldCurrentApp : ${oldCurrentApp!}');
           print('currentApp : $currentApp');
+
+          print(checker);
+          print(firstchecker);
 
           //현재 실행중인 앱이 사용을 중지하고 싶은 앱리스트의 몇번째 앱리스트인지 출력해줌.
           int index = getIndexForPackageName(selectedAppJson,currentApp);
 
-
+          print(1);
           //알람을 받고 사용을 종료했을때 대답
           if(oldCurrentApp != currentApp &&checker) {
+            print("알람을 보고 앱을 종료했습니다.");
             await DataStore().saveSharedPreferencesBool(KeyValue().ALARM_CHECKER,false);
 
             now = DateTime.now();
@@ -424,7 +435,8 @@ class ServerDataListener {
                 .millisecondsSinceEpoch;
             formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
             time = formatter.format(now);
-            gptContent = await sendGPT("GPTAcceptResponse",oldCurrentAppName,timer,index);
+            // gptContent = await sendGPT("GPTAcceptResponse",oldCurrentAppName,timer,savedMinutes,index);
+            gptContent = "test";
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,gptContent!);
             // gptContent = "GPT2 사용 종료하셨군요!";
             sendAlarm(
@@ -441,7 +453,8 @@ class ServerDataListener {
             formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
             time = formatter.format(now);
 
-            agentContent = await sendGPT("PCAAcceptResponse",oldCurrentAppName,timer,index);
+            // agentContent = await sendGPT("PCAAcceptResponse",oldCurrentAppName,timer,savedMinutes,index);
+            agentContent="test";
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
 
             // agentContent = "넹 껐어요";
@@ -449,20 +462,29 @@ class ServerDataListener {
 
 
           }
+          print(6);
+
+          if((firstchecker && (savedMinutes+5 < timer!)) || (firstchecker && (2*savedMinutes+5 < timer!))){
+            await DataStore().saveSharedPreferencesBool("first_${KeyValue().ALARM_CHECKER}",false);
+
+          }
 
           //n분 이상 사용했을때 알람.
-          if(((savedMinutes+5 >timer!)  && (timer >= savedMinutes)  && !checker)||
-              ((savedMinutes*2+5 >timer!)  && (timer >= savedMinutes*2)  && !checker))
+          if(((savedMinutes+5 >timer!)  && (timer >= savedMinutes)  && !checker && !firstchecker)||
+              ((savedMinutes*2+5 >timer!)  && (timer >= savedMinutes*2)  && !checker && !firstchecker))
           {
             await DataStore().saveSharedPreferencesBool(KeyValue().ALARM_CHECKER,true);
+            await DataStore().saveSharedPreferencesBool("first_${KeyValue().ALARM_CHECKER}",true);
             //사용을 종료하라는 agent의 메세지
+            print("최대 사용시간이 되었습니다.");
             now = DateTime.now();
             millitime = DateTime
                 .now()
                 .millisecondsSinceEpoch;
             formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
             time = formatter.format(now);
-            gptContent = await sendGPT("GPTFirstResponse",currentAppName,timer,index);
+            // gptContent = await sendGPT("GPTFirstResponse",currentAppName,timer,savedMinutes, index);
+            gptContent = "test";
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,gptContent!);
 
             // gptContent = "$currentAppName 끄쇼";
@@ -479,7 +501,8 @@ class ServerDataListener {
             formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
             time = formatter.format(now);
 
-            agentContent = await sendGPT("PCAFirstResponse",currentAppName,timer,index);
+            // agentContent = await sendGPT("PCAFirstResponse",currentAppName,timer,savedMinutes, index);
+            agentContent="test";
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
             // agentContent = "끌겨";
             sendAlarm("나", agentContent!, time, millitime, "2",KeyValue().AGENT);
@@ -499,7 +522,8 @@ class ServerDataListener {
                   .millisecondsSinceEpoch;
               formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
               time = formatter.format(now);
-              gptContent = await sendGPT("GPTRejectResponse",currentAppName,timer,index);
+              // gptContent = await sendGPT("GPTRejectResponse",currentAppName,timer,savedMinutes, index);
+              gptContent="test";
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY,gptContent!);
               // gptContent = "GPT2 사용 종료 하세요!";
               sendAlarm(
@@ -515,7 +539,8 @@ class ServerDataListener {
               formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
               time = formatter.format(now);
 
-              agentContent = await sendGPT("PCARejectResponse",currentAppName,timer,index);
+              agentContent = await sendGPT("PCARejectResponse",currentAppName,timer,savedMinutes,index);
+              agentContent="test";
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
 
               // agentContent = "아예~";

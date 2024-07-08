@@ -11,6 +11,7 @@ import 'package:my_research/data/data_store.dart';
 import 'package:pedometer/pedometer.dart';
 
 import '../data/keystring.dart';
+import '../module/local_notification.dart';
 import '../package/const_key.dart';
 
 class FeedbackPage extends StatefulWidget {
@@ -146,7 +147,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
     // }
     //
 
-    var currentApp = "유튜브";
+    var currentApp = "카카오톡";
     var currentAppUsageTime = "60";
       text = '''
       {
@@ -155,9 +156,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
         "평소 취침시간" : "$sleepTime",  
         "현재 시간" : "15시",  
         "목표한 최대 스마트폰($currentApp) 사용시간" : "60분",  
-        "현재 스마트폰($currentApp) 사용시간" : "$currentAppUsageTime분",  
+        "현재 스마트폰($currentApp) 사용시간" : "$currentAppUsageTime분",
         "요구사항" : 
-        ["나는 '방금 받은 알람'에 대해 지금 할게 없어서 조금만 더 사용한다고 전달하려해, 20~30단어 정도 한글로 문장 생성해줘, 답변 형식은 다른 형태없이 그냥 문장만"]
+        ["나는 '방금 받은 알람'에 대해 '좀 과한 이야기를이 나와서 사용을 그만하겠다'고 전달하려해, 20~30단어 정도 한글로 문장 생성해줘, 답변 형식은 다른 형태없이 그냥 문장만"]
       }
       ''';
     //
@@ -299,11 +300,17 @@ class _FeedbackPageState extends State<FeedbackPage> {
       );
     }).toList();
   }
-
+  Future<void> sendAlarm(String title, String content,
+      String payload, String who) async {
+    LocalNotification.showOngoingNotification(
+      title: "",
+      body: "$title : $content",
+      payload: payload,
+    );
+  }
   Future<void> pressButton() async {
-    result = await sendGPT();
-    setState(() {
-    });
+    result = "test";
+    sendAlarm("나", result!, "2",KeyValue().AGENT);
   }
   @override
   WithForegroundTask build(BuildContext context) => WithForegroundTask(
