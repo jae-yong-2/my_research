@@ -349,9 +349,14 @@ class ServerDataListener {
       String? selectedDuration = await DataStore().getSharedPreferencesString("${KeyValue().SELECTEDDURATION}_$formattedDate");
       String? sleeptime = await DataStore().getSharedPreferencesString("${KeyValue().SLEEPTIME}_$formattedDate");
 
-      await DataStore().saveSharedPreferencesString(KeyValue().SELECTEDAPP,selectedapp!);
-      await DataStore().saveSharedPreferencesString(KeyValue().SELECTEDDURATION,selectedDuration!);
-      await DataStore().saveSharedPreferencesString(KeyValue().SLEEPTIME,sleeptime!);
+      if(selectedapp != null && selectedDuration!= null && sleeptime!=null) {
+        await DataStore().saveSharedPreferencesString(
+            KeyValue().SELECTEDAPP, selectedapp!);
+        await DataStore().saveSharedPreferencesString(
+            KeyValue().SELECTEDDURATION, selectedDuration!);
+        await DataStore().saveSharedPreferencesString(
+            KeyValue().SLEEPTIME, sleeptime!);
+      }
     }
 
     String? selectedApp = await DataStore().getSharedPreferencesString(KeyValue().SELECTEDAPP);
@@ -361,7 +366,7 @@ class ServerDataListener {
     //현재 실행 중인 앱이 선택된 앱 중에 포함이 될때 true 반환
     bool hasPackage = containsPackageName(selectedAppJson, currentApp);
     var currentAppUsageLimitTime = getAppUsageLimitTime(selectedAppJson,currentApp);
-    print("$currentAppName $currentAppUsageLimitTime");
+    print("$currentAppName 제한 시간 : $currentAppUsageLimitTime");
     //선택된 앱( 유튜브 or 다른 앱 )이 현재 실행 중인 앱이고, 계속 실행 중이었으면 알고리즘 실행
     if (oldCurrentApp == currentApp && hasPackage) {
 
@@ -406,7 +411,6 @@ class ServerDataListener {
 
     if (selectedDurationJson != null) {
       try {
-        print(selectedDurationJson);
         final Map<String, dynamic> selectedDurationMap = json.decode(selectedDurationJson);
         if (selectedDurationMap.containsKey('hours') && selectedDurationMap.containsKey('minutes')) {
           var selectedDuration = Duration(
@@ -419,7 +423,14 @@ class ServerDataListener {
             savedMinutes = selectedDuration.inMinutes;
           }
           bool? checker = await DataStore().getSharedPreferencesBool(KeyValue().ALARM_CHECKER);
-          bool? firstchecker = await DataStore().getSharedPreferencesBool("first_${KeyValue().ALARM_CHECKER}");
+
+          bool? firstchecker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName");
+          if(firstchecker==null) {
+            await DataStore().saveSharedPreferencesBool(
+                "${KeyValue().ALARM_CHECKER}_$currentAppName", false);
+          }
+          firstchecker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName");
+
           checker ??= false;
           firstchecker ??= false;
           print('oldCurrentApp : ${oldCurrentApp!}');
@@ -431,8 +442,10 @@ class ServerDataListener {
           //현재 실행중인 앱이 사용을 중지하고 싶은 앱리스트의 몇번째 앱리스트인지 출력해줌.
           int index = getIndexForPackageName(selectedAppJson,currentApp);
 
+
+
           //알람을 받고 사용을 종료했을때 대답
-          if(oldCurrentApp != currentApp &&checker) {
+          if((oldCurrentApp != currentApp) &&checker) {
             print("알람을 보고 앱을 종료했습니다.");
             await DataStore().saveSharedPreferencesBool(KeyValue().ALARM_CHECKER,false);
 
@@ -470,17 +483,23 @@ class ServerDataListener {
 
           }
 
-          if((firstchecker && (savedMinutes+5 < timer!)) || (firstchecker && (2*savedMinutes+5 < timer!))){
-            await DataStore().saveSharedPreferencesBool("first_${KeyValue().ALARM_CHECKER}",false);
-
+          //알람이 울린 후에 알람이 울린 과정을 초기화 하는 알고리즘
+          if(((savedMinutes+6==timer!)  && firstchecker)||
+              ((savedMinutes*2+6==timer) && firstchecker))
+          {
+            print("알람 설정 초기화");
+            await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName",false);
+            await DataStore().saveSharedPreferencesInt("${KeyValue().OVERTIMEAPP}_timer",0);
           }
 
           //n분 이상 사용했을때 알람.
-          if(((savedMinutes+5 >timer!)  && (timer >= savedMinutes)  && !checker && !firstchecker)||
-              ((savedMinutes*2+5 >timer!)  && (timer >= savedMinutes*2)  && !checker && !firstchecker))
+          if(((savedMinutes+5 >=timer!)  && (timer >= savedMinutes)  && !checker && !firstchecker)||
+              ((savedMinutes*2+5 >=timer!)  && (timer >= savedMinutes*2)  && !checker && !firstchecker))
           {
             await DataStore().saveSharedPreferencesBool(KeyValue().ALARM_CHECKER,true);
-            await DataStore().saveSharedPreferencesBool("first_${KeyValue().ALARM_CHECKER}",true);
+            await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName",true);
+            await DataStore().saveSharedPreferencesString(KeyValue().OVERTIMEAPP,currentApp);
+            await DataStore().saveSharedPreferencesInt("${KeyValue().OVERTIMEAPP}_timer",0);
             //사용을 종료하라는 agent의 메세지
             print("최대 사용시간이 되었습니다.");
             now = DateTime.now();
@@ -521,10 +540,11 @@ class ServerDataListener {
             print("현재 앱 사용시간이 설정된 시간을 초과했습니다. $timer $savedMinutes");
 
             // n분 이상 사용했으면서 알람을 받고도 종료하지 않으면 알람.
-          } else if ((timer >= (savedMinutes + 5) && checker!)||
-              (timer >= (savedMinutes*2 + 5) && checker!)
+          } else if ((timer == (savedMinutes + 5) && checker!)||
+              (timer == (savedMinutes*2 + 5) && checker!)
           ) {
             await DataStore().saveSharedPreferencesBool(KeyValue().ALARM_CHECKER,false);
+            await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName",false);
             if( oldCurrentApp == currentApp && hasPackage){
               now = DateTime.now();
               millitime = DateTime
@@ -549,7 +569,7 @@ class ServerDataListener {
               formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
               time = formatter.format(now);
 
-              agentContent = await sendGPT("PCARejectResponse",currentAppName,timer,savedMinutes,index);
+              // agentContent = await sendGPT("PCARejectResponse",currentAppName,timer,savedMinutes,index);
               agentContent="test";
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
 

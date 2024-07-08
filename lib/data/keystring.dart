@@ -34,6 +34,7 @@ class KeyValue{
   String TIMER = "timer";
   String SLEEPTIME = "sleep_time";
   String SETTINGSSAVEDTIME = "settings_saved_time";
+  String OVERTIMEAPP = "over_time_app";
 
   String replyIntent1="바로 일어나서 편의점 다녀오면서 n분정도 산책 갔다올게요";
   String replyIntent2="하던 일만 마저 끝내고 n분 뒤쯤에 편의점으로 n분 정도 산책 갔다올게요";

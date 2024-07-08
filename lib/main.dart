@@ -45,7 +45,6 @@ Future<void> setupFirebaseMessaging() async {
 Future<void> startForegroundService() async {
   await DataStore().saveSharedPreferencesInt(KeyValue().TIMER, 0);
   await DataStore().saveSharedPreferencesBool(KeyValue().ALARM_CHECKER, false);
-  await DataStore().saveSharedPreferencesBool("first_${KeyValue().ALARM_CHECKER}", false);
   try {
     await platform.invokeMethod('startForegroundService');
     platformFCM.setMethodCallHandler(fcmMethodCallHandler);

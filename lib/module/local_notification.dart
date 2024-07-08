@@ -26,7 +26,7 @@ void notificationTapBackground(NotificationResponse response) async {
             "Purpose": true,
             "Reasone": "null",
           });
-          print("yes");
+          print("click yes");
         } else if (response.actionId == 'no_action') {
           await DataStore().saveSharedPreferencesBool("Purpose", false);
           await DataStore().saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
@@ -37,7 +37,7 @@ void notificationTapBackground(NotificationResponse response) async {
             "Purpose": false,
             "Reasone": "null",
           });
-          print("no");
+          print("click no");
         }
 
         String? text = await DataStore().getSharedPreferencesString(KeyValue().ISFEEDBACK);
@@ -61,7 +61,7 @@ void notificationTapBackground(NotificationResponse response) async {
             "Purpose": purpose,
             "Reasone": true,
           });
-          print("yes");
+          print("click yes");
         } else if (response.actionId == 'incorrect_reason') {
           await DataStore().saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
             KeyValue().CHAT_ID: KeyValue().AGENT,
@@ -71,7 +71,7 @@ void notificationTapBackground(NotificationResponse response) async {
             "Purpose": purpose,
             "Reasone": false,
           });
-          print("no");
+          print("click no");
         }
 
         await LocalNotification.cancelNotificationByPayload(1);
