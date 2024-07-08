@@ -243,7 +243,7 @@ public class MyForegroundService extends Service {
         }
 
         Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
@@ -258,6 +258,7 @@ public class MyForegroundService extends Service {
 
 // 각 알림에 고유한 ID 사용
         notificationManager.notify(10, notification);
+
     }
 
 
