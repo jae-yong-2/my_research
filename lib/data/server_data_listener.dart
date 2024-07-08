@@ -31,6 +31,15 @@ class ServerDataListener {
     enableLog: true,
   );
 
+  Future<void> feedback() async {
+    var duration = 5;
+    await Future.delayed(Duration(seconds: duration));
+
+    String? feedbackContent = await DataStore().getSharedPreferencesString("${KeyValue().ISFEEDBACK}_agentContent");
+    String? feedbackTime = await DataStore().getSharedPreferencesString("${KeyValue().ISFEEDBACK}_time");
+    int? feedbackMillitime = await DataStore().getSharedPreferencesInt("${KeyValue().ISFEEDBACK}_millitime");
+    sendAlarm("나", feedbackContent!, feedbackTime, feedbackMillitime, "5",KeyValue().AGENT);
+  }
 //GPT에게 원하는 내용 생성
   Future<String?> sendGPT(category, currentApp, currentAppUsageTime,appUsageLimitTime, index ) async {
     // Messages 객체 리스트 생성
@@ -225,7 +234,7 @@ class ServerDataListener {
   Future<void> sendAlarm(String title, String content, var time, var millitime,
       String payload, String who) async {
     LocalNotification.showOngoingNotification(
-      title: "",
+      title: (payload=="5"||payload=="6")?"피드백을 해주세요.":"",
       body: "$title : $content",
       payload: payload,
     );
@@ -457,7 +466,7 @@ class ServerDataListener {
 
             // agentContent = "넹 껐어요";
             sendAlarm("나", agentContent!, time, millitime, "4",KeyValue().AGENT);
-
+            feedback();
 
           }
 
@@ -546,7 +555,7 @@ class ServerDataListener {
 
               // agentContent = "아예~";
               sendAlarm("나", agentContent!, time, millitime, "4",KeyValue().AGENT);
-
+              feedback();
             }
           } else{
             print("아무런 작동을 하지 않습니다.");
