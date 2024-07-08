@@ -19,9 +19,23 @@ void notificationTapBackground(NotificationResponse response) async {
 
       if (response.actionId == 'yes_action' || response.actionId == 'no_action') {
         // 예 또는 아니오 버튼이 눌렸을 때, 다시 "이유가 맞습니다" 또는 "이유가 다릅니다" 알림을 생성
+
+        if(response.actionId == 'yes_action'){
+          //TODO 의도가 맞다는 피드백 보내기
+
+          print("yes");
+        }
+        if(response.actionId == 'no_action'){
+          //TODO 의도가 틀리다는 피드백 보내기
+
+          print("no");
+        }
+
+        String? text = await DataStore().getSharedPreferencesString(KeyValue().ISFEEDBACK);
+        text ??= "오류입니다. 아무 응답 후, 넘어가주세요.";
         await LocalNotification.showOngoingNotification(
           title: '이유는 어떤가요?',
-          body: '이유가 맞습니까?',
+          body: text,
           payload: '5',
         );
       } else if (response.input != null) {
@@ -52,6 +66,16 @@ void notificationTapBackground(NotificationResponse response) async {
       // 이유가 맞는지 묻는 알림에 대한 응답 처리
       print("User selected reason response: ${response.actionId}");
 
+      if(response.actionId == 'correct_reason'){
+        //TODO 이유가 맞다는 피드백 보내기
+        print("yes");
+      }
+      if(response.actionId == 'incorrect_reason'){
+        //TODO 이유가 틀리다는 피드백 보내기
+        print("no");
+      }
+
+
       //TODO 이유가 맞고 틀릴때, 각각에 대해서 알고리즘 처리
 
       // 모든 알림 취소
@@ -68,7 +92,6 @@ void notificationTapBackground(NotificationResponse response) async {
 class LocalNotification {
   static final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
-  static Future<bool?> get isFeedbackEnable async => await DataStore().getSharedPreferencesBool(KeyValue().ISFEEDBACK);
 
   static Future<bool> init() async {
     const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');

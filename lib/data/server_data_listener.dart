@@ -504,6 +504,7 @@ class ServerDataListener {
             // agentContent = await sendGPT("PCAFirstResponse",currentAppName,timer,savedMinutes, index);
             agentContent="test";
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
+            await DataStore().saveSharedPreferencesString(KeyValue().ISFEEDBACK,agentContent!);
             // agentContent = "끌겨";
             sendAlarm("나", agentContent!, time, millitime, "2",KeyValue().AGENT);
 
