@@ -1,11 +1,10 @@
 class KeyValue{
-  //정현제
+
   String ID = "0";
-  // String JOB = "직장인";
+  String MODE = "집단2";
 
 
   String CHAT_ID = "id";
-  String BODYPROFILE = "프로필 신체 특이 사항";
   String CURRENTSTEP = "currentstep";
   String ISFCM = "isfcm";
   String Chat = "chat";

@@ -35,8 +35,8 @@ class _ProfileState extends State<Profile> {
     _getTop10Apps();
     _loadSelectedDuration();
     _loadSleepTime();
-  }
 
+  }
   Future<void> _getTop10Apps() async {
     final top10Apps = await _usageAppService.getTop10Apps();
     setState(() {
@@ -282,7 +282,10 @@ class _ProfileState extends State<Profile> {
     print(appNames);
     for (var appName in appNames) {
       await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${appName}_",false);
+      print(await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${appName}_"));
       await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$appName",false);
+      print(await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$appName"));
+
     }
   }
 
@@ -412,7 +415,8 @@ class _ProfileState extends State<Profile> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Spacer(), // Adds space to push the button to the center
+                Text(KeyValue().MODE),
+                Spacer(flex: 1), // Adds space to push the button to the center
                 ElevatedButton(
                   onPressed: _saveSelectedAppsAndDuration,
                   child: Text('저장하기'),

@@ -48,7 +48,7 @@ void notificationTapBackground(NotificationResponse response) async {
           print("click no action ");
         }
 
-        String? text = await DataStore().getSharedPreferencesString(KeyValue().ISFEEDBACK);
+        String? text = await DataStore().getSharedPreferencesString("${KeyValue().ISFEEDBACK}_agentContent");
         text ??= "오류입니다. 아무 응답 후, 넘어가주세요.";
         await LocalNotification.showOngoingNotification(
           title: '이유는 어떤가요?',

@@ -71,7 +71,7 @@ class ServerDataListener {
         "현재 시간": "$currentTime",
         "목표한 최대 스마트폰($currentApp) 사용시간" : "${(appUsageLimitTime / 60)}시간 ${appUsageLimitTime % 60}분",  
         "현재 스마트폰($currentApp) 사용시간" : "${currentAppUsageTime / 60}시간 ${currentAppUsageTime % 60}분",  
-        "요구사항": ["상대방이 스마트폰($currentApp)사용 시간이 '${appUsageLimitTime / 60}시간 ${appUsageLimitTime % 60}분이 됐다고 중단해야한다'고 전해줘, 상대방이 기분이 상하지 않도록 '사용시간을 말해주면서 전달'해줘,15~20단어 정도 한글로 문장생성"]
+        "요구사항": ["상대방이 스마트폰($currentApp)사용 시간이 '${appUsageLimitTime / 60}시간 ${appUsageLimitTime % 60}분이 됐다고 중단해야한다'고 전해줘, 상대방이 기분이 상하지 않도록 '사용시간을 말해주면서 전달'해줘,15~20단어 정도 Json형태 말고 한글로 존댓말 문장생성"]
       }
         ''';
     }
@@ -122,7 +122,7 @@ class ServerDataListener {
         "목표한 최대 스마트폰($currentApp) 사용시간" : "$appUsageLimitTime",  
         "현재 스마트폰($currentApp) 사용시간" : "$currentAppUsageTime분",  
         "요구사항" : 
-        ["나는 '방금 받은 알람'에 답장하려 해, 내용은 $purpose. 20~30단어 정도 한글로 문장 생성"]
+        ["나는 '방금 받은 알람'에 답장하려 해, 내용은 $purpose. 20~30단어 정도 Json형태 말고 한글 반말로 문장 생성"]
       }
       ''';
     }
@@ -138,7 +138,7 @@ class ServerDataListener {
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            '방금 내가 한 말'을 기반으로 앱 사용을 그만뒀는데. 그 앱의 사용을 잘 중단했다고 격려의 말을 전달해줘,20~30단어 정도로 한글로 응답
+            '방금 내가 한 말'을 기반으로 앱 사용을 그만뒀는데. 그 앱의 사용을 잘 중단했다고 격려의 말을 전달해줘,20~30단어 정도로 Json형태 말고 한글 존댓말로 응답
           ]"
        }
         ''';
@@ -154,7 +154,7 @@ class ServerDataListener {
         "목표 최대 스마트폰($currentApp) 사용시간": "$appUsageLimitTime",
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
-          ["방금 받은 알람을 확인했어. 알겠다고 확인하는 말을 전달해줘. 5~10단어 정도로 한글 문장으로만 생성해줘.]"
+          ["방금 받은 알람을 확인했어. 알겠다고 확인하는 말을 전달해줘. 5~10단어 정도로 Json형태 말고 한글 반말로 문장으로만 생성해줘.]"
        }
         ''';
     }
@@ -172,7 +172,7 @@ class ServerDataListener {
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            방금 받은 알람을 받고도 아직 $currentApp 사용을 멈추지 않았어. 앱을 5분 더 초과해서 사용했으니 얼른 $currentApp사용을 멈추라고 전달해줘,20~30단어 정도로 한글로 문장생성
+            방금 받은 알람을 받고도 아직 $currentApp 사용을 멈추지 않았어. 앱을 5분 더 초과해서 사용했으니 얼른 $currentApp사용을 멈추라고 전달해줘,20~30단어 정도로 Json형태 말고 한글 존댓말로 문장생성
           ]"
        }
         ''';
@@ -189,7 +189,7 @@ class ServerDataListener {
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            방금 받은 알람을 받고 확인했다고 5단어 정도로 할말을 추천해줘. 문장생성
+            방금 받은 알람을 받고 확인했다고 5단어 정도로 할말을 반말로 추천해줘. Json형태 말고 문장만 출력해줘.
           ]"
       }
         ''';
@@ -350,17 +350,13 @@ class ServerDataListener {
       String? sleeptime = await DataStore().getSharedPreferencesString("${KeyValue().SLEEPTIME}_$formattedDate");
 
       if(selectedapp != null && selectedDuration!= null && sleeptime!=null) {
-        await DataStore().saveSharedPreferencesString(
-            KeyValue().SELECTEDAPP, selectedapp!);
-        await DataStore().saveSharedPreferencesString(
-            KeyValue().SELECTEDDURATION, selectedDuration!);
-        await DataStore().saveSharedPreferencesString(
-            KeyValue().SLEEPTIME, sleeptime!);
+        await DataStore().saveSharedPreferencesString(KeyValue().SELECTEDAPP, selectedapp!);
+        await DataStore().saveSharedPreferencesString(KeyValue().SELECTEDDURATION, selectedDuration!);
+        await DataStore().saveSharedPreferencesString(KeyValue().SLEEPTIME, sleeptime!);
       }
     }
 
     String? selectedApp = await DataStore().getSharedPreferencesString(KeyValue().SELECTEDAPP);
-    print(selectedApp);
     List<dynamic> selectedAppJson = jsonDecode(selectedApp!);
     print("selected app : $selectedAppJson");
     //현재 실행 중인 앱이 선택된 앱 중에 포함이 될때 true 반환
@@ -369,7 +365,6 @@ class ServerDataListener {
     print("$currentAppName 제한 시간 : $currentAppUsageLimitTime");
     //선택된 앱( 유튜브 or 다른 앱 )이 현재 실행 중인 앱이고, 계속 실행 중이었으면 알고리즘 실행
     if (oldCurrentApp == currentApp && hasPackage) {
-
       try {
         //현재 앱이 계속 실행중이었으면 시간(1분에 한번씩) +1하여 timer에 저장함.
         Map<String, dynamic>? data = await DataStore().getData(KeyValue().ID,"timer/$currentAppName/$time");
@@ -424,180 +419,252 @@ class ServerDataListener {
           }
           bool? checker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_");
           if(checker==null) {
-            await DataStore().saveSharedPreferencesBool(
-                "${KeyValue().ALARM_CHECKER}_${currentAppName}_", false);
+            await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", false);
           }
-
           bool? firstchecker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName");
           if(firstchecker==null) {
-            await DataStore().saveSharedPreferencesBool(
-                "${KeyValue().ALARM_CHECKER}_$currentAppName", false);
+            await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName", false);
           }
 
           checker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_");
           firstchecker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName");
 
-          checker ??= false;
-          firstchecker ??= false;
           print('oldCurrentApp : ${oldCurrentApp!}');
           print('currentApp : $currentApp');
-
-          print(checker);
-          print(firstchecker);
 
           //현재 실행중인 앱이 사용을 중지하고 싶은 앱리스트의 몇번째 앱리스트인지 출력해줌.
           int index = getIndexForPackageName(selectedAppJson,currentApp);
 
+          if(KeyValue().MODE == "집단2"){
+            //알람을 받고 사용을 종료했을때 대답
+            checker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${oldCurrentAppName}_");
+            firstchecker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$oldCurrentAppName");
+            print("old app name : $oldCurrentAppName");
+            print("old checker : $checker");
+            print("old firstchecker : $firstchecker");
+            if ((oldCurrentApp != currentApp) && checker! && firstchecker!) {
+              print("알람을 보고 앱을 종료했습니다.");
+              await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${oldCurrentAppName}_", false);
 
-
-          //알람을 받고 사용을 종료했을때 대답
-          if((oldCurrentApp != currentApp) && checker && firstchecker) {
-            print("알람을 보고 앱을 종료했습니다.");
-            await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_",false);
-
-            now = DateTime.now();
-            millitime = DateTime
-                .now()
-                .millisecondsSinceEpoch;
-            formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-            time = formatter.format(now);
-            gptContent = await sendGPT("GPTAcceptResponse",oldCurrentAppName,timer,savedMinutes,index);
-            // gptContent = "test3 알람보고 앱 종료함";
-            await DataStore().saveSharedPreferencesString(KeyValue().REPLY,gptContent!);
-            // gptContent = "GPT2 사용 종료하셨군요!";
-            sendAlarm(
-                "Agent", gptContent!, time, millitime,
-                "3",KeyValue().GPT);
-
-
-            await Future.delayed(Duration(seconds: duration));
-            //PCA의 응답
-            now = DateTime.now();
-            millitime = DateTime
-                .now()
-                .millisecondsSinceEpoch;
-            formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-            time = formatter.format(now);
-
-            agentContent = await sendGPT("PCAAcceptResponse",oldCurrentAppName,timer,savedMinutes,index);
-            // agentContent="test4 알람보고 앱 종료함";
-            await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
-
-            // agentContent = "넹 껐어요";
-            sendAlarm("나", agentContent!, time, millitime, "4",KeyValue().AGENT);
-            feedback();
-
-          }
-
-          //알람이 울린 후에 알람이 울린 과정을 초기화 하는 알고리즘
-          if(((savedMinutes+6==timer!)  && firstchecker)||
-              ((savedMinutes*2+6==timer) && firstchecker))
-          {
-            print("알람 설정 초기화");
-            await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName",false);
-            await DataStore().saveSharedPreferencesInt("${KeyValue().OVERTIMEAPP}_timer",0);
-          }
-
-          //n분 이상 사용했을때 알람.
-          if(((savedMinutes+5 >=timer!)  && (timer >= savedMinutes)  && !checker && !firstchecker)||
-              ((savedMinutes*2+5 >=timer!)  && (timer >= savedMinutes*2)  && !checker && !firstchecker))
-          {
-            await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_",true);
-            await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName",true);
-            await DataStore().saveSharedPreferencesString(KeyValue().OVERTIMEAPP,currentApp);
-            await DataStore().saveSharedPreferencesInt("${KeyValue().OVERTIMEAPP}_timer",0);
-            //사용을 종료하라는 agent의 메세지
-            print("최대 사용시간이 되었습니다.");
-            now = DateTime.now();
-            millitime = DateTime
-                .now()
-                .millisecondsSinceEpoch;
-            formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-            time = formatter.format(now);
-            gptContent = await sendGPT("GPTFirstResponse",currentAppName,timer,savedMinutes, index);
-            // gptContent = "test1 알람옴";
-            await DataStore().saveSharedPreferencesString(KeyValue().REPLY,gptContent!);
-
-            // gptContent = "$currentAppName 끄쇼";
-            sendAlarm(
-                "Agent", gptContent!, time, millitime,
-                "1",KeyValue().GPT);
-
-            await Future.delayed(Duration(seconds: duration));
-            //PCA의 응답
-            now = DateTime.now();
-            millitime = DateTime
-                .now()
-                .millisecondsSinceEpoch;
-            formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-            time = formatter.format(now);
-
-            agentContent = await sendGPT("PCAFirstResponse",currentAppName,timer,savedMinutes, index);
-            // agentContent="의도 목적";
-            await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
-
-            await DataStore().saveSharedPreferencesString("${KeyValue().ISFEEDBACK}_agentContent",agentContent);
-            await DataStore().saveSharedPreferencesString("${KeyValue().ISFEEDBACK}_time",time);
-            await DataStore().saveSharedPreferencesInt("${KeyValue().ISFEEDBACK}_millitime",millitime);
-            // agentContent = "끌겨";
-            sendAlarm("나", agentContent!, time, millitime, "2",KeyValue().AGENT);
-
-
-            print("현재 앱 사용시간이 설정된 시간을 초과했습니다. $timer $savedMinutes");
-
-            // n분 이상 사용했으면서 알람을 받고도 종료하지 않으면 알람.
-          } else if((timer == (savedMinutes + 5) && checker)||
-              (timer == (savedMinutes*2 + 5) && checker)||
-              (timer == (savedMinutes + 5) && firstchecker)||
-              (timer == (savedMinutes*2 + 5) && firstchecker)) {
-
-            LocalNotification.showOngoingNotification(
-              title: "시스템에 오류가 있습니다.",
-              body: "프로필에서 새로고침을 눌러주세요.",
-              payload: "1",
-            );
-          } else if ((timer == (savedMinutes + 5) && checker!)||
-              (timer == (savedMinutes*2 + 5) && checker!)) {
-            await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_",false);
-            await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName",false);
-            if( oldCurrentApp == currentApp && hasPackage){
               now = DateTime.now();
-              millitime = DateTime
-                  .now()
-                  .millisecondsSinceEpoch;
+              millitime = DateTime.now().millisecondsSinceEpoch;
               formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
               time = formatter.format(now);
-              gptContent = await sendGPT("GPTRejectResponse",currentAppName,timer,savedMinutes, index);
-              // gptContent="test3 알람보고 종료 안함";
-              await DataStore().saveSharedPreferencesString(KeyValue().REPLY,gptContent!);
-              // gptContent = "GPT2 사용 종료 하세요!";
-              sendAlarm(
-                  "Agent", gptContent!, time, millitime,
-                  "3",KeyValue().GPT);
+              // gptContent = await sendGPT("GPTAcceptResponse", oldCurrentAppName, timer, savedMinutes, index);
+              gptContent = "test3 알람보고 앱 종료함";
+              await DataStore().saveSharedPreferencesString(KeyValue().REPLY, gptContent!);
+              // gptContent = "GPT2 사용 종료하셨군요!";
+              sendAlarm("Agent", gptContent!, time, millitime, "3", KeyValue().GPT);
 
               await Future.delayed(Duration(seconds: duration));
               //PCA의 응답
               now = DateTime.now();
-              millitime = DateTime
-                  .now()
-                  .millisecondsSinceEpoch;
+              millitime = DateTime.now().millisecondsSinceEpoch;
               formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
               time = formatter.format(now);
 
-              agentContent = await sendGPT("PCARejectResponse",currentAppName,timer,savedMinutes,index);
-              // agentContent="test4 알람보고 종료 안함";
-              await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
+              // agentContent = await sendGPT("PCAAcceptResponse", oldCurrentAppName, timer, savedMinutes, index);
+              agentContent="test4 알람보고 앱 종료함";
+              await DataStore().saveSharedPreferencesString(KeyValue().REPLY, agentContent!);
 
-              // agentContent = "아예~";
-              sendAlarm("나", agentContent!, time, millitime, "4",KeyValue().AGENT);
+              // agentContent = "넹 껐어요";
+              sendAlarm("나", agentContent!, time, millitime, "4", KeyValue().AGENT);
               feedback();
             }
-          } else{
-            print("아무런 작동을 하지 않습니다.");
+
+            checker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_");
+            firstchecker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName");
+            print("current checker : $checker");
+            print("current firstchecker : $firstchecker");
+            //알람이 울린 후에 알람이 울린 과정을 초기화 하는 알고리즘
+            print(timer);
+            if (((savedMinutes + 6 == timer!) && firstchecker!) ||
+                ((savedMinutes * 2 + 6 == timer) && firstchecker!)) {
+              print("알람 설정 초기화");
+              await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName", false);
+              await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", false);
+              await DataStore().saveSharedPreferencesInt("${KeyValue().OVERTIMEAPP}_timer", 0);
+            }
+
+            //n분 이상 사용했을때 알람.
+            if (((savedMinutes + 5 >= timer!) && (timer >= savedMinutes) && !checker! && !firstchecker!) ||
+                ((savedMinutes * 2 + 5 >= timer!) && (timer >= savedMinutes * 2) && !checker! && !firstchecker!)) {
+              await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", true);
+              await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName", true);
+              await DataStore().saveSharedPreferencesString(KeyValue().OVERTIMEAPP, currentApp);
+              await DataStore().saveSharedPreferencesInt("${KeyValue().OVERTIMEAPP}_timer", 0);
+              //사용을 종료하라는 agent의 메세지
+              print("최대 사용시간이 되었습니다.");
+              now = DateTime.now();
+              millitime = DateTime.now().millisecondsSinceEpoch;
+              formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+              time = formatter.format(now);
+              // gptContent = await sendGPT("GPTFirstResponse", currentAppName, timer, savedMinutes, index);
+              gptContent = "test1 알람옴";
+              await DataStore().saveSharedPreferencesString(KeyValue().REPLY, gptContent!);
+
+              // gptContent = "$currentAppName 끄쇼";
+              sendAlarm("Agent", gptContent!, time, millitime, "1", KeyValue().GPT);
+
+              await Future.delayed(Duration(seconds: duration));
+              //PCA의 응답
+              now = DateTime.now();
+              millitime = DateTime.now().millisecondsSinceEpoch;
+              formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+              time = formatter.format(now);
+
+              // agentContent = await sendGPT("PCAFirstResponse", currentAppName, timer, savedMinutes, index);
+              agentContent="의도 목적";
+              await DataStore().saveSharedPreferencesString(KeyValue().REPLY, agentContent!);
+
+              await DataStore().saveSharedPreferencesString("${KeyValue().ISFEEDBACK}_agentContent", agentContent);
+              await DataStore().saveSharedPreferencesString("${KeyValue().ISFEEDBACK}_time", time);
+              await DataStore().saveSharedPreferencesInt("${KeyValue().ISFEEDBACK}_millitime", millitime);
+              // agentContent = "끌겨";
+              sendAlarm("나", agentContent!, time, millitime, "2", KeyValue().AGENT);
+
+              print("현재 앱 사용시간이 설정된 시간을 초과했습니다. $timer $savedMinutes");
+
+              // n분 이상 사용했으면서 알람을 받고도 종료하지 않으면 알람.
+            } else if ((timer == (savedMinutes + 7) && (checker != firstchecker)) ||
+                (timer == (savedMinutes * 2 + 7) && (checker != firstchecker))) {
+              LocalNotification.showOngoingNotification(
+                title: "시스템에 오류가 있습니다.",
+                body: "프로필에서 새로고침을 눌러주세요.",
+                payload: "1",
+              );
+            } else if ((timer == (savedMinutes + 5) && checker!) ||
+                (timer == (savedMinutes * 2 + 5) && checker!)) {
+              await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", false);
+              await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName", false);
+              if (oldCurrentApp == currentApp && hasPackage) {
+                now = DateTime.now();
+                millitime = DateTime.now().millisecondsSinceEpoch;
+                formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+                time = formatter.format(now);
+                // gptContent = await sendGPT("GPTRejectResponse", currentAppName, timer, savedMinutes, index);
+                gptContent="test3 알람보고 종료 안함";
+                await DataStore().saveSharedPreferencesString(KeyValue().REPLY, gptContent!);
+                // gptContent = "GPT2 사용 종료 하세요!";
+                sendAlarm("Agent", gptContent!, time, millitime, "3", KeyValue().GPT);
+
+                await Future.delayed(Duration(seconds: duration));
+                //PCA의 응답
+                now = DateTime.now();
+                millitime = DateTime.now().millisecondsSinceEpoch;
+                formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+                time = formatter.format(now);
+
+                // agentContent = await sendGPT("PCARejectResponse", currentAppName, timer, savedMinutes, index);
+                agentContent="test4 알람보고 종료 안함";
+                await DataStore().saveSharedPreferencesString(KeyValue().REPLY, agentContent!);
+
+                // agentContent = "아예~";
+                sendAlarm("나", agentContent!, time, millitime, "4", KeyValue().AGENT);
+                feedback();
+              }
+            } else {
+              print("아무런 작동을 하지 않습니다.");
+            }
+          }
+/*
+*
+*
+* **/
+          else if(KeyValue().MODE =="집단1"){
+            //알람을 받고 사용을 종료했을때 대답
+
+            checker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${oldCurrentAppName}_");
+            firstchecker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$oldCurrentAppName");
+            print("oldchecker : $checker");
+            print("firstchecker : $firstchecker");
+
+            if ((oldCurrentApp != currentApp) && checker! && firstchecker!) {
+              print("알람을 보고 앱을 종료했습니다.");
+              await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", false);
+
+              now = DateTime.now();
+              millitime = DateTime.now().millisecondsSinceEpoch;
+              formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+              time = formatter.format(now);
+              // gptContent = await sendGPT("GPTAcceptResponse", oldCurrentAppName, timer, savedMinutes, index);
+              gptContent = "test3 알람보고 앱 종료함";
+              await DataStore().saveSharedPreferencesString(KeyValue().REPLY, gptContent!);
+              // gptContent = "GPT2 사용 종료하셨군요!";
+              sendAlarm("Agent", gptContent!, time, millitime, "3", KeyValue().GPT);
+            }
+
+            checker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_");
+            firstchecker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName");
+            print("current checker : $checker");
+            print("current firstchecker : $firstchecker");
+
+            //알람이 울린 후에 알람이 울린 과정을 초기화 하는 알고리즘
+            if (((savedMinutes + 6 == timer!) && firstchecker!) ||
+                ((savedMinutes * 2 + 6 == timer) && firstchecker!)) {
+              print("알람 설정 초기화");
+              await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName", false);
+              await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", false);
+              await DataStore().saveSharedPreferencesInt("${KeyValue().OVERTIMEAPP}_timer", 0);
+            }
+
+            //n분 이상 사용했을때 알람.
+            if (((savedMinutes + 5 >= timer!) && (timer >= savedMinutes) && !checker! && !firstchecker!) ||
+                ((savedMinutes * 2 + 5 >= timer!) && (timer >= savedMinutes * 2) && !checker! && !firstchecker!)) {
+
+              await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", true);
+              await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName", true);
+              await DataStore().saveSharedPreferencesString(KeyValue().OVERTIMEAPP, currentApp);
+              await DataStore().saveSharedPreferencesInt("${KeyValue().OVERTIMEAPP}_timer", 0);
+              //사용을 종료하라는 agent의 메세지
+              print("최대 사용시간이 되었습니다.");
+              now = DateTime.now();
+              millitime = DateTime.now().millisecondsSinceEpoch;
+              formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+              time = formatter.format(now);
+              // gptContent = await sendGPT("GPTFirstResponse", currentAppName, timer, savedMinutes, index);
+              gptContent = "test1 알람옴";
+              await DataStore()
+                  .saveSharedPreferencesString(KeyValue().REPLY, gptContent!);
+
+              // gptContent = "$currentAppName 끄쇼";
+              sendAlarm(
+                  "Agent", gptContent!, time, millitime, "1", KeyValue().GPT);
+
+              print("현재 앱 사용시간이 설정된 시간을 초과했습니다. $timer $savedMinutes");
+
+              // n분 이상 사용했으면서 알람을 받고도 종료하지 않으면 알람.
+            } else if ((timer == (savedMinutes + 5) && (checker != firstchecker)) ||
+                (timer == (savedMinutes * 2 + 5) && (checker != firstchecker))) {
+              LocalNotification.showOngoingNotification(
+                title: "시스템에 오류가 있습니다.",
+                body: "프로필에서 새로고침을 눌러주세요.",
+                payload: "1",
+              );
+            } else if ((timer == (savedMinutes + 5) && checker!) || (timer == (savedMinutes * 2 + 5) && checker!)) {
+              await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", false);
+              await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName", false);
+              if (oldCurrentApp == currentApp && hasPackage) {
+                now = DateTime.now();
+                millitime = DateTime.now().millisecondsSinceEpoch;
+                formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+                time = formatter.format(now);
+                // gptContent = await sendGPT("GPTRejectResponse", currentAppName, timer, savedMinutes, index);
+                gptContent="test3 알람보고 종료 안함";
+                await DataStore().saveSharedPreferencesString(KeyValue().REPLY, gptContent!);
+                // gptContent = "GPT2 사용 종료 하세요!";
+                sendAlarm("Agent", gptContent!, time, millitime, "3", KeyValue().GPT);
+
+              }
+            } else {
+              print("아무런 작동을 하지 않습니다.");
+            }
           }
         } else {
           print("selectedDurationMap에 'hours' 또는 'minutes' 키가 없습니다.");
         }
+
+
       } catch (e) {
         print("JSON 파싱 중 오류 발생: $e");
       }
