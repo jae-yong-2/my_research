@@ -128,7 +128,7 @@ class _ProfileState extends State<Profile> {
       );
       return;
     }else if(
-        null != existingSelectedAppsJson &&
+    null != existingSelectedAppsJson &&
         null != existingSelectedDurationJson &&
         null != existingSleepTimeJson){
       Fluttertoast.showToast(
@@ -181,7 +181,7 @@ class _ProfileState extends State<Profile> {
       KeyValue().SLEEPTIME: {'hours': _sleepTime!.inHours, 'minutes': _sleepTime!.inMinutes % 60},
     };
     var now = DateTime.now();
-    var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    var formatter = DateFormat('yyyy-MM-dd');
     var time = formatter.format(now);
 
     _dataStore.saveData(KeyValue().ID, KeyValue().SELECTEDAPP, firebaseData).then((_) {
@@ -192,7 +192,7 @@ class _ProfileState extends State<Profile> {
       Fluttertoast.showToast(msg: "저장 실패: $error", gravity: ToastGravity.CENTER);
     });
 
-    _dataStore.saveData(KeyValue().ID, '${KeyValue().SELECTEDAPP}_history/$time', firebaseData);
+    _dataStore.saveData(KeyValue().ID, '${KeyValue().SELECTEDAPP}_change/$time', firebaseData);
     print(selectedAppsJson);
     print(selectedDurationJson);
     print(sleepTimeJson);
@@ -270,6 +270,22 @@ class _ProfileState extends State<Profile> {
     }
   }
 
+  Future<void> _refreshData() async {
+    await _loadSelectedApps();
+    await _getTop10Apps();
+    await _loadSelectedDuration();
+    await _loadSleepTime();
+
+    String? selectedApp = await DataStore().getSharedPreferencesString(KeyValue().SELECTEDAPP);
+    List<dynamic> selectedAppJson = jsonDecode(selectedApp!);
+    List<String> appNames = selectedAppJson.map((selectedAppJson) => selectedAppJson['appName'].toString()).toList();
+    print(appNames);
+    for (var appName in appNames) {
+      await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${appName}_",false);
+      await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$appName",false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -277,72 +293,142 @@ class _ProfileState extends State<Profile> {
       child: Scaffold(
         body: Column(
           children: [
-            ElevatedButton(
-              onPressed: () => _selectDuration(context),
-              child: Text('사용 시간 선택하기'),
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.grey,
+                  width: 1.0,
+                ),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              padding: EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _selectDuration(context),
+                    child: Text('앱 제한 시간 (공통)'),
+                  ),
+                  if (_selectedDuration != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text('선택된 시간: ${_selectedDuration!.inHours}시간 ${_selectedDuration!.inMinutes % 60}분'),
+                    ),
+                ],
+              ),
             ),
-            if (_selectedDuration != null)
-              Text('선택된 시간: ${_selectedDuration!.inHours}시간 ${_selectedDuration!.inMinutes % 60}분( 시간 분 )'),
-            ElevatedButton(
-              onPressed: () => _selectSleepTime(context),
-              child: Text('취침 시간 선택하기'),
+            SizedBox(height: 5,),
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.grey,
+                  width: 1.0,
+                ),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              padding: EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _selectSleepTime(context),
+                    child: Text('평소 취침 시간'),
+                  ),
+                  if (_sleepTime != null)
+                    Text('선택된 취침 시간: ${_sleepTime!.inHours}시간 ${_sleepTime!.inMinutes % 60}분'),
+                ],
+              ),
             ),
-            if (_sleepTime != null)
-              Text('선택된 취침 시간: ${_sleepTime!.inHours}시간 ${_sleepTime!.inMinutes % 60}분'),
+            SizedBox(height: 5,),
             Expanded(
-              child: _top10Apps.isEmpty
-                  ? Center(child: CircularProgressIndicator())
-                  : ListView.builder(
-                itemCount: _top10Apps.length,
-                itemBuilder: (context, index) {
-                  final app = _top10Apps[index];
-                  final appName = app['appName'] ?? 'Unknown';
-                  final packageName = app['packageName'] ?? 'Unknown';
-                  final isSelected = _selectedApps.any((selectedApp) => selectedApp['packageName'] == packageName);
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 1.0,
+                  ),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                padding: EdgeInsets.all(8.0),
+                child: _top10Apps.isEmpty
+                    ? Center(child: CircularProgressIndicator())
+                    : ListView.builder(
+                  itemCount: _top10Apps.length,
+                  itemBuilder: (context, index) {
+                    final app = _top10Apps[index];
+                    final appName = app['appName'] ?? 'Unknown';
+                    final packageName = app['packageName'] ?? 'Unknown';
+                    final isSelected = _selectedApps.any((selectedApp) => selectedApp['packageName'] == packageName);
 
-                  return ListTile(
-                    title: Text(appName),
-                    subtitle: Text('$packageName'),
-                    trailing: Checkbox(
-                      value: isSelected,
-                      onChanged: (bool? value) {
-                        _toggleAppSelection({'appName': appName, 'packageName': packageName});
-                      },
-                    ),
-                    onTap: isSelected
-                        ? () => _selectAppUsageDuration(context, packageName)
-                        : null,
-                  );
-                },
+                    return ListTile(
+                      title: Text(appName),
+                      subtitle: Text('$packageName'),
+                      trailing: Checkbox(
+                        value: isSelected,
+                        onChanged: (bool? value) {
+                          _toggleAppSelection({'appName': appName, 'packageName': packageName});
+                        },
+                      ),
+                      onTap: isSelected
+                          ? () => _selectAppUsageDuration(context, packageName)
+                          : null,
+                    );
+                  },
+                ),
               ),
             ),
-            Text('Selected Apps:'),
+            SizedBox(height: 5,),
+            Text('사용을 제한할 앱'),
+            SizedBox(height: 5,),
             Expanded(
-              child: ListView.builder(
-                itemCount: _selectedApps.length,
-                itemBuilder: (context, index) {
-                  final app = _selectedApps[index];
-                  final appName = app['appName'];
-                  final packageName = app['packageName'];
-                  final usageDuration = app['usageDuration'] as Duration;
-                  return ListTile(
-                    title: Text(appName),
-                    subtitle: Text('$packageName\n사용: ${usageDuration.inHours}시간 ${usageDuration.inMinutes % 60}분'),
-                    trailing: IconButton(
-                      icon: Icon(Icons.timer),
-                      onPressed: () => _selectAppUsageDuration(context, packageName),
-                    ),
-                  );
-                },
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 1.0,
+                  ),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                padding: EdgeInsets.all(8.0),
+                child: ListView.builder(
+                  itemCount: _selectedApps.length,
+                  itemBuilder: (context, index) {
+                    final app = _selectedApps[index];
+                    final appName = app['appName'];
+                    final packageName = app['packageName'];
+                    final usageDuration = app['usageDuration'] as Duration;
+                    return ListTile(
+                      title: Text(appName),
+                      subtitle: Text('$packageName\n사용 제한 시간 : ${usageDuration.inHours}시간 ${usageDuration.inMinutes % 60}분'),
+                      trailing: IconButton(
+                        icon: Icon(Icons.timer),
+                        onPressed: () => _selectAppUsageDuration(context, packageName),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
-            ElevatedButton(
-              onPressed: _saveSelectedAppsAndDuration,
-              child: Text('저장하기'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Spacer(), // Adds space to push the button to the center
+                ElevatedButton(
+                  onPressed: _saveSelectedAppsAndDuration,
+                  child: Text('저장하기'),
+                ),
+                Spacer(flex: 1), // Adds more space to push the refresh button to the right
+                IconButton(
+                  icon: Icon(Icons.refresh),
+                  onPressed: _refreshData,
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
   }
+
+
 }

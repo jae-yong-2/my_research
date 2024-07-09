@@ -32,7 +32,7 @@ class ServerDataListener {
   );
 
   Future<void> feedback() async {
-    var duration = 5;
+    var duration = 10;
     await Future.delayed(Duration(seconds: duration));
 
     String? feedbackContent = await DataStore().getSharedPreferencesString("${KeyValue().ISFEEDBACK}_agentContent");
@@ -223,7 +223,7 @@ class ServerDataListener {
         } catch (e) {
           // JSON 파싱 오류 발생 시 전체 메시지를 반환합니다.
           print("Error decoding message: $e");
-          return message.content;
+          return "시스템에 문제가 있습니다.";
         }
       }
     }
@@ -422,13 +422,19 @@ class ServerDataListener {
           }else{
             savedMinutes = selectedDuration.inMinutes;
           }
-          bool? checker = await DataStore().getSharedPreferencesBool(KeyValue().ALARM_CHECKER);
+          bool? checker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_");
+          if(checker==null) {
+            await DataStore().saveSharedPreferencesBool(
+                "${KeyValue().ALARM_CHECKER}_${currentAppName}_", false);
+          }
 
           bool? firstchecker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName");
           if(firstchecker==null) {
             await DataStore().saveSharedPreferencesBool(
                 "${KeyValue().ALARM_CHECKER}_$currentAppName", false);
           }
+
+          checker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_");
           firstchecker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName");
 
           checker ??= false;
@@ -447,7 +453,7 @@ class ServerDataListener {
           //알람을 받고 사용을 종료했을때 대답
           if((oldCurrentApp != currentApp) && checker && firstchecker) {
             print("알람을 보고 앱을 종료했습니다.");
-            await DataStore().saveSharedPreferencesBool(KeyValue().ALARM_CHECKER,false);
+            await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_",false);
 
             now = DateTime.now();
             millitime = DateTime
@@ -455,8 +461,8 @@ class ServerDataListener {
                 .millisecondsSinceEpoch;
             formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
             time = formatter.format(now);
-            // gptContent = await sendGPT("GPTAcceptResponse",oldCurrentAppName,timer,savedMinutes,index);
-            gptContent = "test3 알람보고 앱 종료함";
+            gptContent = await sendGPT("GPTAcceptResponse",oldCurrentAppName,timer,savedMinutes,index);
+            // gptContent = "test3 알람보고 앱 종료함";
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,gptContent!);
             // gptContent = "GPT2 사용 종료하셨군요!";
             sendAlarm(
@@ -473,8 +479,8 @@ class ServerDataListener {
             formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
             time = formatter.format(now);
 
-            // agentContent = await sendGPT("PCAAcceptResponse",oldCurrentAppName,timer,savedMinutes,index);
-            agentContent="test4 알람보고 앱 종료함";
+            agentContent = await sendGPT("PCAAcceptResponse",oldCurrentAppName,timer,savedMinutes,index);
+            // agentContent="test4 알람보고 앱 종료함";
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
 
             // agentContent = "넹 껐어요";
@@ -496,7 +502,7 @@ class ServerDataListener {
           if(((savedMinutes+5 >=timer!)  && (timer >= savedMinutes)  && !checker && !firstchecker)||
               ((savedMinutes*2+5 >=timer!)  && (timer >= savedMinutes*2)  && !checker && !firstchecker))
           {
-            await DataStore().saveSharedPreferencesBool(KeyValue().ALARM_CHECKER,true);
+            await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_",true);
             await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName",true);
             await DataStore().saveSharedPreferencesString(KeyValue().OVERTIMEAPP,currentApp);
             await DataStore().saveSharedPreferencesInt("${KeyValue().OVERTIMEAPP}_timer",0);
@@ -508,8 +514,8 @@ class ServerDataListener {
                 .millisecondsSinceEpoch;
             formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
             time = formatter.format(now);
-            // gptContent = await sendGPT("GPTFirstResponse",currentAppName,timer,savedMinutes, index);
-            gptContent = "test1 알람옴";
+            gptContent = await sendGPT("GPTFirstResponse",currentAppName,timer,savedMinutes, index);
+            // gptContent = "test1 알람옴";
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,gptContent!);
 
             // gptContent = "$currentAppName 끄쇼";
@@ -526,8 +532,8 @@ class ServerDataListener {
             formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
             time = formatter.format(now);
 
-            // agentContent = await sendGPT("PCAFirstResponse",currentAppName,timer,savedMinutes, index);
-            agentContent="의도 목적";
+            agentContent = await sendGPT("PCAFirstResponse",currentAppName,timer,savedMinutes, index);
+            // agentContent="의도 목적";
             await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
 
             await DataStore().saveSharedPreferencesString("${KeyValue().ISFEEDBACK}_agentContent",agentContent);
@@ -540,10 +546,19 @@ class ServerDataListener {
             print("현재 앱 사용시간이 설정된 시간을 초과했습니다. $timer $savedMinutes");
 
             // n분 이상 사용했으면서 알람을 받고도 종료하지 않으면 알람.
+          } else if((timer == (savedMinutes + 5) && checker)||
+              (timer == (savedMinutes*2 + 5) && checker)||
+              (timer == (savedMinutes + 5) && firstchecker)||
+              (timer == (savedMinutes*2 + 5) && firstchecker)) {
+
+            LocalNotification.showOngoingNotification(
+              title: "시스템에 오류가 있습니다.",
+              body: "프로필에서 새로고침을 눌러주세요.",
+              payload: "1",
+            );
           } else if ((timer == (savedMinutes + 5) && checker!)||
-              (timer == (savedMinutes*2 + 5) && checker!)
-          ) {
-            await DataStore().saveSharedPreferencesBool(KeyValue().ALARM_CHECKER,false);
+              (timer == (savedMinutes*2 + 5) && checker!)) {
+            await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_",false);
             await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName",false);
             if( oldCurrentApp == currentApp && hasPackage){
               now = DateTime.now();
@@ -552,8 +567,8 @@ class ServerDataListener {
                   .millisecondsSinceEpoch;
               formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
               time = formatter.format(now);
-              // gptContent = await sendGPT("GPTRejectResponse",currentAppName,timer,savedMinutes, index);
-              gptContent="test3 알람보고 종료 안함";
+              gptContent = await sendGPT("GPTRejectResponse",currentAppName,timer,savedMinutes, index);
+              // gptContent="test3 알람보고 종료 안함";
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY,gptContent!);
               // gptContent = "GPT2 사용 종료 하세요!";
               sendAlarm(
@@ -569,8 +584,8 @@ class ServerDataListener {
               formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
               time = formatter.format(now);
 
-              // agentContent = await sendGPT("PCARejectResponse",currentAppName,timer,savedMinutes,index);
-              agentContent="test4 알람보고 종료 안함";
+              agentContent = await sendGPT("PCARejectResponse",currentAppName,timer,savedMinutes,index);
+              // agentContent="test4 알람보고 종료 안함";
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY,agentContent!);
 
               // agentContent = "아예~";

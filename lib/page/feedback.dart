@@ -315,113 +315,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
   @override
   WithForegroundTask build(BuildContext context) => WithForegroundTask(
     child: Scaffold(
-      appBar: AppBar(
-        title: Text("Feedback Page"),
-      ),
       body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.max,
           children: [
-            FutureBuilder<String?>(
-              future: DataStore().getSharedPreferencesString("${KeyValue().CONVERSATION}1"),
-              builder: (BuildContext context, AsyncSnapshot<String?> snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator(); // 로딩 중인 경우
-                } else if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                } else {
-                  content1 = snapshot.data;
-                  return Column(
-                    children: [
-                      Text('ChatGPT에게 답장했습니다.\n${snapshot.data}\n\n'),
-                      SizedBox(
-                        height: 50,
-                        width: 300,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.lightBlueAccent, // 배경색을 회색으로 설정
-                            borderRadius: BorderRadius.zero, // 모서리를 90도로 각지게 설정
-                          ),
-                          child: TextButton(
-                            style: TextButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.zero, // 버튼 내부의 모서리도 90도로 설정
-                              ),
-                            ),
-                            onPressed: () async {
-                              print(content1);
-                              if (!check1) {
-                                check1 = !check1;
-                                await DataStore().saveData(
-                                  KeyValue().ID,
-                                  KeyValue().ISPREDICTIONCORRECT,
-                                  {
-                                    KeyValue().CONVERSATION: content1,
-                                    KeyValue().ISPREDICTIONCORRECT: "true",
-                                    KeyValue().TIMESTAMP: await DataStore()
-                                        .getSharedPreferencesString("${KeyValue().TIMESTAMP}1")
-                                  },
-                                );
-                                SystemNavigator.pop();
-                              } else {
-                                Fluttertoast.showToast(msg: "현재 질문은 피드백이 완료되었습니다.");
-                              }
-                            },
-                            child: Text(
-                              "맞습니다.",
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      SizedBox(
-                        height: 50,
-                        width: 300,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.redAccent, // 배경색을 회색으로 설정
-                            borderRadius: BorderRadius.zero, // 모서리를 90도로 각지게 설정
-                          ),
-                          child: TextButton(
-                            style: TextButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.zero, // 버튼 내부의 모서리도 90도로 설정
-                              ),
-                            ),
-                            onPressed: () async {
-                              if (!check1) {
-                                check1 = !check1;
-                                print(content1);
-                                await DataStore().saveData(
-                                  KeyValue().ID,
-                                  KeyValue().ISPREDICTIONCORRECT,
-                                  {
-                                    KeyValue().CONVERSATION: content1,
-                                    KeyValue().ISPREDICTIONCORRECT: "false",
-                                    KeyValue().TIMESTAMP: await DataStore()
-                                        .getSharedPreferencesString("${KeyValue().TIMESTAMP}1")
-                                  },
-                                );
-                                SystemNavigator.pop();
-                              } else {
-                                Fluttertoast.showToast(msg: "현재 질문은 피드백이 완료되었습니다.");
-                              }
-                            },
-                            child: Text(
-                              "틀렸습니다.",
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ); // 'snapshot.data'는 'String?'입니다.
-                }
-              },
-            ),
-            SizedBox(height: 20),
             Center(),
             // Variables display
             Padding(
@@ -429,15 +327,47 @@ class _FeedbackPageState extends State<FeedbackPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('기존 설정:'),
-                  if (selectedapp != null) ...parseUsageStats(selectedapp!),
-                  if (selectedDuration != null) Text('기본 제한 시간: ${formatDuration(selectedDuration!)}'),
-                  if (sleeptime != null) Text('수면 시간: ${formatDuration(sleeptime!)}'),
-                  SizedBox(height: 10),
-                  Text('변경될 설정:'),
-                  if (selectedappNext != null) ...parseUsageStats(selectedappNext!),
-                  if (selectedDurationNext != null) Text('기본 제한 시간: ${formatDuration(selectedDurationNext!)}'),
-                  if (sleeptimeNext != null) Text('수면 시간: ${formatDuration(sleeptimeNext!)}'),
+                  // 기존 설정 Section
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    padding: EdgeInsets.all(16.0), // Increase padding for larger size
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('기존 설정:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Divider(color: Colors.grey,),
+                        if (selectedapp != null) ...parseUsageStats(selectedapp!),
+                        Divider(color: Colors.grey,),
+                        if (selectedDuration != null) Text('기본 제한 시간: ${formatDuration(selectedDuration!)}'),
+                        if (sleeptime != null) Text('수면 시간: ${formatDuration(sleeptime!)}'),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 2,),
+                  // 변경될 설정 Section
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    padding: EdgeInsets.all(16.0), // Increase padding for larger size
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('변경될 설정:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Divider(color: Colors.grey,),
+                        if (selectedappNext != null) ...parseUsageStats(selectedappNext!),
+                        Divider(color: Colors.grey,),
+                        if (selectedDurationNext != null) Text('기본 제한 시간: ${formatDuration(selectedDurationNext!)}'),
+                        if (sleeptimeNext != null) Text('수면 시간: ${formatDuration(sleeptimeNext!)}'),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -453,4 +383,5 @@ class _FeedbackPageState extends State<FeedbackPage> {
       ),
     ),
   );
+
 }

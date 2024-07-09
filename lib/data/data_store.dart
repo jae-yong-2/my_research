@@ -87,7 +87,7 @@ class DataStore {
 
   Future<void> saveSharedPreferencesBool(String key, bool value) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(key, value ?? true);
+    await prefs.setBool(key, value ?? false);
   }
   Future<bool?> getSharedPreferencesBool(String key) async {
     final prefs = await SharedPreferences.getInstance();
