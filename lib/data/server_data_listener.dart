@@ -434,7 +434,14 @@ class ServerDataListener {
 
           //현재 실행중인 앱이 사용을 중지하고 싶은 앱리스트의 몇번째 앱리스트인지 출력해줌.
           int index = getIndexForPackageName(selectedAppJson,currentApp);
-
+/**
+ *
+ *
+ *  집단 2
+ *
+ *
+ *
+ * */
           if(KeyValue().MODE == "집단2"){
             //알람을 받고 사용을 종료했을때 대답
             checker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${oldCurrentAppName}_");
@@ -442,6 +449,13 @@ class ServerDataListener {
             print("old app name : $oldCurrentAppName");
             print("old checker : $checker");
             print("old firstchecker : $firstchecker");
+            /**
+             *
+             *
+             * 알람을 보고 바로 앱을 종료하는 경우
+             *
+             *
+             */
             if ((oldCurrentApp != currentApp) && checker! && firstchecker!) {
               print("알람을 보고 앱을 종료했습니다.");
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${oldCurrentAppName}_", false);
@@ -476,22 +490,58 @@ class ServerDataListener {
             firstchecker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName");
             print("current checker : $checker");
             print("current firstchecker : $firstchecker");
-            //알람이 울린 후에 알람이 울린 과정을 초기화 하는 알고리즘
-            print(timer);
-            if (((savedMinutes + 6 == timer!) && firstchecker!) ||
-                ((savedMinutes * 2 + 6 == timer) && firstchecker!)) {
+
+            /**
+             * 알람이 울리고 사용중인 앱을 중단하고 다른 앱을 사용하게 될 경우
+             */
+            String? overtimeapp = await DataStore().getSharedPreferencesString(KeyValue().OVERTIMEAPP);
+            print("overtimeapp : $overtimeapp");
+            if(overtimeapp!=null && overtimeapp!="none" && currentAppName!=overtimeapp && currentAppName !="my_research"){
+              now = DateTime.now();
+              formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+              time = formatter.format(now);
+
+              //히스토리에 저장
+              String? alarmTime = await DataStore().getSharedPreferencesString("${KeyValue().OVERTIMEAPP}_time");
+
+              await DataStore().saveData(KeyValue().ID, 'stop_after_alarm/$time', {
+                "alarm_time": alarmTime,
+              });
+              await DataStore().saveSharedPreferencesString(KeyValue().OVERTIMEAPP, "none");
+            }
+            /**
+             *
+             *
+             * 알람이 울린 후에 알람이 울린 과정을 초기화 하는 알고리즘
+             *
+             *
+             */
+            if (((savedMinutes * 2 > timer!) && (savedMinutes + 6 <= timer!) && firstchecker!) ||
+                ((savedMinutes * 2 + 6 <= timer) && firstchecker!)) {
               print("알람 설정 초기화");
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName", false);
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", false);
               await DataStore().saveSharedPreferencesInt("${KeyValue().OVERTIMEAPP}_timer", 0);
             }
 
-            //n분 이상 사용했을때 알람.
+
+
+            /**
+             *
+             *
+             * n분 이상 사용했을때 알람.
+             *
+             *
+             */
+            print("---------------------");
+            print(timer);
+            print(savedMinutes);
+            print("---------------------");
             if (((savedMinutes + 5 >= timer!) && (timer >= savedMinutes) && !checker! && !firstchecker!) ||
                 ((savedMinutes * 2 + 5 >= timer!) && (timer >= savedMinutes * 2) && !checker! && !firstchecker!)) {
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", true);
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName", true);
-              await DataStore().saveSharedPreferencesString(KeyValue().OVERTIMEAPP, currentApp);
+              await DataStore().saveSharedPreferencesString(KeyValue().OVERTIMEAPP, currentAppName);
               await DataStore().saveSharedPreferencesInt("${KeyValue().OVERTIMEAPP}_timer", 0);
               //사용을 종료하라는 agent의 메세지
               print("최대 사용시간이 되었습니다.");
@@ -499,6 +549,10 @@ class ServerDataListener {
               millitime = DateTime.now().millisecondsSinceEpoch;
               formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
               time = formatter.format(now);
+              //앱을 종료했을때 시간
+              await DataStore().saveSharedPreferencesString("${KeyValue().OVERTIMEAPP}_time", time);
+
+
               // gptContent = await sendGPT("GPTFirstResponse", currentAppName, timer, savedMinutes, index);
               gptContent = "test1 알람옴";
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY, gptContent!);
@@ -514,7 +568,7 @@ class ServerDataListener {
               time = formatter.format(now);
 
               // agentContent = await sendGPT("PCAFirstResponse", currentAppName, timer, savedMinutes, index);
-              agentContent="의도 목적";
+              agentContent="$currentAppName 의도 목적";
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY, agentContent!);
 
               await DataStore().saveSharedPreferencesString("${KeyValue().ISFEEDBACK}_agentContent", agentContent);
@@ -525,16 +579,26 @@ class ServerDataListener {
 
               print("현재 앱 사용시간이 설정된 시간을 초과했습니다. $timer $savedMinutes");
 
-              // n분 이상 사용했으면서 알람을 받고도 종료하지 않으면 알람.
-            } else if ((timer == (savedMinutes + 7) && (checker != firstchecker)) ||
-                (timer == (savedMinutes * 2 + 7) && (checker != firstchecker))) {
+              /**
+               *
+               * 초기화가 안됐을 경우 알람
+               *
+               */
+            } else if ((timer == (savedMinutes + 13) && (checker != firstchecker)) ||
+                (timer == (savedMinutes * 2 + 13) && (checker != firstchecker))) {
               LocalNotification.showOngoingNotification(
                 title: "시스템에 오류가 있습니다.",
                 body: "프로필에서 새로고침을 눌러주세요.",
-                payload: "1",
+                payload: "8",
               );
+              /**
+               *
+               * n분 이상 사용했으면서 알람을 받고도 종료하지 않으면 알람.
+               *
+               */
             } else if ((timer == (savedMinutes + 5) && checker!) ||
                 (timer == (savedMinutes * 2 + 5) && checker!)) {
+
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", false);
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName", false);
               if (oldCurrentApp == currentApp && hasPackage) {
@@ -567,7 +631,11 @@ class ServerDataListener {
               print("아무런 작동을 하지 않습니다.");
             }
           }
-/*
+/**
+*
+*
+*
+* 집단1
 *
 *
 * **/
@@ -578,7 +646,11 @@ class ServerDataListener {
             firstchecker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$oldCurrentAppName");
             print("oldchecker : $checker");
             print("firstchecker : $firstchecker");
-
+            /**
+             *
+             * 알람을 보고 바로 앱을 종료하는 경우
+             *
+             */
             if ((oldCurrentApp != currentApp) && checker! && firstchecker!) {
               print("알람을 보고 앱을 종료했습니다.");
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", false);
@@ -599,22 +671,51 @@ class ServerDataListener {
             print("current checker : $checker");
             print("current firstchecker : $firstchecker");
 
-            //알람이 울린 후에 알람이 울린 과정을 초기화 하는 알고리즘
-            if (((savedMinutes + 6 == timer!) && firstchecker!) ||
-                ((savedMinutes * 2 + 6 == timer) && firstchecker!)) {
+          /**
+           *
+           * 알람이 울린 후에 알람이 울린 과정을 초기화 하는 알고리즘
+           *
+           */
+            if (((savedMinutes * 2 > timer!) && (savedMinutes + 6 <= timer!) && firstchecker!) ||
+                ((savedMinutes * 2 + 6 <= timer) && firstchecker!)) {
               print("알람 설정 초기화");
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName", false);
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", false);
               await DataStore().saveSharedPreferencesInt("${KeyValue().OVERTIMEAPP}_timer", 0);
             }
 
-            //n분 이상 사용했을때 알람.
+
+
+            /**
+             * 알람이 울리고 사용중인 앱을 중단하고 다른 앱을 사용하게 될 경우
+             */
+            String? overtimeapp = await DataStore().getSharedPreferencesString(KeyValue().OVERTIMEAPP);
+            print("overtimeapp : $overtimeapp");
+            if(overtimeapp!=null && overtimeapp!="none" && currentAppName!=overtimeapp && currentAppName !="my_research"){
+              now = DateTime.now();
+              formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+              time = formatter.format(now);
+
+              //히스토리에 저장
+              String? alarmTime = await DataStore().getSharedPreferencesString("${KeyValue().OVERTIMEAPP}_time");
+
+              await DataStore().saveData(KeyValue().ID, 'stop_after_alarm/$time', {
+                "alarm_time": alarmTime,
+              });
+              await DataStore().saveSharedPreferencesString(KeyValue().OVERTIMEAPP, "none");
+            }
+
+            /**
+             *
+             * n분 이상 사용했을때 알람.
+             *
+             */
             if (((savedMinutes + 5 >= timer!) && (timer >= savedMinutes) && !checker! && !firstchecker!) ||
                 ((savedMinutes * 2 + 5 >= timer!) && (timer >= savedMinutes * 2) && !checker! && !firstchecker!)) {
 
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", true);
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName", true);
-              await DataStore().saveSharedPreferencesString(KeyValue().OVERTIMEAPP, currentApp);
+              await DataStore().saveSharedPreferencesString(KeyValue().OVERTIMEAPP, currentAppName);
               await DataStore().saveSharedPreferencesInt("${KeyValue().OVERTIMEAPP}_timer", 0);
               //사용을 종료하라는 agent의 메세지
               print("최대 사용시간이 되었습니다.");
@@ -624,23 +725,26 @@ class ServerDataListener {
               time = formatter.format(now);
               // gptContent = await sendGPT("GPTFirstResponse", currentAppName, timer, savedMinutes, index);
               gptContent = "test1 알람옴";
-              await DataStore()
-                  .saveSharedPreferencesString(KeyValue().REPLY, gptContent!);
+              await DataStore().saveSharedPreferencesString(KeyValue().REPLY, gptContent!);
 
               // gptContent = "$currentAppName 끄쇼";
-              sendAlarm(
-                  "Agent", gptContent!, time, millitime, "1", KeyValue().GPT);
+              sendAlarm("Agent", gptContent!, time, millitime, "1", KeyValue().GPT);
 
               print("현재 앱 사용시간이 설정된 시간을 초과했습니다. $timer $savedMinutes");
 
-              // n분 이상 사용했으면서 알람을 받고도 종료하지 않으면 알람.
-            } else if ((timer == (savedMinutes + 5) && (checker != firstchecker)) ||
-                (timer == (savedMinutes * 2 + 5) && (checker != firstchecker))) {
+
+            } else if ((timer == (savedMinutes + 13) && (checker != firstchecker)) ||
+                (timer == (savedMinutes * 2 + 13) && (checker != firstchecker))) {
               LocalNotification.showOngoingNotification(
                 title: "시스템에 오류가 있습니다.",
                 body: "프로필에서 새로고침을 눌러주세요.",
-                payload: "1",
+                payload: "8",
               );
+            /**
+             *
+             * n분 이상 사용했으면서 알람을 받고도 종료하지 않으면 알람.
+             *
+             */
             } else if ((timer == (savedMinutes + 5) && checker!) || (timer == (savedMinutes * 2 + 5) && checker!)) {
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", false);
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName", false);

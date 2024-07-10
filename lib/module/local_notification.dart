@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:my_research/data/keystring.dart';
@@ -98,6 +100,9 @@ void notificationTapBackground(NotificationResponse response) async {
         print("No input received.");
       }
 
+      if(response.payload == '6' || response.payload == '5'){
+        FlutterForegroundTask.minimizeApp();
+      }
       // 두 번째 피드백을 받았을 때 알림 취소
     } else {
       // navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) => MyApp(isLaunchedByNotification: false,)));

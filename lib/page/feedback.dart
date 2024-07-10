@@ -39,28 +39,12 @@ class _FeedbackPageState extends State<FeedbackPage> {
     super.initState();
     todaySetting();
     tomorrowSetting();
-    initPedoState();
   }
 
   StreamSubscription<StepCount>? _stepCountStream;
   int _steps = 0;
   int _oldSteps = 0;
 
-  void initPedoState() {
-    _stepCountStream = Pedometer.stepCountStream.listen(
-          (StepCount stepCount) {
-        setState(() {
-          _steps = int.parse('${stepCount.steps}');
-          if (_oldSteps != _steps) {
-            DataStore().saveSharedPreferencesInt(KeyValue().TOTALSTEP_KEY, _steps);
-          }
-          _oldSteps = _steps;
-        });
-      },
-      onError: (error) => setState(() => _steps = -1),
-      cancelOnError: true,
-    );
-  }
 
   @override
   void dispose() {
