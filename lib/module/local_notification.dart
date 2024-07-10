@@ -95,6 +95,8 @@ void notificationTapBackground(NotificationResponse response) async {
         // 모든 알림 취소
         await LocalNotification.cancelNotificationByPayload(1);
         await LocalNotification.cancelNotificationByPayload(2);
+        await LocalNotification.cancelNotificationByPayload(3);
+        await LocalNotification.cancelNotificationByPayload(4);
         await LocalNotification.cancelNotificationByPayload(5);
       } else {
         print("No input received.");
