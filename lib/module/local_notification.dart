@@ -201,7 +201,7 @@ class LocalNotification {
       groupKey: groupKey,
       styleInformation: bigTextStyleInformation,
       actions: actions,
-      icon: (payload == "2" || payload == "5"|| payload == "6" || payload == "4") ? '@drawable/user' : '@drawable/gpt',
+      icon: (payload == "2" || payload == "4") ? '@drawable/user' : (payload == "5"|| payload == "6")? '@drawable/feedback':'@drawable/gpt',
     );
 
     final NotificationDetails notificationDetails = NotificationDetails(android: androidNotificationDetails);

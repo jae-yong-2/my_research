@@ -321,10 +321,7 @@ class ServerDataListener {
     List<dynamic> usageStats = data['usageStats'];
 
     print("--------------received data--------------");
-    print("Current App: $currentApp");
-    print("Current App Name: $currentAppName");
-    print("App Usage Time: $currentAppUsageTime minutes");
-    print("App Usage State: $usageStats");
+    print("App Usage State : $usageStats");
     print("-----------------------------------------");
 
     now = DateTime.now();
@@ -358,11 +355,9 @@ class ServerDataListener {
 
     String? selectedApp = await DataStore().getSharedPreferencesString(KeyValue().SELECTEDAPP);
     List<dynamic> selectedAppJson = jsonDecode(selectedApp!);
-    print("selected app : $selectedAppJson");
     //현재 실행 중인 앱이 선택된 앱 중에 포함이 될때 true 반환
     bool hasPackage = containsPackageName(selectedAppJson, currentApp);
     var currentAppUsageLimitTime = getAppUsageLimitTime(selectedAppJson,currentApp);
-    print("$currentAppName 제한 시간 : $currentAppUsageLimitTime");
     //선택된 앱( 유튜브 or 다른 앱 )이 현재 실행 중인 앱이고, 계속 실행 중이었으면 알고리즘 실행
     if (oldCurrentApp == currentApp && hasPackage) {
       try {
@@ -389,7 +384,6 @@ class ServerDataListener {
         await DataStore().saveData(KeyValue().ID,"timer/$currentAppName/$time",{"time":currentAppUsageTime});
         print(error);
       }
-      print("----------------------timer : $timer");
       timer ??= 0;
     } else {
       await DataStore().saveSharedPreferencesInt(KeyValue().TIMER, 0);
@@ -429,8 +423,6 @@ class ServerDataListener {
           checker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_");
           firstchecker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName");
 
-          print('oldCurrentApp : ${oldCurrentApp!}');
-          print('currentApp : $currentApp');
 
           //현재 실행중인 앱이 사용을 중지하고 싶은 앱리스트의 몇번째 앱리스트인지 출력해줌.
           int index = getIndexForPackageName(selectedAppJson,currentApp);
@@ -488,6 +480,8 @@ class ServerDataListener {
 
             checker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_");
             firstchecker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName");
+            print("-----------------------------------------");
+            print("current app name : $currentAppName");
             print("current checker : $checker");
             print("current firstchecker : $firstchecker");
 
@@ -495,7 +489,6 @@ class ServerDataListener {
              * 알람이 울리고 사용중인 앱을 중단하고 다른 앱을 사용하게 될 경우
              */
             String? overtimeapp = await DataStore().getSharedPreferencesString(KeyValue().OVERTIMEAPP);
-            print("overtimeapp : $overtimeapp");
             if(overtimeapp!=null && overtimeapp!="none" && currentAppName!=overtimeapp && currentAppName !="my_research"){
               now = DateTime.now();
               formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
@@ -533,10 +526,11 @@ class ServerDataListener {
              *
              *
              */
-            print("---------------------");
-            print(timer);
-            print(savedMinutes);
-            print("---------------------");
+            print("-----------------------------------------");
+            print("$currentAppName 사용 시간 : $timer");
+            print("$currentAppName 제한 시간 : $savedMinutes");
+            print("사용시간 초과 앱 : $overtimeapp");
+            print("-----------------------------------------");
             if (((savedMinutes + 5 >= timer!) && (timer >= savedMinutes) && !checker! && !firstchecker!) ||
                 ((savedMinutes * 2 + 5 >= timer!) && (timer >= savedMinutes * 2) && !checker! && !firstchecker!)) {
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", true);

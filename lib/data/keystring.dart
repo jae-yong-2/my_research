@@ -1,7 +1,7 @@
 class KeyValue{
 
   String ID = "0";
-  String MODE = "집단2";
+  String MODE = "집단1";
 
 
   String CHAT_ID = "id";
