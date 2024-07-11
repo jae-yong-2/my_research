@@ -69,38 +69,17 @@ class ServerDataListener {
         "상황" : "스마트폰($currentApp) 사용시간이 너무 길어서 사용시간이 많아져서 사용을 중단하라는 알람을 줘야하는 상황",  
         "평소 취침시간": "$sleepTime",
         "현재 시간": "$currentTime",
-        "목표한 최대 스마트폰($currentApp) 사용시간" : "${(appUsageLimitTime / 60)}시간 ${appUsageLimitTime % 60}분",  
-        "현재 스마트폰($currentApp) 사용시간" : "${currentAppUsageTime / 60}시간 ${currentAppUsageTime % 60}분",  
-        "요구사항": ["상대방이 스마트폰($currentApp)사용 시간이 '${appUsageLimitTime / 60}시간 ${appUsageLimitTime % 60}분이 됐다고 중단해야한다'고 전해줘, 상대방이 기분이 상하지 않도록 '사용시간을 말해주면서 전달'해줘,15~20단어 정도 Json형태 말고 한글로 존댓말 문장생성"]
+        "목표한 최대 스마트폰($currentApp) 사용시간" : "${(appUsageLimitTime ~/ 60)}시간 ${appUsageLimitTime % 60}분",  
+        "현재 스마트폰($currentApp) 사용시간" : "${currentAppUsageTime ~/ 60}시간 ${currentAppUsageTime % 60}분",  
+        "요구사항": ["상대방이 스마트폰($currentApp)사용 시간이 '${appUsageLimitTime ~/ 60}시간 ${appUsageLimitTime % 60}분이 됐다고 중단해야한다'고 전해줘, 상대방이 기분이 상하지 않도록 '사용시간을 말해주면서 전달'해줘,15~20단어 정도 Json형태 말고 한글로 존댓말 문장생성"]
       }
         ''';
     }
 
     if(category =="PCAFirstResponse"){
       final Random random = Random();
-      final nonStopReason = [
-        [
-          "지인들의 일상생활을 실시간으로 더 보고싶다는",
-          "내 일상생활을 실시간으로 더 공유하고 싶다는",
-          "지금 알고리즘이 좋은 정보들을 잘 알려주고 있다는",
-        ],
-        [
-         "알고리즘에 의해 노출되는 추천영상으로 더 큰 재미를 찾기 위해 계속 영상을 시청하게 됨",
-          "대체할 수 있는 흥미로운 플랫폼이 없음",
-          "프리미엄 서비스를 사용하는 입장에서 앱을 사용 안하면 돈 아까운 느낌이 듦",
-        ]
-      ];
-      final stopReason = [
-        [
-          "일상의 기록을 위함인지 과시를 위함인지 생각",
-          "불필요하고 단발적인 컨텐츠에 시간을 쏟지말자 생각",
-          "화면속 이미 지나간일들의 기록보다 현재의 세상을 보자고 생각",
-        ],
-        [
-          "자기전에는 최소한의 영상시청으로 늦은 시간에 잠들지 않게 함",
-          "업무중 휴식시간에는 앱 사용을 줄여 일에 대한 집중력을 떨어지지 않게 함"
-        ],
-      ];
+      final nonStopReason = KeyValue().nonStopReason;
+      final stopReason = KeyValue().stopReason;
       // 0 또는 1을 랜덤으로 출력하는 변수
       int purposeRandomValue = random.nextInt(2);
       int nonStopReasonRandomValue = random.nextInt(nonStopReason.length);
@@ -119,7 +98,7 @@ class ServerDataListener {
         "방금 받은 알람" : "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}", 
         "평소 취침시간" : "$sleepTime",  
         "현재 시간" : "$currentTime",  
-        "목표한 최대 스마트폰($currentApp) 사용시간" : "$appUsageLimitTime",  
+        "목표한 최대 스마트폰($currentApp) 사용시간" : "$appUsageLimitTime분",  
         "현재 스마트폰($currentApp) 사용시간" : "$currentAppUsageTime분",  
         "요구사항" : 
         ["나는 '방금 받은 알람'에 답장하려 해, 내용은 $purpose. 20~30단어 정도 Json형태 말고 한글 반말로 문장 생성"]
@@ -456,8 +435,8 @@ class ServerDataListener {
               millitime = DateTime.now().millisecondsSinceEpoch;
               formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
               time = formatter.format(now);
-              // gptContent = await sendGPT("GPTAcceptResponse", oldCurrentAppName, timer, savedMinutes, index);
-              gptContent = "test3 알람보고 앱 종료함";
+              gptContent = await sendGPT("GPTAcceptResponse", oldCurrentAppName, timer, savedMinutes, index);
+              // gptContent = "test3 알람보고 앱 종료함";
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY, gptContent!);
               // gptContent = "GPT2 사용 종료하셨군요!";
               sendAlarm("Agent", gptContent!, time, millitime, "3", KeyValue().GPT);
@@ -469,8 +448,8 @@ class ServerDataListener {
               formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
               time = formatter.format(now);
 
-              // agentContent = await sendGPT("PCAAcceptResponse", oldCurrentAppName, timer, savedMinutes, index);
-              agentContent="test4 알람보고 앱 종료함";
+              agentContent = await sendGPT("PCAAcceptResponse", oldCurrentAppName, timer, savedMinutes, index);
+              // agentContent="test4 알람보고 앱 종료함";
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY, agentContent!);
 
               // agentContent = "넹 껐어요";
@@ -547,8 +526,8 @@ class ServerDataListener {
               await DataStore().saveSharedPreferencesString("${KeyValue().OVERTIMEAPP}_time", time);
 
 
-              // gptContent = await sendGPT("GPTFirstResponse", currentAppName, timer, savedMinutes, index);
-              gptContent = "test1 알람옴";
+              gptContent = await sendGPT("GPTFirstResponse", currentAppName, timer, savedMinutes, index);
+              // gptContent = "test1 알람옴";
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY, gptContent!);
 
               // gptContent = "$currentAppName 끄쇼";
@@ -561,8 +540,8 @@ class ServerDataListener {
               formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
               time = formatter.format(now);
 
-              // agentContent = await sendGPT("PCAFirstResponse", currentAppName, timer, savedMinutes, index);
-              agentContent="$currentAppName 의도 목적";
+              agentContent = await sendGPT("PCAFirstResponse", currentAppName, timer, savedMinutes, index);
+              // agentContent="$currentAppName 의도 목적";
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY, agentContent!);
 
               await DataStore().saveSharedPreferencesString("${KeyValue().ISFEEDBACK}_agentContent", agentContent);
@@ -600,8 +579,8 @@ class ServerDataListener {
                 millitime = DateTime.now().millisecondsSinceEpoch;
                 formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
                 time = formatter.format(now);
-                // gptContent = await sendGPT("GPTRejectResponse", currentAppName, timer, savedMinutes, index);
-                gptContent="test3 알람보고 종료 안함";
+                gptContent = await sendGPT("GPTRejectResponse", currentAppName, timer, savedMinutes, index);
+                // gptContent="test3 알람보고 종료 안함";
                 await DataStore().saveSharedPreferencesString(KeyValue().REPLY, gptContent!);
                 // gptContent = "GPT2 사용 종료 하세요!";
                 sendAlarm("Agent", gptContent!, time, millitime, "3", KeyValue().GPT);
@@ -613,8 +592,8 @@ class ServerDataListener {
                 formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
                 time = formatter.format(now);
 
-                // agentContent = await sendGPT("PCARejectResponse", currentAppName, timer, savedMinutes, index);
-                agentContent="test4 알람보고 종료 안함";
+                agentContent = await sendGPT("PCARejectResponse", currentAppName, timer, savedMinutes, index);
+                // agentContent="test4 알람보고 종료 안함";
                 await DataStore().saveSharedPreferencesString(KeyValue().REPLY, agentContent!);
 
                 // agentContent = "아예~";
@@ -656,8 +635,8 @@ class ServerDataListener {
               millitime = DateTime.now().millisecondsSinceEpoch;
               formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
               time = formatter.format(now);
-              // gptContent = await sendGPT("GPTAcceptResponse", oldCurrentAppName, timer, savedMinutes, index);
-              gptContent = "test3 알람보고 앱 종료함";
+              gptContent = await sendGPT("GPTAcceptResponse", oldCurrentAppName, timer, savedMinutes, index);
+              // gptContent = "test3 알람보고 앱 종료함";
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY, gptContent!);
               // gptContent = "GPT2 사용 종료하셨군요!";
               sendAlarm("Agent", gptContent!, time, millitime, "3", KeyValue().GPT);
@@ -734,8 +713,8 @@ class ServerDataListener {
               await DataStore().saveSharedPreferencesString("${KeyValue().OVERTIMEAPP}_time", time);
 
 
-              // gptContent = await sendGPT("GPTFirstResponse", currentAppName, timer, savedMinutes, index);
-              gptContent = "test1 알람옴";
+              gptContent = await sendGPT("GPTFirstResponse", currentAppName, timer, savedMinutes, index);
+              // gptContent = "test1 알람옴";
               await DataStore().saveSharedPreferencesString(KeyValue().REPLY, gptContent!);
 
               // gptContent = "$currentAppName 끄쇼";
@@ -770,8 +749,8 @@ class ServerDataListener {
                 millitime = DateTime.now().millisecondsSinceEpoch;
                 formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
                 time = formatter.format(now);
-                // gptContent = await sendGPT("GPTRejectResponse", currentAppName, timer, savedMinutes, index);
-                gptContent="test3 알람보고 종료 안함";
+                gptContent = await sendGPT("GPTRejectResponse", currentAppName, timer, savedMinutes, index);
+                // gptContent="test3 알람보고 종료 안함";
                 await DataStore().saveSharedPreferencesString(KeyValue().REPLY, gptContent!);
                 // gptContent = "GPT2 사용 종료 하세요!";
                 sendAlarm("Agent", gptContent!, time, millitime, "3", KeyValue().GPT);

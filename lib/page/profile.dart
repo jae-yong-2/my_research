@@ -308,41 +308,33 @@ class _ProfileState extends State<Profile> {
               padding: EdgeInsets.all(8.0),
               child: Column(
                 children: [
-                  ElevatedButton(
-                    onPressed: () => _selectDuration(context),
-                    child: Text('앱 제한 시간 (공통)'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => _selectDuration(context),
+                        child: Text('앱 제한 시간 (공통)'),
+                      ),
+                      if (_selectedDuration != null)
+                        Text('선택된 시간: ${_selectedDuration!.inHours}시간 ${_selectedDuration!.inMinutes % 60}분'),
+                    ],
                   ),
-                  if (_selectedDuration != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text('선택된 시간: ${_selectedDuration!.inHours}시간 ${_selectedDuration!.inMinutes % 60}분'),
-                    ),
+                  SizedBox(height: 4), // 작은 간격 추가
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => _selectSleepTime(context),
+                        child: Text('평소 취침 시간'),
+                      ),
+                      if (_sleepTime != null)
+                        Text('선택된 시간: ${_sleepTime!.inHours}시 ${_sleepTime!.inMinutes % 60}분'),
+                    ],
+                  ),
                 ],
               ),
             ),
-            SizedBox(height: 5,),
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.grey,
-                  width: 1.0,
-                ),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              padding: EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: () => _selectSleepTime(context),
-                    child: Text('평소 취침 시간'),
-                  ),
-                  if (_sleepTime != null)
-                    Text('선택된 취침 시간: ${_sleepTime!.inHours}시간 ${_sleepTime!.inMinutes % 60}분'),
-                ],
-              ),
-            ),
-            SizedBox(height: 5,),
+            SizedBox(height: 4), // 작은 간격 추가
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
@@ -380,9 +372,21 @@ class _ProfileState extends State<Profile> {
                 ),
               ),
             ),
-            SizedBox(height: 5,),
+            SizedBox(height: 4), // 작은 간격 추가
             Text('사용을 제한할 앱'),
-            SizedBox(height: 5,),
+            SizedBox(height: 2), // 작은 간격 추가
+            Container(
+              height: 20,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: KeyValue().appOrder.length,
+                itemBuilder: (context, index) {
+                  final app = KeyValue().appOrder[index];
+                  return Text("${index+1}. $app          ");
+                },
+              ),
+            ),
+            SizedBox(height: 4), // 작은 간격 추가
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
@@ -412,6 +416,7 @@ class _ProfileState extends State<Profile> {
                 ),
               ),
             ),
+            SizedBox(height: 4), // 작은 간격 추가
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
