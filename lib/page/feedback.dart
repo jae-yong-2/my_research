@@ -293,8 +293,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
     );
   }
   Future<void> pressButton() async {
-    result = "test";
-    sendAlarm("나", result!, "5",KeyValue().AGENT);
+    String? content = await DataStore().getSharedPreferencesString("${KeyValue().ISFEEDBACK}_agentContent");
+    content ??= "null";
+    sendAlarm("나", content!, "2",KeyValue().AGENT);
   }
   @override
   WithForegroundTask build(BuildContext context) => WithForegroundTask(

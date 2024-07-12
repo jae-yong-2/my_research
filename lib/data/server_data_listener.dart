@@ -50,7 +50,7 @@ class ServerDataListener {
       int hours = sleepTimeMap['hours'];
       int minutes = sleepTimeMap['minutes'];
       sleepTime =  '$hours시 $minutes분';
-    }else {
+    } else {
       sleepTime = '시간 정보 없음';
     }
 
@@ -413,7 +413,9 @@ class ServerDataListener {
  *
  *
  * */
-          if(KeyValue().MODE == "집단2"){
+          bool? mode = await DataStore().getSharedPreferencesBool(KeyValue().MODE);
+          mode??=false;
+          if(mode==true){
             //알람을 받고 사용을 종료했을때 대답
             checker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${oldCurrentAppName}_");
             firstchecker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$oldCurrentAppName");
@@ -454,7 +456,7 @@ class ServerDataListener {
 
               // agentContent = "넹 껐어요";
               sendAlarm("나", agentContent!, time, millitime, "4", KeyValue().AGENT);
-              feedback();
+              // feedback();
             }
 
             checker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_");
@@ -598,7 +600,7 @@ class ServerDataListener {
 
                 // agentContent = "아예~";
                 sendAlarm("나", agentContent!, time, millitime, "4", KeyValue().AGENT);
-                feedback();
+                // feedback();
               }
             } else {
               print("아무런 작동을 하지 않습니다.");
@@ -612,7 +614,7 @@ class ServerDataListener {
 *
 *
 * **/
-          else if(KeyValue().MODE =="집단1"){
+          else if(mode==false){
             //알람을 받고 사용을 종료했을때 대답
 //알람을 받고 사용을 종료했을때 대답
             checker = await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${oldCurrentAppName}_");
@@ -763,8 +765,6 @@ class ServerDataListener {
         } else {
           print("selectedDurationMap에 'hours' 또는 'minutes' 키가 없습니다.");
         }
-
-
       } catch (e) {
         print("JSON 파싱 중 오류 발생: $e");
       }

@@ -30,9 +30,8 @@ void notificationTapBackground(NotificationResponse response) async {
             KeyValue().TIMESTAMP: time,
             KeyValue().MILLITIMESTAMP: millitime,
             "Purpose" : true,
-            "Reasone" : "null",
+            "Reason" : "null",
           });
-
           print("click yes action");
         }
         if(response.actionId == 'no_action'){
@@ -45,7 +44,7 @@ void notificationTapBackground(NotificationResponse response) async {
             KeyValue().TIMESTAMP: time,
             KeyValue().MILLITIMESTAMP: millitime,
             "Purpose" : false,
-            "Reasone" : "null",
+            "Reason" : "null",
           });
           print("click no action ");
         }
@@ -73,7 +72,7 @@ void notificationTapBackground(NotificationResponse response) async {
             KeyValue().TIMESTAMP: time,
             KeyValue().MILLITIMESTAMP: millitime,
             "Purpose" : purpose,
-            "Reasone" : true,
+            "Reason" : true,
           });
           print("click reason yes");
         }
@@ -85,24 +84,21 @@ void notificationTapBackground(NotificationResponse response) async {
             KeyValue().TIMESTAMP: time,
             KeyValue().MILLITIMESTAMP: millitime,
             "Purpose" : purpose,
-            "Reasone" : false,
+            "Reason" : false,
           });
           print("click reason no");
         }
-
         // TODO 이유가 맞고 틀릴 때, 각각에 대해서 알고리즘 처리
 
         // 모든 알림 취소
         await LocalNotification.cancelNotificationByPayload(1);
         await LocalNotification.cancelNotificationByPayload(2);
-        await LocalNotification.cancelNotificationByPayload(3);
-        await LocalNotification.cancelNotificationByPayload(4);
-        await LocalNotification.cancelNotificationByPayload(5);
+        await LocalNotification.cancelNotificationByPayload(6);
       } else {
         print("No input received.");
       }
 
-      if(response.payload == '6' || response.payload == '5'){
+      if(response.payload == '6' || response.payload == '2'){
         FlutterForegroundTask.minimizeApp();
       }
       // 두 번째 피드백을 받았을 때 알림 취소
@@ -151,7 +147,7 @@ class LocalNotification {
     const String groupKey = 'com.yourcompany.messages';
     List<AndroidNotificationAction> actions = [];
 
-    if (payload == '5') {
+    if (payload == '2') {
       actions = [
         AndroidNotificationAction(
           "yes_action",

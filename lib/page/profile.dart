@@ -25,8 +25,9 @@ class _ProfileState extends State<Profile> {
   List<Map<String, dynamic>> _selectedApps = [];
   Duration? _selectedDuration;
   Duration? _sleepTime;
-  String _currentAppName = "";
   int _currentAppUsageTime = 0;
+  bool mode=false;
+
 
   @override
   void initState() {
@@ -35,7 +36,7 @@ class _ProfileState extends State<Profile> {
     _getTop10Apps();
     _loadSelectedDuration();
     _loadSleepTime();
-
+    _loadMode();
   }
   Future<void> _getTop10Apps() async {
     final top10Apps = await _usageAppService.getTop10Apps();
@@ -288,6 +289,16 @@ class _ProfileState extends State<Profile> {
 
     }
   }
+  Future<void> chagneMode() async{
+    await DataStore().saveSharedPreferencesBool(KeyValue().MODE, !mode);
+    mode = (await DataStore().getSharedPreferencesBool(KeyValue().MODE))!;
+    setState(() {});
+  }
+
+  Future<void> _loadMode() async {
+    mode = (await DataStore().getSharedPreferencesBool(KeyValue().MODE))!;
+    mode??=false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -420,7 +431,10 @@ class _ProfileState extends State<Profile> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(KeyValue().MODE),
+                ElevatedButton(
+                  onPressed: chagneMode,
+                  child: Text(mode?'집단2':'집단1'),
+                ),
                 Spacer(flex: 1), // Adds space to push the button to the center
                 ElevatedButton(
                   onPressed: _saveSelectedAppsAndDuration,

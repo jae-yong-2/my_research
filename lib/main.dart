@@ -24,7 +24,16 @@ Future<void> main() async {
 Future<void> initializeApp() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await setupFirebaseMessaging();
+  setMode();
   startForegroundService();
+}
+
+Future<void> setMode() async {
+  bool? mode = await DataStore().getSharedPreferencesBool(KeyValue().MODE);
+  if(mode == null){
+    print("null");
+    await DataStore().saveSharedPreferencesBool(KeyValue().MODE, true);
+  }
 }
 
 Future<void> setupFirebaseMessaging() async {
