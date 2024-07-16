@@ -1,7 +1,7 @@
 package com.example.my_research;
 
 import android.app.PendingIntent;
-
+import android.app.KeyguardManager;
 import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -51,6 +51,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         String packageName = "Unknown";
         int appUsageTime = 0;
         String appName = "Unknown";
+        boolean lock = false;
 
         // Check if the app is running
 
@@ -69,12 +70,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     packageName = currentApp; // 원하는 앱의 패키지 이름
                     appUsageTime = getAppUsageTime(packageName);
                     // Log.d(TAG, "App Usage Time for " + packageName + ": " + appUsageTime);
-
+                    lock = getLockstate();
                     // 결과를 SharedPreferences에 저장
 //                    saveResultsToSharedPreferences(currentApp, usageStats, appUsageTime, appName);
                     // 데이터를 Flutter로 전달
                     // 데이터를 Flutter로 전달
-                    sendToFlutter(currentApp, usageStats, appUsageTime, appName);
+                    sendToFlutter(currentApp, usageStats, appUsageTime, appName, lock);
 
 
                 } catch (Exception e) {
@@ -277,7 +278,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
         return 0;
     }
-
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    private boolean getLockstate() {
+        KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+        return keyguardManager.isKeyguardLocked();
+    }
 
 //    private void saveResultsToSharedPreferences(String currentApp, List<Map<String, Object>> usageStats, int appUsageTime, String appName) {
 //        SharedPreferences prefs = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
@@ -299,7 +304,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 //
 //        Log.d(TAG, "--------------------save android data---------------------");
 //    }
-    private void sendToFlutter(String currentApp, List<Map<String, Object>> usageStats, int appUsageTime, String appName) {
+    private void sendToFlutter(String currentApp, List<Map<String, Object>> usageStats, int appUsageTime, String appName, boolean lock) {
         Handler mainHandler = new Handler(Looper.getMainLooper());
         mainHandler.post(() -> {
             FlutterEngine flutterEngine = FlutterEngineCache.getInstance().get("my_engine_id");
@@ -310,6 +315,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 data.put("currentAppName", appName);
                 data.put("appUsageTime", appUsageTime);
                 data.put("usageStats", usageStats);
+                data.put("lock", lock);
                 Log.d(TAG, "-----------------------------------------");
                 Log.d(TAG, "Sending : "+ data);
                 String jsonData = new Gson().toJson(data);

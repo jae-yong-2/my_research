@@ -298,9 +298,11 @@ class ServerDataListener {
     }
 
     List<dynamic> usageStats = data['usageStats'];
+    bool isLock = data['lock'];
 
     print("--------------received data--------------");
     print("App Usage State : $usageStats");
+    print("isLock : $isLock");
     print("-----------------------------------------");
 
     now = DateTime.now();
@@ -344,10 +346,12 @@ class ServerDataListener {
         Map<String, dynamic>? data = await DataStore().getData(KeyValue().ID,"timer/$currentAppName/$time");
         if (data ==null){
           timer = 1;
-        }else {
+        }else{
           timer = data?["time"] + 1;
         }
-
+        if(isLock) {
+          timer = data?["time"] - 1;
+        }
         //timer를 업데이트함.
         if (data != null) {
           timer = timer!<currentAppUsageTime?currentAppUsageTime:timer;
