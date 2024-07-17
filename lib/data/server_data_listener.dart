@@ -350,7 +350,7 @@ class ServerDataListener {
           timer = data?["time"] + 1;
         }
         if(isLock) {
-          timer = data?["time"] - 1;
+          timer = data?["time"];
         }
         //timer를 업데이트함.
         if (data != null) {
