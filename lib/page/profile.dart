@@ -300,6 +300,16 @@ class _ProfileState extends State<Profile> {
     mode??=false;
   }
 
+  Future<void> _saveTop10Apps() async {
+    var now = DateTime.now();
+    var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    String time = formatter.format(now);
+    String jsonString = jsonEncode(_top10Apps);
+    List<dynamic> jsonList = jsonDecode(jsonString);
+    await DataStore().saveData(KeyValue().ID, 'lastWeekUsage/$time',
+        {"app":jsonList});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -345,6 +355,23 @@ class _ProfileState extends State<Profile> {
                 ],
               ),
             ),
+            TextButton(
+              onPressed: _saveTop10Apps,
+              style: ButtonStyle(
+                minimumSize: MaterialStateProperty.all(Size.fromHeight(10)),
+                maximumSize: MaterialStateProperty.all(Size.fromHeight(35)),
+                side: MaterialStateProperty.all(BorderSide(color: Colors.black, width: 1)), // 테두리 색상 및 두께 설정
+                shape: MaterialStateProperty.all(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8), // 테두리 둥글기 설정
+                  ),
+                ),
+              ),
+              child: Text(
+                "사용을 제한할 앱",
+                style: TextStyle(color: Colors.black), // 원하는 텍스트 스타일을 적용합니다.
+              ),
+            ),
             SizedBox(height: 4), // 작은 간격 추가
             Expanded(
               child: Container(
@@ -383,8 +410,6 @@ class _ProfileState extends State<Profile> {
                 ),
               ),
             ),
-            SizedBox(height: 4), // 작은 간격 추가
-            Text('사용을 제한할 앱'),
             SizedBox(height: 2), // 작은 간격 추가
             Container(
               height: 20,
