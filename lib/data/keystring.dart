@@ -1,7 +1,6 @@
 class KeyValue{
 
-  String ID = "테스트";
-  String MODE = "mode";
+  String ID = "10";
   final appOrder =[
     "YouTube",
     "Instagram"
@@ -30,7 +29,7 @@ class KeyValue{
     ],
   ];
 
-
+  String MODE = "mode";
   String CHAT_ID = "id";
   String Chat = "chat";
   String GPT = "2";

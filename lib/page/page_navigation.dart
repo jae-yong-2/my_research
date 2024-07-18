@@ -49,7 +49,7 @@ class _PageNavigationState extends State<PageNavigation> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.chat),
-            label: '채팅',
+            label: '알람 기록',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.man),

@@ -151,7 +151,7 @@ class ServerDataListener {
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            방금 받은 알람을 받고도 아직 $currentApp 사용을 멈추지 않았어. 앱을 5분 더 초과해서 사용했으니 얼른 $currentApp사용을 멈추라고 전달해줘,20~30단어 정도로 Json형태 말고 한글 존댓말로 문장생성
+            방금 받은 알람을 받고도 아직 $currentApp 사용을 멈추지 않았어. 앱을 $currentAppUsageTime 사용했으니 얼른 $currentApp사용을 멈추라고 전달해줘,20~30단어 정도로 Json형태 말고 한글 존댓말로 문장생성
           ]"
        }
         ''';
