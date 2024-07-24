@@ -82,15 +82,16 @@ class ServerDataListener {
       final stopReason = KeyValue().stopReason;
       // 0 또는 1을 랜덤으로 출력하는 변수
       int purposeRandomValue = random.nextInt(2);
-      int nonStopReasonRandomValue = random.nextInt(nonStopReason.length);
-      int stopReasonRandomValue = random.nextInt(stopReason.length);
+      int nonStopReasonRandomValue = random.nextInt(nonStopReason[index].length);
+      int stopReasonRandomValue = random.nextInt(stopReason[index].length);
       String purpose;
       //Todo 각 어플에 대한 reason, purpose 를 작성.
 
-      if(purposeRandomValue==0){
-        purpose = '${stopReason[index][stopReasonRandomValue]} 이유로 $currentApp 사용을 "지금 사용을 멈추겠다"고 말하는 거야';
+      if(purposeRandomValue==0 || purposeRandomValue==1){
+        purpose = '잠들 시간 근처면 잠을 못자면 다음날 힘들다고 이유말하고, 수면 시간 근처가 아니면 수면에 대한건 언급하지 않고 '
+            '${stopReason[index][stopReasonRandomValue]} 이유로 $currentApp 사용을 "지금 사용을 멈추겠다"고 말하는 거야';
       }else{
-        purpose = '${nonStopReason[index][nonStopReasonRandomValue]}한 이유로 $currentApp 사용"조금만 더 사용"한다고 말하는 거야';
+        purpose = '${nonStopReason[index][nonStopReasonRandomValue]} 이유로 $currentApp 사용"조금만 더 사용"한다고 말하는 거야';
       }
       text = '''
       {
@@ -117,7 +118,7 @@ class ServerDataListener {
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            $currentApp 사용을 그만뒀는데. '(방금 내가 한 말)'의 내용을 넣어서 그 앱의 사용을 잘 중단했다고 전달해줘,20~30단어 정도로 Json형태 말고 한글 존댓말로 응답
+            $currentApp 사용을 그만뒀는데. '(방금 내가 한 말)'에 대답으로 그 앱의 사용을 잘 중단했다고 전달해줘,20~30단어 정도로 Json형태 말고 한글 존댓말로 응답
           ]"
        }
         ''';

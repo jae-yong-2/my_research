@@ -312,6 +312,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text('실험자 : ${KeyValue().NAME}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   // 기존 설정 Section
                   Container(
                     width: double.infinity,

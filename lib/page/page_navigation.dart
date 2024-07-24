@@ -57,7 +57,7 @@ class _PageNavigationState extends State<PageNavigation> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.feedback,size: 10,),
-            label: "피드백",
+            label: "설정",
           ),
 
         ],
