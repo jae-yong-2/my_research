@@ -87,7 +87,7 @@ class ServerDataListener {
       String purpose;
       //Todo 각 어플에 대한 reason, purpose 를 작성.
 
-      if(purposeRandomValue==0 || purposeRandomValue==1){
+      if(purposeRandomValue==0){
         purpose = '잠들 시간 근처면 잠을 못자면 다음날 힘들다고 이유말하고, 수면 시간 근처가 아니면 수면에 대한건 언급하지 않고 '
             '${stopReason[index][stopReasonRandomValue]} 이유로 $currentApp 사용을 "지금 사용을 멈추겠다"고 말하는 거야';
       }else{
