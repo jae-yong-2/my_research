@@ -88,8 +88,8 @@ class ServerDataListener {
       //Todo 각 어플에 대한 reason, purpose 를 작성.
 
       if(purposeRandomValue==0){
-        purpose = '"(현재 시간)"이 잠들 시간에 가까우면 잠을 못자면 다음날 힘들다고 이유말하고, 잠들 시간과 멀면 "(잠에 대한건 언급하지 않고!!)(!!중요!!)" '
-            '${stopReason[index][stopReasonRandomValue]} 이유로 $currentApp 사용을 "오늘 사용을 더 안하겠다"고 말하는 거야';
+        purpose = '"(현재 시간)"이 잠들 시간에 1시간 이내로 남거나 넘겼을 경우에는 잠을 못자면 다음날 힘들다고 이유만 말하고, 아니면 '
+            '${stopReason[index][stopReasonRandomValue]} 이유 한가지만!!말하며 $currentApp 사용을 "지금 더 사용을 안하겠다"고 말하는 거야';
       }else{
         purpose = '${nonStopReason[index][nonStopReasonRandomValue]} 이유로 $currentApp 사용"조금만 더 사용"한다고 말하는 거야';
       }
@@ -138,7 +138,6 @@ class ServerDataListener {
        }
         ''';
     }
-
 
     if(category =="GPTRejectResponse"){
       text = '''
@@ -591,8 +590,8 @@ class ServerDataListener {
                * 초기화가 안됐을 경우 알람
                *
                */
-            } else if ((timer > (savedMinutes + 13) && (checker != firstchecker)) ||
-                (timer < (savedMinutes * 2) && (checker != firstchecker))||
+            } else if (((timer > (savedMinutes + 13) && (checker != firstchecker))
+                && (timer < (savedMinutes * 2) && (checker != firstchecker)))||
                 (timer > (savedMinutes * 2 + 13) && (checker != firstchecker))) {
               LocalNotification.showOngoingNotification(
                 title: "시스템에 오류가 있습니다.",
