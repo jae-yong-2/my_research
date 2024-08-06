@@ -111,14 +111,14 @@ class ServerDataListener {
       {
         "역할" : "나의 $currentApp 사용을 줄이려는 사람",
         "상황" : "스마트폰($currentApp) 사용시간이 너무 길어서 졌지만 사용을 종료한 상황",
-        "방금 상대가 한 말": "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}",
+        "방금 받은 알람": "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}",
         "평소 취침시간": "$sleepTime",
         "현재 시간": "$currentTime",
         "목표 최대 스마트폰($currentApp) 사용시간": "$appUsageLimitTime",
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            상대방이 실제로 '(방금 상대가 한 말)'이후에 $currentApp 사용을 그만뒀는데.'(방금 상대가 한 말)'에 답장해줘,20~30단어 정도로 Json형태 말고 한글 존댓말로 응답
+            상대방이 실제로 '(방금 받은 알람)'이후에 $currentApp 사용을 그만뒀는데.'(방금 상대가 한 말)'에 답장해줘,20~30단어 정도로 Json형태 말고 한글 존댓말로 응답
           ]"
        }
         ''';
@@ -152,7 +152,7 @@ class ServerDataListener {
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            방금 받은 알람을 받고도 아직 $currentApp 사용을 멈추지 않았어. 앱을 $currentAppUsageTime 사용했으니 얼른 $currentApp사용을 멈추라고 전달해줘,20~30단어 정도로 Json형태 말고 한글 존댓말로 문장생성
+            방금 받은 알람을 받고도 아직 $currentApp 사용을 멈추지 않았어. 앱을 '${currentAppUsageTime ~/ 60}시간 ${currentAppUsageTime % 60}분 사용했으니 $currentApp사용을 멈추라고 전달해줘,20~30단어 정도로 Json형태 말고 한글 존댓말로 문장생성
           ]"
        }
         ''';
@@ -568,8 +568,9 @@ class ServerDataListener {
                * 초기화가 안됐을 경우 알람
                *
                */
-            } else if ((timer == (savedMinutes + 13) && (checker != firstchecker)) ||
-                (timer == (savedMinutes * 2 + 13) && (checker != firstchecker))) {
+            } else if ((timer > (savedMinutes + 13) && (checker != firstchecker)) ||
+                (timer < (savedMinutes * 2 + 13) && (checker != firstchecker))||
+                (timer > (savedMinutes * 2 + 13) && (checker != firstchecker))) {
               LocalNotification.showOngoingNotification(
                 title: "시스템에 오류가 있습니다.",
                 body: "프로필에서 새로고침을 눌러주세요.",
