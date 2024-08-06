@@ -19,34 +19,48 @@ void notificationTapBackground(NotificationResponse response) async {
       String? time = await DataStore().getSharedPreferencesString("${KeyValue().ISFEEDBACK}_time");
       int? millitime = await DataStore().getSharedPreferencesInt("${KeyValue().ISFEEDBACK}_millitime");
 
-      if (response.actionId == 'yes_action' || response.actionId == 'no_action') {
-        // 예 또는 아니오 버튼이 눌렸을 때, 다시 "이유가 맞습니다" 또는 "이유가 다릅니다" 알림을 생성
+      if (response.actionId == 'yes_action' || response.actionId == 'no_action' || response.actionId == 'unknown_action') {
+        // 예 또는 아니오 또는 모르겠습니다 버튼이 눌렸을 때, 다시 "이유가 맞습니다" 또는 "이유가 다릅니다" 또는 "모르겠습니다" 알림을 생성
         if(response.actionId == 'yes_action'){
-          await DataStore().saveSharedPreferencesBool("Purpose", true);
+          await DataStore().saveSharedPreferencesString("Purpose", "true");
           // TODO 의도가 맞다는 피드백 보내기
           await DataStore().saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
             KeyValue().CHAT_ID: KeyValue().AGENT,
             KeyValue().CONTENT: content,
             KeyValue().TIMESTAMP: time,
             KeyValue().MILLITIMESTAMP: millitime,
-            "Purpose" : true,
+            "Purpose" : "true",
             "Reason" : "null",
           });
           print("click yes action");
         }
         if(response.actionId == 'no_action'){
           // TODO 의도가 틀리다는 피드백 보내기
-          await DataStore().saveSharedPreferencesBool("Purpose", false);
+          await DataStore().saveSharedPreferencesString("Purpose", "false");
           // TODO 의도가 맞다는 피드백 보내기
           await DataStore().saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
             KeyValue().CHAT_ID: KeyValue().AGENT,
             KeyValue().CONTENT: content,
             KeyValue().TIMESTAMP: time,
             KeyValue().MILLITIMESTAMP: millitime,
-            "Purpose" : false,
+            "Purpose" : "false",
             "Reason" : "null",
           });
           print("click no action ");
+        }
+        if(response.actionId == 'unknown_action'){
+          // TODO 의도를 모르겠다는 피드백 보내기
+          await DataStore().saveSharedPreferencesString("Purpose", "unknown");
+          // TODO 의도를 모르겠다는 피드백 보내기
+          await DataStore().saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
+            KeyValue().CHAT_ID: KeyValue().AGENT,
+            KeyValue().CONTENT: content,
+            KeyValue().TIMESTAMP: time,
+            KeyValue().MILLITIMESTAMP: millitime,
+            "Purpose" : "unknown",
+            "Reason" : "null",
+          });
+          print("click unknown action");
         }
 
         String? text = await DataStore().getSharedPreferencesString("${KeyValue().ISFEEDBACK}_agentContent");
@@ -58,11 +72,11 @@ void notificationTapBackground(NotificationResponse response) async {
         );
       }
 
-      if (response.actionId == 'correct_reason' || response.actionId == 'incorrect_reason') {
+      if (response.actionId == 'correct_reason' || response.actionId == 'incorrect_reason' || response.actionId == 'unknown_reason') {
         // 이유가 맞는지 묻는 알림에 대한 응답 처리
         print("User selected reason response: ${response.actionId}");
 
-        bool? purpose = await DataStore().getSharedPreferencesBool("Purpose");
+        String? purpose = await DataStore().getSharedPreferencesString("Purpose");
 
         if(response.actionId == 'correct_reason'){
           // TODO 이유가 맞다는 피드백 보내기
@@ -72,7 +86,7 @@ void notificationTapBackground(NotificationResponse response) async {
             KeyValue().TIMESTAMP: time,
             KeyValue().MILLITIMESTAMP: millitime,
             "Purpose" : purpose,
-            "Reason" : true,
+            "Reason" : "true",
           });
           print("click reason yes");
         }
@@ -84,9 +98,21 @@ void notificationTapBackground(NotificationResponse response) async {
             KeyValue().TIMESTAMP: time,
             KeyValue().MILLITIMESTAMP: millitime,
             "Purpose" : purpose,
-            "Reason" : false,
+            "Reason" : "false",
           });
           print("click reason no");
+        }
+        if(response.actionId == 'unknown_reason'){
+          // TODO 이유를 모르겠다는 피드백 보내기
+          await DataStore().saveData(KeyValue().ID, '${KeyValue().Chat}/$time', {
+            KeyValue().CHAT_ID: KeyValue().AGENT,
+            KeyValue().CONTENT: content,
+            KeyValue().TIMESTAMP: time,
+            KeyValue().MILLITIMESTAMP: millitime,
+            "Purpose" : purpose,
+            "Reason" : purpose,
+          });
+          print("click reason unknown");
         }
         // TODO 이유가 맞고 틀릴 때, 각각에 대해서 알고리즘 처리
 
@@ -151,13 +177,20 @@ class LocalNotification {
       actions = [
         AndroidNotificationAction(
           "yes_action",
-          "의도가 맞습니다.",
+          "의도가 맞음",
+          showsUserInterface: true,
+          inputs: [],
+        ),
+
+        AndroidNotificationAction(
+          "unknown_action",
+          "모르겠음",
           showsUserInterface: true,
           inputs: [],
         ),
         AndroidNotificationAction(
           "no_action",
-          "의도가 틀립니다.",
+          "의도기 틀림",
           showsUserInterface: true,
           inputs: [],
         ),
@@ -166,13 +199,20 @@ class LocalNotification {
       actions = [
         AndroidNotificationAction(
           "correct_reason",
-          "이유가 맞습니다.",
+          "이유 맞음",
+          showsUserInterface: true,
+          inputs: [],
+        ),
+
+        AndroidNotificationAction(
+          "unknown_reason",
+          "모르겠음",
           showsUserInterface: true,
           inputs: [],
         ),
         AndroidNotificationAction(
           "incorrect_reason",
-          "이유가 다릅니다.",
+          "이유 틀림.",
           showsUserInterface: true,
           inputs: [],
         ),
