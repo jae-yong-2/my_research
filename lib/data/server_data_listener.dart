@@ -71,7 +71,7 @@ class ServerDataListener {
         "현재 시간": "$currentTime",
         "목표한 최대 스마트폰($currentApp) 사용시간" : "${(appUsageLimitTime ~/ 60)}시간 ${appUsageLimitTime % 60}분",  
         "현재 스마트폰($currentApp) 사용시간" : "${currentAppUsageTime ~/ 60}시간 ${currentAppUsageTime % 60}분",  
-        "요구사항": ["상대방이 스마트폰($currentApp)사용 시간이 '${appUsageLimitTime ~/ 60}시간 ${appUsageLimitTime % 60}분이 됐다고 중단해야한다'고 전해줘, 상대방이 기분이 상하지 않도록 '사용시간을 말해주면서 전달'해줘,15~20단어 정도 Json형태 말고 한글로 존댓말 문장생성"]
+        "요구사항": ["상대방이 스마트폰($currentApp)사용 시간이 '${appUsageLimitTime ~/ 60}시간 ${appUsageLimitTime % 60}분이 됐다고 중단해야한다'고 전해줘, 상대방이 기분이 상하지 않도록 '사용시간을 말해주면서 전달'해줘,15~20단어 정도 Json형태 말고 한글로 인사말 생략하고 존댓말 문장생성"]
       }
         ''';
     }
@@ -88,7 +88,7 @@ class ServerDataListener {
       //Todo 각 어플에 대한 reason, purpose 를 작성.
 
       if(purposeRandomValue==0){
-        purpose = '잠들 시간 근처면 잠을 못자면 다음날 힘들다고 이유말하고, 수면 시간 근처가 아니면 수면에 대한건 언급하지 않고 '
+        purpose = '"(현재 시간)"이 잠들 시간에 가까우면 잠을 못자면 다음날 힘들다고 이유말하고, 잠들 시간과 멀면 "(잠에 대한건 언급하지 않고!!)(!!중요!!)" '
             '${stopReason[index][stopReasonRandomValue]} 이유로 $currentApp 사용을 "오늘 사용을 더 안하겠다"고 말하는 거야';
       }else{
         purpose = '${nonStopReason[index][nonStopReasonRandomValue]} 이유로 $currentApp 사용"조금만 더 사용"한다고 말하는 거야';
@@ -97,12 +97,12 @@ class ServerDataListener {
       {
         "역할" : "나를 대신해서 나인 척하는 사람.",  
         "방금 받은 알람" : "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}", 
-        "평소 취침시간" : "$sleepTime",  
+        "평소 잠드는 시간" : "$sleepTime",  
         "현재 시간" : "$currentTime",  
         "목표한 최대 스마트폰($currentApp) 사용시간" : "$appUsageLimitTime분",  
         "현재 스마트폰($currentApp) 사용시간" : "$currentAppUsageTime분",  
         "요구사항" : 
-        ["나는 '방금 받은 알람'에 답장하려 해, 내용은 $purpose. 20~30단어 정도 Json형태 말고 한글 반말로 문장 생성"]
+        ["저는 '(방금 받은 알람)'에 답장하려 합니다. 내용은 $purpose. 20~25단어 정도 Json형태 말고 한글 반말로 문장 생성"]
       }
       ''';
     }
@@ -118,7 +118,7 @@ class ServerDataListener {
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            상대방이 실제로 '(방금 받은 알람)'이후에 $currentApp 사용을 그만뒀는데.'(방금 상대가 한 말)'에 답장해줘,20~30단어 정도로 Json형태 말고 한글 존댓말로 응답
+            상대방이 실제로 '(방금 받은 알람)'이후에 $currentApp 사용을 그만뒀는데.'(방금 받은 알람)'에 맞춰 잘 중단했다고 답장해줘,20~30단어 정도로 Json형태 말고 한글 존댓말로 응답
           ]"
        }
         ''';
@@ -134,7 +134,7 @@ class ServerDataListener {
         "목표 최대 스마트폰($currentApp) 사용시간": "$appUsageLimitTime",
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
-          ["방금 받은 알람을 확인했다고 하는 말을 전달해줘. 5~10단어 정도로 Json형태 말고 한글 반말로 문장으로만 생성해줘.]"
+          ["'(방금 받은 알람)'을 확인했다고 하는 말을 전달해줘. 2~3단어 정도로 Json형태 말고 한글 반말로 문장으로만 생성해줘.]"
        }
         ''';
     }
@@ -152,7 +152,7 @@ class ServerDataListener {
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            방금 받은 알람을 받고도 아직 $currentApp 사용을 멈추지 않았어. 앱을 '${currentAppUsageTime ~/ 60}시간 ${currentAppUsageTime % 60}분 사용했으니 $currentApp사용을 멈추라고 전달해줘,20~30단어 정도로 Json형태 말고 한글 존댓말로 문장생성
+            '(방금 받은 알람)'을 받고도 상대가 아직 $currentApp 사용을 멈추지 않았어. '(방금 받은 알람)'에 맞춰 사용을 중단해라고 답장해줘,15~20단어 정도로 Json형태 말고 한글 존댓말로 문장생성
           ]"
        }
         ''';
@@ -169,7 +169,7 @@ class ServerDataListener {
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            방금 받은 알람을 받고 확인했다고 5단어 정도로 할말을 반말로 추천해줘. Json형태 말고 문장만 출력해줘.
+            "'(방금 받은 알람)'을 확인했다고 하는 말을 전달해줘. 2~3단어 정도로 Json형태 말고 문장만 출력해줘.
           ]"
       }
         ''';
@@ -332,10 +332,21 @@ class ServerDataListener {
       String? selectedDuration = await DataStore().getSharedPreferencesString("${KeyValue().SELECTEDDURATION}_$formattedDate");
       String? sleeptime = await DataStore().getSharedPreferencesString("${KeyValue().SLEEPTIME}_$formattedDate");
 
+      //하루가 시작하면 기능 초기화
       if(selectedapp != null && selectedDuration!= null && sleeptime!=null) {
         await DataStore().saveSharedPreferencesString(KeyValue().SELECTEDAPP, selectedapp!);
         await DataStore().saveSharedPreferencesString(KeyValue().SELECTEDDURATION, selectedDuration!);
         await DataStore().saveSharedPreferencesString(KeyValue().SLEEPTIME, sleeptime!);
+      }
+      String? selectedApp = await DataStore().getSharedPreferencesString(KeyValue().SELECTEDAPP);
+      List<dynamic> selectedAppJson = jsonDecode(selectedApp!);
+      List<String> appNames = selectedAppJson.map((selectedAppJson) => selectedAppJson['appName'].toString()).toList();
+      print(appNames);
+      for (var appName in appNames) {
+        await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${appName}_",false);
+        print(await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${appName}_"));
+        await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$appName",false);
+        print(await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$appName"));
       }
     }
 
@@ -492,6 +503,7 @@ class ServerDataListener {
               });
               await DataStore().saveSharedPreferencesString(KeyValue().OVERTIMEAPP, "none");
             }
+
             /**
              *
              *
@@ -499,8 +511,19 @@ class ServerDataListener {
              *
              *
              */
+            if(timer==null) {
+              formatter = DateFormat('yyyy-MM-dd');
+              var servertime = formatter.format(now);
+              Map<String, dynamic>? data = await DataStore().getData(
+                  KeyValue().ID, "timer/$currentAppName/$servertime");
+              print(data);
+              timer = data?["time"];
+            }
+
+
             if (((savedMinutes * 2 > timer!) && (savedMinutes + 6 <= timer!) && firstchecker!) ||
                 ((savedMinutes * 2 + 6 <= timer) && firstchecker!)) {
+
               print("알람 설정 초기화");
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName", false);
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", false);
@@ -569,7 +592,7 @@ class ServerDataListener {
                *
                */
             } else if ((timer > (savedMinutes + 13) && (checker != firstchecker)) ||
-                (timer < (savedMinutes * 2 + 13) && (checker != firstchecker))||
+                (timer < (savedMinutes * 2) && (checker != firstchecker))||
                 (timer > (savedMinutes * 2 + 13) && (checker != firstchecker))) {
               LocalNotification.showOngoingNotification(
                 title: "시스템에 오류가 있습니다.",
