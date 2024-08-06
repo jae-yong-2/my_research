@@ -89,7 +89,7 @@ class ServerDataListener {
 
       if(purposeRandomValue==0){
         purpose = '잠들 시간 근처면 잠을 못자면 다음날 힘들다고 이유말하고, 수면 시간 근처가 아니면 수면에 대한건 언급하지 않고 '
-            '${stopReason[index][stopReasonRandomValue]} 이유로 $currentApp 사용을 "지금 사용을 멈추겠다"고 말하는 거야';
+            '${stopReason[index][stopReasonRandomValue]} 이유로 $currentApp 사용을 "오늘 사용을 더 안하겠다"고 말하는 거야';
       }else{
         purpose = '${nonStopReason[index][nonStopReasonRandomValue]} 이유로 $currentApp 사용"조금만 더 사용"한다고 말하는 거야';
       }
@@ -111,14 +111,14 @@ class ServerDataListener {
       {
         "역할" : "나의 $currentApp 사용을 줄이려는 사람",
         "상황" : "스마트폰($currentApp) 사용시간이 너무 길어서 졌지만 사용을 종료한 상황",
-        "방금 내가 한 말": "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}",
+        "방금 상대가 한 말": "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}",
         "평소 취침시간": "$sleepTime",
         "현재 시간": "$currentTime",
         "목표 최대 스마트폰($currentApp) 사용시간": "$appUsageLimitTime",
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            $currentApp 사용을 그만뒀는데. '(방금 내가 한 말)'에 대답으로 그 앱의 사용을 잘 중단했다고 전달해줘,20~30단어 정도로 Json형태 말고 한글 존댓말로 응답
+            상대방이 실제로 '(방금 상대가 한 말)'이후에 $currentApp 사용을 그만뒀는데.'(방금 상대가 한 말)'에 답장해줘,20~30단어 정도로 Json형태 말고 한글 존댓말로 응답
           ]"
        }
         ''';
@@ -263,7 +263,6 @@ class ServerDataListener {
     String? oldCurrentAppName = await DataStore().getSharedPreferencesString(KeyValue().CURRENTAPPNAME);
     int? oldAppUsageTime = await DataStore().getSharedPreferencesInt(KeyValue().APPUSAGETIME);
     int? timer;
-
     print("get selected app : ${await DataStore().getSharedPreferencesString(KeyValue().SELECTEDAPP)}");
 
 
@@ -273,6 +272,11 @@ class ServerDataListener {
         .millisecondsSinceEpoch;
     var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
     String time = formatter.format(now);
+
+    //연결 실시간 저장
+    await DataStore().saveData(KeyValue().ID, 'connecting', {
+      "connect": time,
+    });
 
     String? currentApp = data['currentApp'];
     if (currentApp != null) {
