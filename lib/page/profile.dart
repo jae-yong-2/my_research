@@ -391,11 +391,13 @@ class _ProfileState extends State<Profile> {
                     final app = _top10Apps[index];
                     final appName = app['appName'] ?? 'Unknown';
                     final packageName = app['packageName'] ?? 'Unknown';
+                    final totalTimeInForeground = app['totalTimeInForeground']??'Unknown';
+
                     final isSelected = _selectedApps.any((selectedApp) => selectedApp['packageName'] == packageName);
 
                     return ListTile(
                       title: Text(appName),
-                      subtitle: Text('$packageName'),
+                      subtitle: Text('${((totalTimeInForeground/7) ~/ 60).toString().padLeft(2, '0')}시 ${((totalTimeInForeground/7) % 60).toInt()}분 ${(((totalTimeInForeground/7) * 60) % 60).toInt()}초'),
                       trailing: Checkbox(
                         value: isSelected,
                         onChanged: (bool? value) {
@@ -440,6 +442,7 @@ class _ProfileState extends State<Profile> {
                     final appName = app['appName'];
                     final packageName = app['packageName'];
                     final usageDuration = app['usageDuration'] as Duration;
+
                     return ListTile(
                       title: Text(appName),
                       subtitle: Text('$packageName\n사용 제한 시간 : ${usageDuration.inHours}시간 ${usageDuration.inMinutes % 60}분'),
