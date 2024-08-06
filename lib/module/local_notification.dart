@@ -192,7 +192,7 @@ class LocalNotification {
       channelDescription: '답장하기',
       importance: Importance.max,
       priority: Priority.max,
-      ongoing: true,
+      ongoing: false,
       autoCancel: false,
       groupKey: groupKey,
       styleInformation: bigTextStyleInformation,
