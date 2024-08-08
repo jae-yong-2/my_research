@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
+import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:my_research/data/keystring.dart';
@@ -88,8 +89,34 @@ class ServerDataListener {
       //Todo 각 어플에 대한 reason, purpose 를 작성.
 
       if(purposeRandomValue==0){
-        purpose = '"(현재 시간)"이 잠들 시간에 1시간 이내로 남거나 넘겼을 경우에는 잠을 못자면 다음날 힘들다고 이유만 말하고, 아니면 '
-            '${stopReason[index][stopReasonRandomValue]} 이유 한가지만!!말하며 $currentApp 사용을 "지금 더 사용을 안하겠다"고 말하는 거야';
+
+        purpose = '${stopReason[index][stopReasonRandomValue]} 이유로 $currentApp 사용을 "지금 더 사용을 안하겠다"고 말하는 거야';
+
+        final String? sleepTimeJson = await DataStore().getSharedPreferencesString(KeyValue().SLEEPTIME);
+        print("sleepTimeJson");
+        if (sleepTimeJson != null) {
+          final Map<String, dynamic> sleepTimeMap = json.decode(sleepTimeJson);
+          print("get sleeptime");
+
+          final now = TimeOfDay.now();
+          final sleepTime = TimeOfDay(hour: sleepTimeMap['hours'], minute: sleepTimeMap['minutes']);
+
+          // Convert TimeOfDay to DateTime for comparison
+          DateTime nowDateTime = DateTime(0, 0, 0, now.hour, now.minute);
+          DateTime sleepDateTime = DateTime(0, 0, 0, sleepTime.hour, sleepTime.minute);
+
+          final thirtyMinutesBeforeSleep = sleepDateTime.subtract(Duration(minutes: 30));
+          final twoHoursAfterSleep = sleepDateTime.add(Duration(hours: 2));
+          print(sleepDateTime);
+          print(nowDateTime);
+          print(thirtyMinutesBeforeSleep);
+          print(twoHoursAfterSleep);
+          if (nowDateTime.isAfter(thirtyMinutesBeforeSleep) && nowDateTime.isBefore(twoHoursAfterSleep)) {
+            print("sleeptime");
+            purpose = '현재 $currentTime이고 평소 수면 시간은 $sleepTime이야. '
+                '잠을 못자면 다음날 힘들다고 이유로 $currentApp 사용을 "지금 더 사용을 안하겠다"고 말하는 거야';
+          }
+        }
       }else{
         purpose = '${nonStopReason[index][nonStopReasonRandomValue]} 이유로 $currentApp 사용"조금만 더 사용"한다고 말하는 거야';
       }
@@ -102,7 +129,7 @@ class ServerDataListener {
         "목표한 최대 스마트폰($currentApp) 사용시간" : "$appUsageLimitTime분",  
         "현재 스마트폰($currentApp) 사용시간" : "$currentAppUsageTime분",  
         "요구사항" : 
-        ["저는 '(방금 받은 알람)'에 답장하려 합니다. 내용은 $purpose. 20~25단어 정도 Json형태 말고 한글 반말로 문장 생성"]
+        ["저는 '(방금 받은 알람)'에 답장하려 합니다. $purpose. 15~20단어 정도 Json형태 말고 한글 반말로 문장 생성"]
       }
       ''';
     }
@@ -118,7 +145,7 @@ class ServerDataListener {
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            상대방이 실제로 '(방금 받은 알람)'이후에 $currentApp 사용을 그만뒀는데.'(방금 받은 알람)'에 맞춰 잘 중단했다고 답장해줘,20~30단어 정도로 Json형태 말고 한글 존댓말로 응답
+            상대방이 실제로 '(방금 받은 알람)'이후에 $currentApp 사용을 그만뒀는데.'(방금 받은 알람)'에 맞춰 잘 중단했다고 답장해줘,15~20단어 정도로 Json형태 말고 한글 존댓말로 응답
           ]"
        }
         ''';
@@ -134,7 +161,7 @@ class ServerDataListener {
         "목표 최대 스마트폰($currentApp) 사용시간": "$appUsageLimitTime",
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
-          ["'(방금 받은 알람)'을 확인했다고 하는 말을 전달해줘. 2~3단어 정도로 Json형태 말고 한글 반말로 문장으로만 생성해줘.]"
+          ["'(방금 받은 알람)'을 확인했다고 하는 말을 짧게 전달해줘. 5단어 정도로 Json형태 말고 한글 반말로 문장으로만 생성해줘.]"
        }
         ''';
     }
@@ -168,7 +195,7 @@ class ServerDataListener {
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            "'(방금 받은 알람)'을 확인했다고 하는 말을 전달해줘. 2~3단어 정도로 Json형태 말고 문장만 출력해줘.
+            "'(방금 받은 알람)'을 확인했다고 하는 말을 짧게 전달해줘. 5단어 정도로 Json형태 말고 문장만 출력해줘.
           ]"
       }
         ''';
