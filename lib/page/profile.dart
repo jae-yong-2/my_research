@@ -461,7 +461,7 @@ class _ProfileState extends State<Profile> {
               children: [
                 ElevatedButton(
                   onPressed: chagneMode,
-                  child: Text(mode?'집단2':'집단1'),
+                  child: Text(mode?'적용':'미적용'),
                 ),
                 Spacer(flex: 1), // Adds space to push the button to the center
                 ElevatedButton(
