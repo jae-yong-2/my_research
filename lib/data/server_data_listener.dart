@@ -114,11 +114,11 @@ class ServerDataListener {
           if (nowDateTime.isAfter(thirtyMinutesBeforeSleep) && nowDateTime.isBefore(twoHoursAfterSleep)) {
             print("sleeptime");
             purpose = '현재 $currentTime이고 평소 수면 시간은 $sleepTime이야. '
-                '잠을 못자면 다음날 힘들다고 이유로 $currentApp 사용을 "지금 더 사용을 안하겠다"고 말하는 거야';
+                '곧 잠들 시간이며, 잠을 못자면 다음날 힘들다고 $currentApp 사용을 "지금 더 사용을 안하겠다"고 뭐라고 답장해야 좋을지 추천해줘';
           }
         }
       }else{
-        purpose = '${nonStopReason[index][nonStopReasonRandomValue]} 이유로 $currentApp 사용"조금만 더 사용"한다고 말하는 거야';
+        purpose = '${nonStopReason[index][nonStopReasonRandomValue]} 이유로 $currentApp 사용"조금만 더 사용"한다고 뭐라고 답장해야 좋을지 추천해줘';
       }
       text = '''
       {
@@ -138,15 +138,15 @@ class ServerDataListener {
       {
         "역할" : "나의 $currentApp 사용을 줄이려는 사람",
         "상황" : "스마트폰($currentApp) 사용시간이 너무 길어서 졌지만 사용을 종료한 상황",
-        "방금 받은 알람": "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}",
+        "방금 받은 문자": "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}",
         "평소 취침시간": "$sleepTime",
         "현재 시간": "$currentTime",
         "목표 최대 스마트폰($currentApp) 사용시간": "$appUsageLimitTime",
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            상대방이 실제로 '(방금 받은 알람)'이후에 $currentApp 사용을 그만뒀는데.'(방금 받은 알람)'에 맞춰 잘 중단했다고 답장해줘,15~20단어 정도로 Json형태 말고 한글 존댓말로 응답
-          ]"
+            상대방이 실제로 '(방금 받은 문자)'이후에 $currentApp 사용을 그만뒀는데.'(방금 받은 문자)'에 맞춰 중단을 확인했다는 사실만 답장해줘,15~20단어 정도로 Json형태 말고 한글 존댓말로 응답
+          "]
        }
         ''';
     }
@@ -154,14 +154,16 @@ class ServerDataListener {
       text = '''
       {
         "역할" : "나를 대신해서 나인 척하는 사람.",
-        "상황" : "알람을 받고 스마트폰($currentApp) 사용을 종료한 상황",
+        "상황" : "문자를 받고 스마트폰($currentApp) 사용을 종료한 상황",
         "방금 받은 알람": "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}",
         "평소 취침시간": "$sleepTime",
         "현재 시간": "$currentTime",
         "목표 최대 스마트폰($currentApp) 사용시간": "$appUsageLimitTime",
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
-          ["'(방금 받은 알람)'을 확인했다고 하는 말을 짧게 전달해줘. 5단어 정도로 Json형태 말고 한글 반말로 문장으로만 생성해줘.]"
+          ["
+            '(방금 받은 알람)'을 확인했다고 하는 말을 짧게 대신 답장해줘. 5단어 정도로 Json형태 말고 한글 반말로 문장으로만 생성해줘.
+          "]
        }
         ''';
     }
@@ -171,15 +173,15 @@ class ServerDataListener {
       {
         "역할" : "나의 $currentApp 사용을 줄이려는 사람",
         "상황" : "스마트폰($currentApp) 사용시간이 너무 길어서 져서 사용을 종료하지 않은 상황",
-        "방금 받은 알람": "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}",
+        "방금 받은 문자": "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}",
         "평소 취침시간": "$sleepTime",
         "현재 시간": "$currentTime",
         "목표 최대 스마트폰($currentApp) 사용시간": "$appUsageLimitTime",
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            '(방금 받은 알람)'을 받고도 상대가 아직 $currentApp 사용을 멈추지 않았어. '(방금 받은 알람)'에 맞춰 사용을 중단해라고 답장해줘,15~20단어 정도로 Json형태 말고 한글 존댓말로 문장생성
-          ]"
+            '(방금 받은 문자)'을 받고도 상대가 아직 $currentApp 사용을 멈추지 않았어. '(방금 받은 문자)'에 맞춰 사용을 중단해라고 답장해줘,15~20단어 정도로 Json형태 말고 한글 존댓말로 문장생성
+          "]
        }
         ''';
     }
@@ -188,14 +190,14 @@ class ServerDataListener {
       {
         "역할" : "나를 대신해서 나인 척하는 사람.",
         "상황" : "스마트폰($currentApp) 사용시간이 너무 길어서 져서 사용을 종료하지 않은 상황",
-        "방금 받은 알람": "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}",
+        "방금 받은 문자": "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}",
         "평소 취침시간": "$sleepTime",
         "현재 시간": "$currentTime",
         "목표 최대 스마트폰($currentApp) 사용시간": "$appUsageLimitTime",
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            "'(방금 받은 알람)'을 확인했다고 하는 말을 짧게 전달해줘. 5단어 정도로 Json형태 말고 문장만 출력해줘.
+            '(방금 받은 문자)'을 확인했다고 하는 말을 짧게 대신 답장해줘. 5단어 정도로 Json형태 말고 문장만 반말로 출력해줘.
           ]"
       }
         ''';
@@ -570,8 +572,8 @@ class ServerDataListener {
             print("$currentAppName 제한 시간 : $savedMinutes");
             print("사용시간 초과 앱 : $overtimeapp");
             print("-----------------------------------------");
-            if (((savedMinutes + 5 >= timer!) && (timer >= savedMinutes) && !checker! && !firstchecker!) ||
-                ((savedMinutes * 2 + 5 >= timer!) && (timer >= savedMinutes * 2) && !checker! && !firstchecker!)) {
+            if (((savedMinutes + 5 > timer!) && (timer >= savedMinutes) && !checker! && !firstchecker!) ||
+                ((savedMinutes * 2 + 5 > timer!) && (timer >= savedMinutes * 2) && !checker! && !firstchecker!)) {
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${currentAppName}_", true);
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$currentAppName", true);
               await DataStore().saveSharedPreferencesString(KeyValue().OVERTIMEAPP, currentAppName);
