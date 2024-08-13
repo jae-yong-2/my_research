@@ -389,7 +389,7 @@ class ServerDataListener {
         //현재 앱이 계속 실행중이었으면 시간(1분에 한번씩) +1하여 timer에 저장함.
         Map<String, dynamic>? data = await DataStore().getData(KeyValue().ID,"timer/$currentAppName/$time");
         if (data ==null){
-          timer = 1;
+          timer = 0;
         }else{
           timer = data?["time"] + 1;
         }
@@ -409,10 +409,11 @@ class ServerDataListener {
 
       }catch(error){
         await DataStore().saveData(KeyValue().ID,"timer/$currentAppName/$time",{"time":currentAppUsageTime});
-        print(error);
+        print("타이머 불러오기 오류");
       }
       timer ??= 0;
     } else {
+      print("타이머 불러오기 오류");
       await DataStore().saveSharedPreferencesInt(KeyValue().TIMER, 0);
     }
 
@@ -513,6 +514,8 @@ class ServerDataListener {
             print("current app name : $currentAppName");
             print("current checker : $checker");
             print("current firstchecker : $firstchecker");
+            print("current app usageTime : $currentAppUsageTime");
+            print("current app Timer : $timer");
 
             /**
              * 알람이 울리고 사용중인 앱을 중단하고 다른 앱을 사용하게 될 경우
@@ -545,7 +548,13 @@ class ServerDataListener {
               Map<String, dynamic>? data = await DataStore().getData(
                   KeyValue().ID, "timer/$currentAppName/$servertime");
               print(data);
+
               timer = data?["time"];
+              if(timer ==null && hasPackage){
+                timer =0;
+                await DataStore().saveData(
+                    KeyValue().ID, "timer/$currentAppName/$servertime",{"time":0});
+              }
             }
 
 
