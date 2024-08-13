@@ -68,8 +68,6 @@ class ServerDataListener {
       {
         "역할" : "나의 $currentApp 사용을 줄이려는 사람",
         "상황" : "스마트폰($currentApp) 사용시간이 너무 길어서 사용시간이 많아져서 사용을 중단하라는 알람을 줘야하는 상황",  
-        "평소 취침시간": "$sleepTime",
-        "현재 시간": "$currentTime",
         "목표한 최대 스마트폰($currentApp) 사용시간" : "${(appUsageLimitTime ~/ 60)}시간 ${appUsageLimitTime % 60}분",  
         "현재 스마트폰($currentApp) 사용시간" : "${currentAppUsageTime ~/ 60}시간 ${currentAppUsageTime % 60}분",  
         "요구사항": ["상대방이 스마트폰($currentApp)사용 시간이 '${appUsageLimitTime ~/ 60}시간 ${appUsageLimitTime % 60}분이 됐다고 중단해야한다'고 전해줘, 상대방이 기분이 상하지 않도록 '사용시간을 말해주면서 전달'해줘,15~20단어 정도 Json형태 말고 한글로 인사말 생략하고 존댓말 문장생성"]
@@ -124,8 +122,6 @@ class ServerDataListener {
       {
         "역할" : "나를 대신해서 나인 척하는 사람.",  
         "방금 받은 알람" : "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}", 
-        "평소 잠드는 시간" : "$sleepTime",  
-        "현재 시간" : "$currentTime",  
         "목표한 최대 스마트폰($currentApp) 사용시간" : "$appUsageLimitTime분",  
         "현재 스마트폰($currentApp) 사용시간" : "$currentAppUsageTime분",  
         "요구사항" : 
@@ -139,8 +135,6 @@ class ServerDataListener {
         "역할" : "나의 $currentApp 사용을 줄이려는 사람",
         "상황" : "스마트폰($currentApp) 사용시간이 너무 길어서 졌지만 사용을 종료한 상황",
         "방금 받은 문자": "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}",
-        "평소 취침시간": "$sleepTime",
-        "현재 시간": "$currentTime",
         "목표 최대 스마트폰($currentApp) 사용시간": "$appUsageLimitTime",
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
@@ -156,8 +150,6 @@ class ServerDataListener {
         "역할" : "나를 대신해서 나인 척하는 사람.",
         "상황" : "문자를 받고 스마트폰($currentApp) 사용을 종료한 상황",
         "방금 받은 알람": "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}",
-        "평소 취침시간": "$sleepTime",
-        "현재 시간": "$currentTime",
         "목표 최대 스마트폰($currentApp) 사용시간": "$appUsageLimitTime",
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
@@ -174,8 +166,6 @@ class ServerDataListener {
         "역할" : "나의 $currentApp 사용을 줄이려는 사람",
         "상황" : "스마트폰($currentApp) 사용시간이 너무 길어서 져서 사용을 종료하지 않은 상황",
         "방금 받은 문자": "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}",
-        "평소 취침시간": "$sleepTime",
-        "현재 시간": "$currentTime",
         "목표 최대 스마트폰($currentApp) 사용시간": "$appUsageLimitTime",
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
@@ -191,13 +181,11 @@ class ServerDataListener {
         "역할" : "나를 대신해서 나인 척하는 사람.",
         "상황" : "스마트폰($currentApp) 사용시간이 너무 길어서 져서 사용을 종료하지 않은 상황",
         "방금 받은 문자": "${await DataStore().getSharedPreferencesString(KeyValue().REPLY)}",
-        "평소 취침시간": "$sleepTime",
-        "현재 시간": "$currentTime",
         "목표 최대 스마트폰($currentApp) 사용시간": "$appUsageLimitTime",
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            '(방금 받은 문자)'을 확인했다고 하는 말을 짧게 대신 답장해줘. 5단어 정도로 Json형태 말고 문장만 반말로 출력해줘.
+            '(방금 받은 문자)'을 확인했다고 하는 말을 짧게 대신 답장해줘. 3단어 정도로 Json형태 말고 문장만 반말로 출력해줘.
           ]"
       }
         ''';
@@ -409,12 +397,28 @@ class ServerDataListener {
 
       }catch(error){
         await DataStore().saveData(KeyValue().ID,"timer/$currentAppName/$time",{"time":currentAppUsageTime});
-        print("타이머 불러오기 오류");
+        print("타이머 불러오기1 오류");
       }
-      timer ??= 0;
-    } else {
-      print("타이머 불러오기 오류");
-      await DataStore().saveSharedPreferencesInt(KeyValue().TIMER, 0);
+      timer ??= currentAppUsageTime;
+    } else if(oldCurrentApp == currentApp && hasPackage){
+      print("앱 사용 진입");
+
+      Map<String, dynamic>? data = await DataStore().getData(KeyValue().ID,"timer/$currentAppName/$time");
+      if (data ==null){
+        timer = 0;
+      }else{
+        timer = data?["time"] + 1;
+      }
+      if(isLock) {
+        timer = data?["time"];
+      }
+      //timer를 업데이트함.
+      if (data != null) {
+        timer = timer!<currentAppUsageTime?currentAppUsageTime:timer;
+        await DataStore().saveData(KeyValue().ID,"timer/$currentAppName/$time",{"time": timer});
+      } else {
+        print("No data found at the path: ${KeyValue().ID}/timer/$currentAppName/$time");
+      }
     }
 
     String? gptContent = "key가 없거나 오류가 났습니다.";
