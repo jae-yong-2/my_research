@@ -98,5 +98,18 @@ class UsageAppService {
       print("selectedDurationJson이 null입니다.");
     }
   }
-
+  // 추가된 메서드: 모든 앱 사용 통계 가져오기
+  Future<List<Map<String, dynamic>>> getAllAppsUsage() async {
+    try {
+      final List<dynamic> result = await platform.invokeMethod('getAllAppsUsage');
+      return result.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    } on PlatformException catch (e) {
+      if (e.code == "PERMISSION_DENIED") {
+        Fluttertoast.showToast(msg: "Usage Stats permission is denied. Please grant the permission in settings.");
+      } else {
+        print("Failed to get all apps usage: '${e.message}'.");
+      }
+      return [];
+    }
+  }
 }
