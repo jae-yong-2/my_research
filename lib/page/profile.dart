@@ -9,8 +9,6 @@ import 'package:my_research/data/data_store.dart';
 import '../module/durationPickerDialog.dart';
 import '../module/usageAppservice.dart';
 
-//TODO 각 어플에 대한 시간도 설정해야함.
-
 class Profile extends StatefulWidget {
   const Profile({Key? key}) : super(key: key);
 
@@ -23,11 +21,11 @@ class _ProfileState extends State<Profile> {
   final DataStore _dataStore = DataStore();
   List<Map<String, dynamic>> _top10Apps = [];
   List<Map<String, dynamic>> _selectedApps = [];
+  List<Map<String, dynamic>> _allAppsUsage = [];
   Duration? _selectedDuration;
   Duration? _sleepTime;
   int _currentAppUsageTime = 0;
-  bool mode=false;
-
+  bool mode = false;
 
   @override
   void initState() {
@@ -38,11 +36,27 @@ class _ProfileState extends State<Profile> {
     _loadSleepTime();
     _loadMode();
   }
+
   Future<void> _getTop10Apps() async {
     final top10Apps = await _usageAppService.getTop10Apps();
     setState(() {
       _top10Apps = top10Apps;
     });
+  }
+
+  Future<void> _getAllAppsUsageAndSave() async {
+    final allApps = await _usageAppService.getAllAppsUsage();
+    setState(() {
+      _allAppsUsage = allApps;  // _top10Apps 변수를 재사용하여 allApps 데이터를 저장
+    });
+
+    var now = DateTime.now();
+    var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    String time = formatter.format(now);
+    String jsonString = jsonEncode(_allAppsUsage);
+    List<dynamic> jsonList = jsonDecode(jsonString);
+
+    await DataStore().saveData(KeyValue().ID, 'twoWeekUsage/$time', {"app": jsonList});
   }
 
   Future<void> _loadSelectedApps() async {
@@ -128,23 +142,19 @@ class _ProfileState extends State<Profile> {
         gravity: ToastGravity.CENTER,
       );
       return;
-    }else if(
-    null != existingSelectedAppsJson &&
+    } else if (null != existingSelectedAppsJson &&
         null != existingSelectedDurationJson &&
-        null != existingSleepTimeJson){
+        null != existingSleepTimeJson) {
       Fluttertoast.showToast(
         msg: "내일부터 적용됩니다.",
         gravity: ToastGravity.CENTER,
       );
       DateTime tomorrow = DateTime.now().add(Duration(days: 1));
       String formattedDate = DateFormat('yyyy-MM-dd').format(tomorrow);
-      print("Profile : $formattedDate");
       await _dataStore.saveSharedPreferencesString("${KeyValue().SELECTEDAPP}_$formattedDate", selectedAppsJson);
-      print("Profile : $selectedAppsJson");
       await _dataStore.saveSharedPreferencesString("${KeyValue().SELECTEDDURATION}_$formattedDate", selectedDurationJson);
-      print("Profile : $selectedDurationJson");
       await _dataStore.saveSharedPreferencesString("${KeyValue().SLEEPTIME}_$formattedDate", sleepTimeJson);
-      print("Profile : $sleepTimeJson");
+
       Map<String, dynamic> firebaseData = {
         KeyValue().SELECTEDAPP: _selectedApps.map((app) {
           final appMap = Map<String, dynamic>.from(app);
@@ -158,9 +168,6 @@ class _ProfileState extends State<Profile> {
         KeyValue().SLEEPTIME: {'hours': _sleepTime!.inHours, 'minutes': _sleepTime!.inMinutes % 60},
       };
       _dataStore.saveData(KeyValue().ID, '${KeyValue().SELECTEDAPP}_change/$formattedDate', firebaseData);
-      print(selectedAppsJson);
-      print(selectedDurationJson);
-      print(sleepTimeJson);
 
       return;
     }
@@ -194,23 +201,17 @@ class _ProfileState extends State<Profile> {
     });
 
     _dataStore.saveData(KeyValue().ID, '${KeyValue().SELECTEDAPP}_change/$time', firebaseData);
-    print(selectedAppsJson);
-    print(selectedDurationJson);
-    print(sleepTimeJson);
-
   }
 
   void _toggleAppSelection(Map<String, dynamic> app) {
     setState(() {
       final existingIndex = _selectedApps.indexWhere((selectedApp) => selectedApp['appName'] == app['appName']);
       if (existingIndex >= 0) {
-        // 이미 선택된 앱이면 목록에서 제거
         _selectedApps.removeAt(existingIndex);
       } else {
-        // 선택되지 않은 앱이면 목록에 추가
         _selectedApps.add({
           ...app,
-          'usageDuration': Duration(hours: 0, minutes: 0), // 초기 사용 시간 설정
+          'usageDuration': Duration(hours: 0, minutes: 0),
         });
       }
       _removeDuplicateApps();
@@ -280,16 +281,13 @@ class _ProfileState extends State<Profile> {
     String? selectedApp = await DataStore().getSharedPreferencesString(KeyValue().SELECTEDAPP);
     List<dynamic> selectedAppJson = jsonDecode(selectedApp!);
     List<String> appNames = selectedAppJson.map((selectedAppJson) => selectedAppJson['appName'].toString()).toList();
-    print(appNames);
     for (var appName in appNames) {
-      await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${appName}_",false);
-      print(await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${appName}_"));
-      await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$appName",false);
-      print(await DataStore().getSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$appName"));
-
+      await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${appName}_", false);
+      await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_$appName", false);
     }
   }
-  Future<void> chagneMode() async{
+
+  Future<void> chagneMode() async {
     await DataStore().saveSharedPreferencesBool(KeyValue().MODE, !mode);
     mode = (await DataStore().getSharedPreferencesBool(KeyValue().MODE))!;
     setState(() {});
@@ -297,17 +295,7 @@ class _ProfileState extends State<Profile> {
 
   Future<void> _loadMode() async {
     mode = (await DataStore().getSharedPreferencesBool(KeyValue().MODE))!;
-    mode??=false;
-  }
-
-  Future<void> _saveTop10Apps() async {
-    var now = DateTime.now();
-    var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-    String time = formatter.format(now);
-    String jsonString = jsonEncode(_top10Apps);
-    List<dynamic> jsonList = jsonDecode(jsonString);
-    await DataStore().saveData(KeyValue().ID, 'lastWeekUsage/$time',
-        {"app":jsonList});
+    mode ??= false;
   }
 
   @override
@@ -340,7 +328,7 @@ class _ProfileState extends State<Profile> {
                         Text('선택된 시간: ${_selectedDuration!.inHours}시간 ${_selectedDuration!.inMinutes % 60}분'),
                     ],
                   ),
-                  SizedBox(height: 4), // 작은 간격 추가
+                  SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -356,23 +344,23 @@ class _ProfileState extends State<Profile> {
               ),
             ),
             TextButton(
-              onPressed: _saveTop10Apps,
+              onPressed: _getAllAppsUsageAndSave,  // 기존의 _saveTop10Apps 대신 _getAllAppsUsageAndSave 호출
               style: ButtonStyle(
                 minimumSize: MaterialStateProperty.all(Size.fromHeight(10)),
                 maximumSize: MaterialStateProperty.all(Size.fromHeight(35)),
-                side: MaterialStateProperty.all(BorderSide(color: Colors.black, width: 1)), // 테두리 색상 및 두께 설정
+                side: MaterialStateProperty.all(BorderSide(color: Colors.black, width: 1)),
                 shape: MaterialStateProperty.all(
                   RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8), // 테두리 둥글기 설정
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
               ),
               child: Text(
                 "사용을 제한할 앱",
-                style: TextStyle(color: Colors.black), // 원하는 텍스트 스타일을 적용합니다.
+                style: TextStyle(color: Colors.black),
               ),
             ),
-            SizedBox(height: 4), // 작은 간격 추가
+            SizedBox(height: 4),
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
@@ -391,28 +379,26 @@ class _ProfileState extends State<Profile> {
                     final app = _top10Apps[index];
                     final appName = app['appName'] ?? 'Unknown';
                     final packageName = app['packageName'] ?? 'Unknown';
-                    final totalTimeInForeground = app['totalTimeInForeground']??'Unknown';
+                    final totalTimeInForeground = app['totalTimeInForeground'] ?? 'Unknown';
 
                     final isSelected = _selectedApps.any((selectedApp) => selectedApp['packageName'] == packageName);
 
                     return ListTile(
                       title: Text(appName),
-                      subtitle: Text('${((totalTimeInForeground/7) ~/ 60).toString().padLeft(2, '0')}시 ${((totalTimeInForeground/7) % 60).toInt()}분 ${(((totalTimeInForeground/7) * 60) % 60).toInt()}초'),
+                      subtitle: Text('${((totalTimeInForeground / 7) ~/ 60).toString().padLeft(2, '0')}시 ${((totalTimeInForeground / 7) % 60).toInt()}분 ${(((totalTimeInForeground / 7) * 60) % 60).toInt()}초'),
                       trailing: Checkbox(
                         value: isSelected,
                         onChanged: (bool? value) {
                           _toggleAppSelection({'appName': appName, 'packageName': packageName});
                         },
                       ),
-                      onTap: isSelected
-                          ? () => _selectAppUsageDuration(context, packageName)
-                          : null,
+                      onTap: isSelected ? () => _selectAppUsageDuration(context, packageName) : null,
                     );
                   },
                 ),
               ),
             ),
-            SizedBox(height: 2), // 작은 간격 추가
+            SizedBox(height: 2),
             Container(
               height: 20,
               child: ListView.builder(
@@ -420,11 +406,11 @@ class _ProfileState extends State<Profile> {
                 itemCount: KeyValue().appOrder.length,
                 itemBuilder: (context, index) {
                   final app = KeyValue().appOrder[index];
-                  return Text("${index+1}. $app          ");
+                  return Text("${index + 1}. $app          ");
                 },
               ),
             ),
-            SizedBox(height: 4), // 작은 간격 추가
+            SizedBox(height: 4),
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
@@ -455,20 +441,20 @@ class _ProfileState extends State<Profile> {
                 ),
               ),
             ),
-            SizedBox(height: 4), // 작은 간격 추가
+            SizedBox(height: 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ElevatedButton(
                   onPressed: chagneMode,
-                  child: Text(mode?'적용':'미적용'),
+                  child: Text(mode ? '적용' : '미적용'),
                 ),
-                Spacer(flex: 1), // Adds space to push the button to the center
+                Spacer(flex: 1),
                 ElevatedButton(
                   onPressed: _saveSelectedAppsAndDuration,
                   child: Text('저장하기'),
                 ),
-                Spacer(flex: 1), // Adds more space to push the refresh button to the right
+                Spacer(flex: 1),
                 IconButton(
                   icon: Icon(Icons.refresh),
                   onPressed: _refreshData,
