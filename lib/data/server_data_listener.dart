@@ -70,7 +70,7 @@ class ServerDataListener {
         "상황" : "스마트폰($currentApp) 사용시간이 너무 길어서 사용시간이 많아져서 사용을 중단하라는 알람을 줘야하는 상황",  
         "목표한 최대 스마트폰($currentApp) 사용시간" : "${(appUsageLimitTime ~/ 60)}시간 ${appUsageLimitTime % 60}분",  
         "현재 스마트폰($currentApp) 사용시간" : "${currentAppUsageTime ~/ 60}시간 ${currentAppUsageTime % 60}분",  
-        "요구사항": ["상대방이 스마트폰($currentApp)사용 시간이 '${appUsageLimitTime ~/ 60}시간 ${appUsageLimitTime % 60}분이 됐다고 중단해야한다'고 전해줘, 상대방이 기분이 상하지 않도록 '사용시간을 말해주면서 전달'해줘,15~20단어 정도 Json형태 말고 한글로 인사말 생략하고 존댓말 문장생성"]
+        "요구사항": ["상대방이 스마트폰($currentApp)사용 시간이 '${appUsageLimitTime ~/ 60}시간 ${appUsageLimitTime % 60}분이 됐다고 중단해야한다'고 전해줘, 상대방이 기분이 상하지 않도록 '사용시간을 말해주면서 전달'해줘, 15~20단어 정도 Json형태 말고 한글로 인사말 생략하고 존댓말 문장생성"]
       }
         ''';
     }
@@ -116,7 +116,7 @@ class ServerDataListener {
           }
         }
       }else{
-        purpose = '${nonStopReason[index][nonStopReasonRandomValue]} 이유로 $currentApp 사용"조금만 더 사용"한다고 뭐라고 답장해야 좋을지 추천해줘';
+        purpose = '${nonStopReason[index][nonStopReasonRandomValue]} 이유로 $currentApp 를 "더 사용"할거라고 답하려는데 뭐라고 답장해야 좋을지 추천해줘';
       }
       text = '''
       {
@@ -125,7 +125,7 @@ class ServerDataListener {
         "목표한 최대 스마트폰($currentApp) 사용시간" : "$appUsageLimitTime분",  
         "현재 스마트폰($currentApp) 사용시간" : "$currentAppUsageTime분",  
         "요구사항" : 
-        ["저는 '(방금 받은 알람)'에 답장하려 합니다. $purpose. 15~20단어 정도 Json형태 말고 한글 반말로 문장 생성"]
+        ["저는 '(방금 받은 알람)'에 알겠다고 답장하려 합니다. $purpose. 15~20단어 정도 Json형태 말고 한글 '반말' 문장 생성"]
       }
       ''';
     }
@@ -139,7 +139,7 @@ class ServerDataListener {
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            상대방이 실제로 '(방금 받은 문자)'이후에 $currentApp 사용을 그만뒀는데.'(방금 받은 문자)'에 맞춰 중단을 확인했다는 사실만 답장해줘,15~20단어 정도로 Json형태 말고 한글 존댓말로 응답
+            상대방이 실제로 '(방금 받은 문자)'이후에 $currentApp 사용을 그만뒀는데.'(방금 받은 문자)'에 맞춰 중단을 확인했다는 사실만 답장해줘,15~20단어 정도로 Json형태 말고 한글 '존댓말'로 문장 생성
           "]
        }
         ''';
@@ -154,7 +154,7 @@ class ServerDataListener {
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            '(방금 받은 알람)'을 확인했다고 하는 말을 짧게 대신 답장해줘. 5단어 정도로 Json형태 말고 한글 반말로 문장으로만 생성해줘.
+            '(방금 받은 알람)'에 "알람 확인했어"라고 하는 말을 짧게 대신 답장해줘. 3단어 정도로 Json형태 말고 한글 '반말' 문장으로만 생성해줘.
           "]
        }
         ''';
@@ -170,7 +170,7 @@ class ServerDataListener {
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            '(방금 받은 문자)'을 받고도 상대가 아직 $currentApp 사용을 멈추지 않았어. '(방금 받은 문자)'에 맞춰 사용을 중단해라고 답장해줘,15~20단어 정도로 Json형태 말고 한글 존댓말로 문장생성
+            '(방금 받은 문자)'을 받고도 상대가 아직 $currentApp 사용을 멈추지 않았어. '(방금 받은 문자)'에 맞춰 사용을 중단해라고 답장해줘,15~20단어 정도로 Json형태 말고 한글 '존댓말'로 문장 생성
           "]
        }
         ''';
@@ -185,7 +185,7 @@ class ServerDataListener {
         “현재 스마트폰($currentApp) 사용시간”: “$currentAppUsageTime분”,
         "요구사항": 
           ["
-            '(방금 받은 문자)'을 확인했다고 하는 말을 짧게 대신 답장해줘. 3단어 정도로 Json형태 말고 문장만 반말로 출력해줘.
+            '(방금 받은 문자)'을 "알람 확인했어"라고 하는 말을 짧게 대신 답장해줘. 3단어 정도로 Json형태 말고 문장만 '반말' 출력해줘.
           ]"
       }
         ''';
@@ -203,7 +203,7 @@ class ServerDataListener {
       model: Gpt4ChatModel(),
       messages: messagesHistory,
       maxToken: 100,
-      temperature: 0.9,
+      temperature: 0.8,
     );
     final response = await _openAI.onChatCompletion(request: request);
     for (var element in response!.choices) {
@@ -482,7 +482,7 @@ class ServerDataListener {
              *
              *
              */
-            if ((oldCurrentApp != currentApp) && checker! && firstchecker!) {
+            if (((oldCurrentApp != currentApp) && checker! && firstchecker!)||isLock) {
               print("알람을 보고 앱을 종료했습니다.");
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${oldCurrentAppName}_", false);
 
