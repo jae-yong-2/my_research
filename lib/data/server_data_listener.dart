@@ -482,7 +482,9 @@ class ServerDataListener {
              *
              *
              */
-            if (((oldCurrentApp != currentApp) && checker! && firstchecker!)||isLock) {
+            if (checker! && firstchecker! &&
+                ((oldCurrentApp != currentApp) || (oldCurrentApp == currentApp && isLock))
+            ) {
               print("알람을 보고 앱을 종료했습니다.");
               await DataStore().saveSharedPreferencesBool("${KeyValue().ALARM_CHECKER}_${oldCurrentAppName}_", false);
 
