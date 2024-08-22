@@ -190,7 +190,7 @@ class LocalNotification {
         ),
         AndroidNotificationAction(
           "no_action",
-          "의도기 틀림",
+          "의도가 틀림",
           showsUserInterface: true,
           inputs: [],
         ),
