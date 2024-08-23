@@ -36,7 +36,13 @@ import io.flutter.plugin.common.MethodChannel;
 
 import android.content.pm.PackageManager;
 import android.content.pm.ApplicationInfo;
-
+import java.util.Date;
+import android.app.AppOpsManager;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
+import android.provider.Settings;
+import android.util.Log;
 
 import com.example.my_research.MyFirebaseMessagingService;
 public class MainActivity extends FlutterActivity {
@@ -99,6 +105,18 @@ public class MainActivity extends FlutterActivity {
                             } else {
                                 result.error("UNAVAILABLE", "Usage stats are not available on this device.", null);
                             }
+                        } else if (call.method.equals("getAllAppsUsage")) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                if (hasUsageStatsPermission()) {
+                                    List<Map<String, Object>> allAppsUsage = getAllAppsUsage();
+                                    result.success(allAppsUsage);
+                                } else {
+                                    requestUsageStatsPermission();
+                                    result.error("PERMISSION_DENIED", "Usage stats permission is denied", null);
+                                }
+                            } else {
+                                result.error("UNAVAILABLE", "Usage stats are not available on this device.", null);
+                            }
                         } else {
                             result.notImplemented();
                         }
@@ -117,6 +135,98 @@ public class MainActivity extends FlutterActivity {
                     }
                 });
     }
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    private List<Map<String, Object>> getAllAppsUsage() {
+// 권한 체크 및 요청
+        UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
+        PackageManager pm = getPackageManager();
+
+        Map<String, Map<String, Object>> usageStatsMap = new HashMap<>();
+
+// 3주 동안 하루 단위로 데이터를 가져오기 위해 반복문을 사용
+        for (int dayOffset = 1; dayOffset < 5; dayOffset++) {
+            Calendar calendar = Calendar.getInstance();
+
+            // 현재 날짜에서 dayOffset 일 전으로 이동
+            calendar.add(Calendar.DAY_OF_YEAR, -dayOffset*7);
+            calendar.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+            long startTime = calendar.getTimeInMillis();
+
+            // 종료 시간을 설정 (하루 후)
+
+            calendar.set(Calendar.HOUR_OF_DAY, 23);
+            calendar.set(Calendar.MINUTE, 59);
+            calendar.set(Calendar.SECOND, 59);
+            long endTime = calendar.getTimeInMillis();
+
+            // 하루 단위로 데이터를 가져오기
+            List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_WEEKLY, startTime, endTime);
+            Date date= new Date(startTime);
+            System.out.println(date);
+            date= new Date(endTime);
+            System.out.println(date);
+            if (stats == null || stats.isEmpty()) {
+                Log.d("UsageStats", "No data available for the period: " + startTime + " to " + endTime);
+                continue;
+            }
+
+            for (UsageStats usageStat : stats) {
+                if (usageStat.getTotalTimeInForeground() > 0 || usageStat.getTotalTimeVisible() > 0) {
+                    String packageName = usageStat.getPackageName();
+                    long totalTimeInForeground = usageStat.getTotalTimeInForeground() / 1000 / 60; // 밀리초를 분으로 변환
+                    long totalTimeVisible = usageStat.getTotalTimeVisible() / 1000 / 60; // 밀리초를 분으로 변환
+
+                    if (usageStatsMap.containsKey(packageName)) {
+                        Map<String, Object> existingUsage = usageStatsMap.get(packageName);
+                        long existingForegroundTime = (Long) existingUsage.get("totalTimeInForeground");
+                        long existingVisibleTime = (Long) existingUsage.get("totalTimeVisible");
+                        existingUsage.put("totalTimeInForeground", existingForegroundTime + totalTimeInForeground);
+                        existingUsage.put("totalTimeVisible", existingVisibleTime + totalTimeVisible);
+                    } else {
+                        Map<String, Object> usageMap = new HashMap<>();
+                        usageMap.put("packageName", packageName);
+                        usageMap.put("totalTimeInForeground", totalTimeInForeground);
+                        usageMap.put("totalTimeVisible", totalTimeVisible);
+                        try {
+                            ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
+                            String appName = pm.getApplicationLabel(appInfo).toString();
+                            usageMap.put("appName", appName);
+                        } catch (PackageManager.NameNotFoundException e) {
+                            String name = FriendlyNameMapper.getFriendlyName(packageName);
+                            usageMap.put("appName", name);
+                        }
+                        usageStatsMap.put(packageName, usageMap);
+                    }
+                }
+            }
+        }
+
+// Map을 List로 변환
+        List<Map<String, Object>> usageStatsList = new ArrayList<>(usageStatsMap.values());
+
+// 총 사용량(포그라운드 기준)으로 내림차순 정렬
+        Collections.sort(usageStatsList, new Comparator<Map<String, Object>>() {
+            @Override
+            public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+                return ((Long) o2.get("totalTimeInForeground")).compareTo((Long) o1.get("totalTimeInForeground"));
+            }
+        });
+
+        return usageStatsList;
+
+
+    }
+
+
+
+
+
+
+
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private List<Map<String, Object>> getUsageStats() {
@@ -164,12 +274,17 @@ public class MainActivity extends FlutterActivity {
         Calendar calendar = Calendar.getInstance();
         long endTime = calendar.getTimeInMillis();
         calendar.add(Calendar.DAY_OF_YEAR, -7);
+
+        // 7일 전의 00시 00분 00초로 설정
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
         long startTime = calendar.getTimeInMillis();
 
         List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime);
-        List<Map<String, Object>> usageStats = new ArrayList<>();
+        Map<String, Map<String, Object>> usageStatsMap = new HashMap<>();
         PackageManager pm = getPackageManager();
-        Set<String> seenPackages = new HashSet<>();
 
         for (UsageStats usageStat : stats) {
             if (usageStat.getTotalTimeInForeground() > 0) {
@@ -180,25 +295,30 @@ public class MainActivity extends FlutterActivity {
                     continue;
                 }
 
-                if (seenPackages.contains(packageName)) {
-                    continue; // Skip duplicates
-                }
-                seenPackages.add(packageName);
+                long totalTimeInForeground = usageStat.getTotalTimeInForeground() / 1000 / 60; // Convert milliseconds to minutes
 
-                Map<String, Object> usageMap = new HashMap<>();
-                usageMap.put("packageName", packageName);
-                usageMap.put("totalTimeInForeground", usageStat.getTotalTimeInForeground() / 1000 / 60); // Convert milliseconds to minutes
-                try {
-                    ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
-                    String appName = pm.getApplicationLabel(appInfo).toString();
-                    usageMap.put("appName", appName);
-                } catch (PackageManager.NameNotFoundException e) {
-                    String name = FriendlyNameMapper.getFriendlyName(packageName);
-                    usageMap.put("appName", name);
+                if (usageStatsMap.containsKey(packageName)) {
+                    Map<String, Object> existingUsage = usageStatsMap.get(packageName);
+                    long existingTime = (Long) existingUsage.get("totalTimeInForeground");
+                    existingUsage.put("totalTimeInForeground", existingTime + totalTimeInForeground);
+                } else {
+                    Map<String, Object> usageMap = new HashMap<>();
+                    usageMap.put("packageName", packageName);
+                    usageMap.put("totalTimeInForeground", totalTimeInForeground);
+                    try {
+                        ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
+                        String appName = pm.getApplicationLabel(appInfo).toString();
+                        usageMap.put("appName", appName);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        String name = FriendlyNameMapper.getFriendlyName(packageName);
+                        usageMap.put("appName", name);
+                    }
+                    usageStatsMap.put(packageName, usageMap);
                 }
-                usageStats.add(usageMap);
             }
         }
+
+        List<Map<String, Object>> usageStats = new ArrayList<>(usageStatsMap.values());
 
         Collections.sort(usageStats, new Comparator<Map<String, Object>>() {
             @Override
@@ -209,6 +329,7 @@ public class MainActivity extends FlutterActivity {
 
         return usageStats.subList(0, Math.min(10, usageStats.size()));
     }
+
 
     private String getCurrentApp() {
         ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);

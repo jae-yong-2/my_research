@@ -180,6 +180,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private List<Map<String, Object>> getUsageStats() {
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
         Calendar calendar = Calendar.getInstance();
+
+        // 오늘 자정 (00:00:00) 시간을 설정
         long endTime = calendar.getTimeInMillis();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
@@ -187,6 +189,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         calendar.set(Calendar.MILLISECOND, 0);
         long startTime = calendar.getTimeInMillis();
 
+        // UsageEvents를 사용하여 포그라운드 시간 계산
         UsageEvents usageEvents = usageStatsManager.queryEvents(startTime, endTime);
         UsageEvents.Event event = new UsageEvents.Event();
         Map<String, Long> usageMap = new HashMap<>();
@@ -210,16 +213,30 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             }
         }
 
+        // UsageStats를 사용하여 totalTimeVisible 가져오기
+        List<UsageStats> usageStatsList = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime);
+        Map<String, Long> visibleTimeMap = new HashMap<>();
+        for (UsageStats usageStat : usageStatsList) {
+            String packageName = usageStat.getPackageName();
+            long totalTimeVisible = usageStat.getTotalTimeVisible() / 1000 / 60; // 밀리초를 분으로 변환
+            visibleTimeMap.put(packageName, totalTimeVisible);
+        }
+
+        // 결과 리스트 생성
         List<Map<String, Object>> result = new ArrayList<>();
         for (Map.Entry<String, Long> entry : usageMap.entrySet()) {
             String packageName = entry.getKey();
-            long totalTimeInForeground = entry.getValue() / 1000 / 60; // Convert milliseconds to minutes
+            long totalTimeInForeground = entry.getValue() / 1000 / 60; // 밀리초를 분으로 변환
+            long totalTimeVisible = visibleTimeMap.getOrDefault(packageName, 0L); // 이미 분으로 변환됨
+
             if (EXCLUDED_PACKAGES.contains(packageName)) {
-                continue; // Exclude the package
+                continue; // 패키지 제외
             }
+
             Map<String, Object> usageStats = new HashMap<>();
             usageStats.put("packageName", packageName);
             usageStats.put("totalTimeInForeground", totalTimeInForeground);
+            usageStats.put("totalTimeVisible", totalTimeVisible);
 
             try {
                 ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
@@ -231,8 +248,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
             result.add(usageStats);
         }
+
         return result;
     }
+
 
 
     private String getCurrentAppName(String packageName) {
