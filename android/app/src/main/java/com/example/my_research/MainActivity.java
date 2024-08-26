@@ -135,80 +135,82 @@ public class MainActivity extends FlutterActivity {
                     }
                 });
     }
+
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private List<Map<String, Object>> getAllAppsUsage() {
-// 권한 체크 및 요청
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
         PackageManager pm = getPackageManager();
 
         Map<String, Map<String, Object>> usageStatsMap = new HashMap<>();
 
-// 3주 동안 하루 단위로 데이터를 가져오기 위해 반복문을 사용
-        for (int dayOffset = 1; dayOffset < 5; dayOffset++) {
-            Calendar calendar = Calendar.getInstance();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setFirstDayOfWeek(Calendar.SUNDAY);
 
-            // 현재 날짜에서 dayOffset 일 전으로 이동
-            calendar.add(Calendar.DAY_OF_YEAR, -dayOffset*7);
-            calendar.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
-            calendar.set(Calendar.HOUR_OF_DAY, 0);
-            calendar.set(Calendar.MINUTE, 0);
-            calendar.set(Calendar.SECOND, 0);
-            calendar.set(Calendar.MILLISECOND, 0);
-            long startTime = calendar.getTimeInMillis();
+// 이번 주 토요일의 시간 설정
+        calendar.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        calendar.set(Calendar.MILLISECOND, 999);
+        long endTime = calendar.getTimeInMillis();
 
-            // 종료 시간을 설정 (하루 후)
+// 3주 전 일요일로 이동
+        calendar.add(Calendar.WEEK_OF_YEAR, -4);
+        calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        long startTime = calendar.getTimeInMillis();
 
-            calendar.set(Calendar.HOUR_OF_DAY, 23);
-            calendar.set(Calendar.MINUTE, 59);
-            calendar.set(Calendar.SECOND, 59);
-            long endTime = calendar.getTimeInMillis();
+        Date start = new Date(startTime);
+        Date end = new Date(endTime);
+        Log.d("UsageStats", "get data state : " + start + " to " + end);
 
-            // 하루 단위로 데이터를 가져오기
-            List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_WEEKLY, startTime, endTime);
-            Date date= new Date(startTime);
-            System.out.println(date);
-            date= new Date(endTime);
-            System.out.println(date);
-            if (stats == null || stats.isEmpty()) {
-                Log.d("UsageStats", "No data available for the period: " + startTime + " to " + endTime);
-                continue;
-            }
+        // 주 단위로 데이터를 가져오기
+        List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_WEEKLY, startTime, endTime);
+        if (stats == null || stats.isEmpty()) {
+            Log.d("UsageStats", "No data available for the period: " + start + " to " + end);
+        }
 
-            for (UsageStats usageStat : stats) {
-                if (usageStat.getTotalTimeInForeground() > 0 || usageStat.getTotalTimeVisible() > 0) {
-                    String packageName = usageStat.getPackageName();
-                    long totalTimeInForeground = usageStat.getTotalTimeInForeground() / 1000 / 60; // 밀리초를 분으로 변환
-                    long totalTimeVisible = usageStat.getTotalTimeVisible() / 1000 / 60; // 밀리초를 분으로 변환
+        for (UsageStats usageStat : stats) {
+            if (usageStat.getTotalTimeInForeground() > 0 || usageStat.getTotalTimeVisible() > 0) {
+                String packageName = usageStat.getPackageName();
+                long totalTimeInForeground = usageStat.getTotalTimeInForeground() / 1000 / 60; // 밀리초를 분으로 변환
+                long totalTimeVisible = usageStat.getTotalTimeVisible() / 1000 / 60; // 밀리초를 분으로 변환
 
-                    if (usageStatsMap.containsKey(packageName)) {
-                        Map<String, Object> existingUsage = usageStatsMap.get(packageName);
-                        long existingForegroundTime = (Long) existingUsage.get("totalTimeInForeground");
-                        long existingVisibleTime = (Long) existingUsage.get("totalTimeVisible");
-                        existingUsage.put("totalTimeInForeground", existingForegroundTime + totalTimeInForeground);
-                        existingUsage.put("totalTimeVisible", existingVisibleTime + totalTimeVisible);
-                    } else {
-                        Map<String, Object> usageMap = new HashMap<>();
-                        usageMap.put("packageName", packageName);
-                        usageMap.put("totalTimeInForeground", totalTimeInForeground);
-                        usageMap.put("totalTimeVisible", totalTimeVisible);
-                        try {
-                            ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
-                            String appName = pm.getApplicationLabel(appInfo).toString();
-                            usageMap.put("appName", appName);
-                        } catch (PackageManager.NameNotFoundException e) {
-                            String name = FriendlyNameMapper.getFriendlyName(packageName);
-                            usageMap.put("appName", name);
-                        }
-                        usageStatsMap.put(packageName, usageMap);
+                // 오늘 기준으로 몇일 전인지 계산
+                long daysAgo = (System.currentTimeMillis() - startTime) / (1000 * 60 * 60 * 24);
+                if (usageStatsMap.containsKey(packageName)) {
+                    Map<String, Object> existingUsage = usageStatsMap.get(packageName);
+                    long existingForegroundTime = (Long) existingUsage.get("totalTimeInForeground");
+                    long existingVisibleTime = (Long) existingUsage.get("totalTimeVisible");
+                    existingUsage.put("totalTimeInForeground", existingForegroundTime + totalTimeInForeground);
+                    existingUsage.put("totalTimeVisible", existingVisibleTime + totalTimeVisible);
+                    existingUsage.put("daysAgo", daysAgo); // 며칠 전인지 추가
+                } else {
+                    Map<String, Object> usageMap = new HashMap<>();
+                    usageMap.put("packageName", packageName);
+                    usageMap.put("totalTimeInForeground", totalTimeInForeground);
+                    usageMap.put("totalTimeVisible", totalTimeVisible);
+                    usageMap.put("daysAgo", daysAgo+1); // 며칠 전인지 추가
+                    try {
+                        ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
+                        String appName = pm.getApplicationLabel(appInfo).toString();
+                        usageMap.put("appName", appName);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        String name = FriendlyNameMapper.getFriendlyName(packageName);
+                        usageMap.put("appName", name);
                     }
+                    usageStatsMap.put(packageName, usageMap);
                 }
             }
         }
 
-// Map을 List로 변환
+        // Map을 List로 변환
         List<Map<String, Object>> usageStatsList = new ArrayList<>(usageStatsMap.values());
 
-// 총 사용량(포그라운드 기준)으로 내림차순 정렬
+        // 총 사용량(포그라운드 기준)으로 내림차순 정렬
         Collections.sort(usageStatsList, new Comparator<Map<String, Object>>() {
             @Override
             public int compare(Map<String, Object> o1, Map<String, Object> o2) {
@@ -217,8 +219,6 @@ public class MainActivity extends FlutterActivity {
         });
 
         return usageStatsList;
-
-
     }
 
 
@@ -272,8 +272,13 @@ public class MainActivity extends FlutterActivity {
     private List<Map<String, Object>> getTop10Apps() {
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
         Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_YEAR, -1);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        calendar.set(Calendar.MILLISECOND, 999);
         long endTime = calendar.getTimeInMillis();
-        calendar.add(Calendar.DAY_OF_YEAR, -7);
+        calendar.add(Calendar.DAY_OF_YEAR, -6);
 
         // 7일 전의 00시 00분 00초로 설정
         calendar.set(Calendar.HOUR_OF_DAY, 0);
