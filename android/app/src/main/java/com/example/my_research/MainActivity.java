@@ -144,9 +144,17 @@ public class MainActivity extends FlutterActivity {
         Map<String, Map<String, Object>> usageStatsMap = new HashMap<>();
 
         Calendar calendar = Calendar.getInstance();
-        calendar.setFirstDayOfWeek(Calendar.SUNDAY);
-
+// 3주 전 일요일로 이동
+        //-25를 하면 25일
+        calendar.add(Calendar.DAY_OF_YEAR, -25);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        long startTime = calendar.getTimeInMillis();
 // 이번 주 토요일의 시간 설정
+        calendar = Calendar.getInstance();
+        calendar.setFirstDayOfWeek(Calendar.SUNDAY);
         calendar.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
         calendar.set(Calendar.HOUR_OF_DAY, 23);
         calendar.set(Calendar.MINUTE, 59);
@@ -154,14 +162,6 @@ public class MainActivity extends FlutterActivity {
         calendar.set(Calendar.MILLISECOND, 999);
         long endTime = calendar.getTimeInMillis();
 
-// 3주 전 일요일로 이동
-        calendar.add(Calendar.WEEK_OF_YEAR, -4);
-        calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        long startTime = calendar.getTimeInMillis();
 
         Date start = new Date(startTime);
         Date end = new Date(endTime);
@@ -272,20 +272,24 @@ public class MainActivity extends FlutterActivity {
     private List<Map<String, Object>> getTop10Apps() {
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
         Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_YEAR, -1);
-        calendar.set(Calendar.HOUR_OF_DAY, 23);
-        calendar.set(Calendar.MINUTE, 59);
-        calendar.set(Calendar.SECOND, 59);
-        calendar.set(Calendar.MILLISECOND, 999);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
         long endTime = calendar.getTimeInMillis();
-        calendar.add(Calendar.DAY_OF_YEAR, -6);
 
         // 7일 전의 00시 00분 00초로 설정
+        calendar.add(Calendar.DAY_OF_YEAR, -6);
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         long startTime = calendar.getTimeInMillis();
+
+
+        Date start = new Date(startTime);
+        Date end = new Date(endTime);
+        Log.d("UsageStats", "get 7day data state : " + start + " to " + end);
 
         List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime);
         Map<String, Map<String, Object>> usageStatsMap = new HashMap<>();
@@ -304,12 +308,12 @@ public class MainActivity extends FlutterActivity {
 
                 if (usageStatsMap.containsKey(packageName)) {
                     Map<String, Object> existingUsage = usageStatsMap.get(packageName);
-                    long existingTime = (Long) existingUsage.get("totalTimeInForeground");
-                    existingUsage.put("totalTimeInForeground", existingTime + totalTimeInForeground);
+                    long existingTime = (Long) existingUsage.get("totalTimeVisible");
+                    existingUsage.put("totalTimeVisible", existingTime + totalTimeInForeground);
                 } else {
                     Map<String, Object> usageMap = new HashMap<>();
                     usageMap.put("packageName", packageName);
-                    usageMap.put("totalTimeInForeground", totalTimeInForeground);
+                    usageMap.put("totalTimeVisible", totalTimeInForeground);
                     try {
                         ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
                         String appName = pm.getApplicationLabel(appInfo).toString();
@@ -328,7 +332,7 @@ public class MainActivity extends FlutterActivity {
         Collections.sort(usageStats, new Comparator<Map<String, Object>>() {
             @Override
             public int compare(Map<String, Object> o1, Map<String, Object> o2) {
-                return ((Long) o2.get("totalTimeInForeground")).compareTo((Long) o1.get("totalTimeInForeground"));
+                return ((Long) o2.get("totalTimeVisible")).compareTo((Long) o1.get("totalTimeVisible"));
             }
         });
 
