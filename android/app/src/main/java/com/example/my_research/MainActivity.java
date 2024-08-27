@@ -43,6 +43,9 @@ import android.content.Intent;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 import com.example.my_research.MyFirebaseMessagingService;
 public class MainActivity extends FlutterActivity {
@@ -146,7 +149,7 @@ public class MainActivity extends FlutterActivity {
         Calendar calendar = Calendar.getInstance();
 // 3주 전 일요일로 이동
         //-25를 하면 25일
-        calendar.add(Calendar.DAY_OF_YEAR, -25);
+        calendar.add(Calendar.DAY_OF_YEAR, -28);
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
@@ -155,11 +158,10 @@ public class MainActivity extends FlutterActivity {
 // 이번 주 토요일의 시간 설정
         calendar = Calendar.getInstance();
         calendar.setFirstDayOfWeek(Calendar.SUNDAY);
-        calendar.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
-        calendar.set(Calendar.HOUR_OF_DAY, 23);
-        calendar.set(Calendar.MINUTE, 59);
-        calendar.set(Calendar.SECOND, 59);
-        calendar.set(Calendar.MILLISECOND, 999);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
         long endTime = calendar.getTimeInMillis();
 
 
@@ -172,28 +174,40 @@ public class MainActivity extends FlutterActivity {
         if (stats == null || stats.isEmpty()) {
             Log.d("UsageStats", "No data available for the period: " + start + " to " + end);
         }
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+
 
         for (UsageStats usageStat : stats) {
             if (usageStat.getTotalTimeInForeground() > 0 || usageStat.getTotalTimeVisible() > 0) {
                 String packageName = usageStat.getPackageName();
                 long totalTimeInForeground = usageStat.getTotalTimeInForeground() / 1000 / 60; // 밀리초를 분으로 변환
                 long totalTimeVisible = usageStat.getTotalTimeVisible() / 1000 / 60; // 밀리초를 분으로 변환
+                String firstDataTime = dateFormat.format(new Date(usageStat.getFirstTimeStamp())); // 첫 번째 데이터 타임스탬프를 String으로 변환
+                String lastDataTime = dateFormat.format(new Date(endTime)); // 첫 번째 데이터 타임스탬프를 String으로 변환
+                long daysAgo = (System.currentTimeMillis() - usageStat.getFirstTimeStamp()) / (1000 * 60 * 60 * 24);
 
-                // 오늘 기준으로 몇일 전인지 계산
-                long daysAgo = (System.currentTimeMillis() - startTime) / (1000 * 60 * 60 * 24);
+
                 if (usageStatsMap.containsKey(packageName)) {
                     Map<String, Object> existingUsage = usageStatsMap.get(packageName);
                     long existingForegroundTime = (Long) existingUsage.get("totalTimeInForeground");
                     long existingVisibleTime = (Long) existingUsage.get("totalTimeVisible");
+                    String existingFirstDataTime = (String) existingUsage.get("firstDataTime");
+                    long existingDaysAgo = (Long) existingUsage.get("daysAgo");
+
+
                     existingUsage.put("totalTimeInForeground", existingForegroundTime + totalTimeInForeground);
                     existingUsage.put("totalTimeVisible", existingVisibleTime + totalTimeVisible);
-                    existingUsage.put("daysAgo", daysAgo); // 며칠 전인지 추가
+                    existingUsage.put("daysAgo", Math.max(existingDaysAgo, daysAgo)); // 가장 큰 daysAgo 값을 유지
+                    existingUsage.put("firstDataTime", existingFirstDataTime.compareTo(firstDataTime) < 0 ? existingFirstDataTime : firstDataTime);
+                    existingUsage.put("lastDataTime", lastDataTime);
                 } else {
                     Map<String, Object> usageMap = new HashMap<>();
                     usageMap.put("packageName", packageName);
                     usageMap.put("totalTimeInForeground", totalTimeInForeground);
                     usageMap.put("totalTimeVisible", totalTimeVisible);
-                    usageMap.put("daysAgo", daysAgo+1); // 며칠 전인지 추가
+                    usageMap.put("daysAgo", daysAgo); // daysAgo 추가
+                    usageMap.put("firstDataTime", firstDataTime); // 첫 번째 데이터 타임스탬프 추가
+                    usageMap.put("lastDataTime", lastDataTime); // 첫 번째 데이터 타임스탬프 추가
                     try {
                         ApplicationInfo appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
                         String appName = pm.getApplicationLabel(appInfo).toString();
