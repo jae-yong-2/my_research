@@ -149,7 +149,7 @@ public class MainActivity extends FlutterActivity {
         Calendar calendar = Calendar.getInstance();
 // 3주 전 일요일로 이동
         //-25를 하면 25일
-        calendar.add(Calendar.DAY_OF_YEAR, -28);
+        calendar.add(Calendar.DAY_OF_YEAR, -30);
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);

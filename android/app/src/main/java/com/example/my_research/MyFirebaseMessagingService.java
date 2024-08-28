@@ -268,7 +268,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private String getCurrentApp() {
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
         long endTime = System.currentTimeMillis();
-        long beginTime = endTime - 1000 * 60 * 60; // Check for the past hour
+        long beginTime = endTime - 1000 * 60 * 60 * 24; // Check for the past hour
 
         UsageEvents usageEvents = usageStatsManager.queryEvents(beginTime, endTime);
         UsageEvents.Event event = new UsageEvents.Event();
