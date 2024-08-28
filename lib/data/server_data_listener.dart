@@ -377,7 +377,7 @@ class ServerDataListener {
         //현재 앱이 계속 실행중이었으면 시간(1분에 한번씩) +1하여 timer에 저장함.
         Map<String, dynamic>? data = await DataStore().getData(KeyValue().ID,"timer/$currentAppName/$time");
         if (data ==null){
-          timer = 0;
+          timer = 1;
         }else{
           timer = data?["time"] + 1;
         }
@@ -400,12 +400,13 @@ class ServerDataListener {
         print("타이머 불러오기1 오류");
       }
       timer ??= currentAppUsageTime;
-    } else if(oldCurrentApp == currentApp && hasPackage){
+    } else if(oldCurrentApp != currentApp && hasPackage){
       print("앱 사용 진입");
 
       Map<String, dynamic>? data = await DataStore().getData(KeyValue().ID,"timer/$currentAppName/$time");
       if (data ==null){
-        timer = 0;
+        timer = currentAppUsageTime;
+        await DataStore().saveData(KeyValue().ID,"timer/$currentAppName/$time",{"time": timer});
       }else{
         timer = data?["time"] + 1;
       }

@@ -370,7 +370,7 @@ class _ProfileState extends State<Profile> {
                   ),
                   borderRadius: BorderRadius.circular(8.0),
                 ),
-                padding: EdgeInsets.all(8.0),
+                padding: EdgeInsets.fromLTRB(5.0,0,5.0,0),
                 child: _top10Apps.isEmpty
                     ? Center(child: CircularProgressIndicator())
                     : ListView.builder(
@@ -379,13 +379,13 @@ class _ProfileState extends State<Profile> {
                     final app = _top10Apps[index];
                     final appName = app['appName'] ?? 'Unknown';
                     final packageName = app['packageName'] ?? 'Unknown';
-                    final totalTimeInForeground = app['totalTimeInForeground'] ?? 'Unknown';
+                    final totalTimeInForeground = app['totalTimeVisible'] ?? 'Unknown';
 
                     final isSelected = _selectedApps.any((selectedApp) => selectedApp['packageName'] == packageName);
 
                     return ListTile(
                       title: Text(appName),
-                      subtitle: Text('${((totalTimeInForeground / 7) ~/ 60).toString().padLeft(2, '0')}시 ${((totalTimeInForeground / 7) % 60).toInt()}분 ${(((totalTimeInForeground / 7) * 60) % 60).toInt()}초'),
+                      subtitle: Text('7일 평균 사용량 : ${((totalTimeInForeground / 7) ~/ 60).toString().padLeft(2, '0')}시 ${((totalTimeInForeground / 7) % 60).toInt()}분 ${(((totalTimeInForeground / 7) * 60) % 60).toInt()}초'),
                       trailing: Checkbox(
                         value: isSelected,
                         onChanged: (bool? value) {
