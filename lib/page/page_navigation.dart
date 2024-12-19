@@ -1,25 +1,34 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:my_research/chat_page.dart';
-import 'package:my_research/foreground_service.dart';
-import 'package:my_research/profile.dart';
+import 'package:my_research/page/Chat/chat_page.dart';
+import 'package:my_research/page/profile.dart';
+
+import 'feedback.dart';
 
 class PageNavigation extends StatefulWidget {
-  const PageNavigation({super.key});
+  final int initialIndex;
+
+  const PageNavigation({super.key, required this.initialIndex});
 
   @override
   _PageNavigationState createState() => _PageNavigationState();
 }
 
 class _PageNavigationState extends State<PageNavigation> {
-  int _selectedIndex = 0;
+  late int _selectedIndex = 0;
   final List<Widget> _pages = [
-    Profile(),
     ChatPage(),
-    ForegroundServiceAPI(),
+    Profile(),
+    FeedbackPage(),
   ];
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _selectedIndex = widget.initialIndex;
+  }
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -30,6 +39,7 @@ class _PageNavigationState extends State<PageNavigation> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: -4,
       ),
       body: IndexedStack(
         index: _selectedIndex,
@@ -38,17 +48,18 @@ class _PageNavigationState extends State<PageNavigation> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.man),
-            label: '프로필',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.chat),
             label: '채팅',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: '세팅',
+            icon: Icon(Icons.man),
+            label: '프로필',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.feedback,size: 10,),
+            label: "피드백",
+          ),
+
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.amber[800],

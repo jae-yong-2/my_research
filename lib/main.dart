@@ -1,41 +1,138 @@
+import 'dart:io';
+
+import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_foreground_service/flutter_foreground_service.dart';
-import 'package:my_research/foreground_service.dart';
-import 'package:my_research/local_notification.dart';
-import 'package:my_research/page_navigation.dart';
-import 'package:workmanager/workmanager.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
+import 'package:my_research/data/keystring.dart';
+import 'package:my_research/module/healthKit.dart';
+import 'package:my_research/module/local_notification.dart';
+import 'package:my_research/module/pedometerAPI.dart';
+import 'package:my_research/package/firebase_options.dart';
+import 'package:my_research/page/page_navigation.dart';
+import 'package:my_research/data/server_data_listener.dart';
+import 'package:my_research/page/profile.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-void callbackDispatcher() {
+import 'data/data_store.dart';
+import 'package/const_key.dart';
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-  Workmanager().executeTask((task, inputData) {
-    // 여기서 백그라운드 작업을 실행
-    print("작업이름 : $task");
-    LocalNotification.showOngoingNotification(
-        title: "background",
-        body: "background",
-        payload: "background"
-    );
-    return Future.value(true);
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // If you're going to use other Firebase services in the background, such as Firestore,
+  // make sure you call `initializeApp` before using other Firebase services.
+  ServerDataListener().FCMactivce(message);
+}
+
+Future<void> _loadTime()async{
+
+  final int startHour = await DataStore().getSharedPreferencesInt("startHour") ?? 9;
+  final int startMinute = await DataStore().getSharedPreferencesInt("startMinute") ?? 0;
+  final int endHour = await DataStore().getSharedPreferencesInt("endHour") ?? 18;
+  final int endMinute = await DataStore().getSharedPreferencesInt("endMinute") ?? 0;
+  TimeOfDay? _startTime;
+  TimeOfDay? _endTime;
+  _startTime = TimeOfDay(hour: startHour, minute: startMinute);
+  _endTime = TimeOfDay(hour: endHour, minute: endMinute);
+
+  Map<String, dynamic> operateTime = {
+    'startHour': _startTime!.hour,
+    'startMinute': _startTime!.minute,
+    'endHour': _endTime!.hour,
+    'endMinute': _endTime!.minute,
+  };
+
+  // 'operatetime' 카테고리 아래에 시간 정보를 저장합니다.
+  // 여기서 'id'는 사용자의 고유 식별자입니다.
+  await DataStore().saveData("operatetime", KeyValue().ID, operateTime);
+}
+Future<void> _requestPermission() async {
+  await [
+    Permission.activityRecognition,
+    Permission.location,
+  ].request();
+}
+Future<bool> _setupFirebaseMessaging() async {
+  bool isLaunchedByNotification = await LocalNotification.init();
+  print(isLaunchedByNotification);
+
+  List<Future> unsubscribeFutures = [];
+  for (int i = 0; i < 10; i++) {
+    unsubscribeFutures.add(FirebaseMessaging.instance.unsubscribeFromTopic('$i'));
+  }
+  await Future.wait(unsubscribeFutures);
+  await FirebaseMessaging.instance.subscribeToTopic(KeyValue().ID);
+  await FirebaseMessaging.instance.subscribeToTopic("update");
+  FirebaseMessaging.instance.requestPermission(
+    badge: true,
+    alert: true,
+    sound: true,
+  );
+  FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    badge: true,
+    alert: true,
+    sound: true,
+  );
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+    ServerDataListener().FCMactivce(message);
   });
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  return isLaunchedByNotification;
+}
+Future<void> _saveInitialData() async {
+  var now = DateTime.now();
+  var formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+  String time = formatter.format(now);
+  await DataStore().saveData(KeyValue().ID, "${KeyValue().CHAT_PAGE_ACCESS_COUNT}/$time", {
+    KeyValue().OPEN_STATE: "start",
+    KeyValue().TIMESTAMP: time,
+  });
+
+  int totalStep;
+  try {
+    totalStep = await HealthKit().getSteps();
+  } catch (e) {
+    totalStep = 0;
+  }
+  await DataStore().saveData(KeyValue().ID, KeyValue().CURRENTSTEP, {
+    KeyValue().TOTALSTEP_KEY: '$totalStep',
+  });
+  DataStore().saveData("currentstep", KeyValue().ID, {
+    KeyValue().TOTALSTEP_KEY: '$totalStep',
+    KeyValue().TIMESTAMP : time
+  });
+  _loadTime();
+
 }
 void main() async{
   WidgetsFlutterBinding.ensureInitialized(); // 바인딩 초기화
-  await Workmanager().initialize(
-    callbackDispatcher// 백그라운드 작업을 처리할 함수
-  );
-  await LocalNotification.init();
-  runApp(MyApp());
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Firebase Messaging 설정
+  bool isLaunchedByNotification = await _setupFirebaseMessaging();
+  //FCM & Firebase
+  await _requestPermission();
+  await _saveInitialData();
+  runApp(MyApp(isLaunchedByNotification: isLaunchedByNotification));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLaunchedByNotification;
+  const MyApp({super.key, required this.isLaunchedByNotification});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Bottom Navigation Demo',
       home: Scaffold(
-        body: PageNavigation(),
+        body: isLaunchedByNotification
+            ? PageNavigation(initialIndex: 1) // FeedbackPage가 있는 인덱스
+            : PageNavigation(initialIndex: 0,),
       )
     );
   }

@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "381487851738",
+    "firebase_url": "https://my-research-cdfdc-default-rtdb.firebaseio.com",
+    "project_id": "my-research-cdfdc",
+    "storage_bucket": "my-research-cdfdc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:381487851738:android:ba4b1d91b3d1b21d395de3",
+        "android_client_info": {
+          "package_name": "com.example.my_research"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBPeZ9dRyEHq6Lx-3bMO0X7E8aawwCP3F8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
